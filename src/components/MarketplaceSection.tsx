@@ -3827,43 +3827,6 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                               </div>
                             )}
 
-                            {/* Inner Sub-Navigation Tab Bar */}
-                            <div className="flex items-center justify-between gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800 pb-3 scrollbar-none">
-                              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
-                                {[
-                                  { id: 'overview', label: '📊 সামারি ও ব্যালেন্স' },
-                                  { id: 'sources', label: '⚡ যৌথ ইনকাম সোর্স' },
-                                  { id: 'history', label: '📜 পেআউট হিস্টোরি' }
-                                ].map(sub => {
-                                  const isActive = payoutSubTab === sub.id;
-                                  return (
-                                    <button
-                                      key={sub.id}
-                                      onClick={() => setPayoutSubTab(sub.id as any)}
-                                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 border ${
-                                        isActive
-                                          ? 'bg-[#1DB954] text-slate-950 font-black border-[#1DB954] shadow-md'
-                                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#1DB954]'
-                                      }`}
-                                    >
-                                      <span>{sub.label}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              <button
-                                onClick={() => {
-                                  setWithdrawSuccess(false);
-                                  setIsWithdrawModalOpen(true);
-                                }}
-                                className="px-4 py-1.5 rounded-full text-xs font-black transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 hover:scale-[1.02] active:scale-[0.98] shadow-md border border-emerald-400 shrink-0"
-                              >
-                                <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                                <span>ক্যাশআউট রিকোয়েস্ট</span>
-                              </button>
-                            </div>
-
                             {/* TAB 1: OVERVIEW */}
                             {payoutSubTab === 'overview' && (
                               <div className="space-y-6 animate-fadeIn">
