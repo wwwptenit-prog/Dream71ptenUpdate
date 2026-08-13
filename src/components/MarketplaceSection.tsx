@@ -9,6 +9,7 @@ import {
   Star,
   Clock,
   CheckCircle2,
+  AlertCircle,
   Send,
   Building2,
   UserCheck,
@@ -658,6 +659,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   const [withdrawMethod, setWithdrawMethod] = useState<'bKash' | 'Nagad' | 'Bank'>('bKash');
   const [withdrawAccount, setWithdrawAccount] = useState('01700000000');
   const [withdrawSuccess, setWithdrawSuccess] = useState(false);
+  const [availableBalance, setAvailableBalance] = useState<number>(683919);
 
   // Edit Seller Profile Modal State
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
@@ -2823,7 +2825,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                     <span className="uppercase tracking-wider text-[11px] font-black text-[#1DB954]">
                       {specialistMainTab === 'marketplace' && '১. মার্কেটপ্লেস ওয়ার্কস্পেস (Marketplace Services)'}
                       {specialistMainTab === 'mentor' && '২. মেন্টর সার্ভিস ওয়ার্কস্পেস (Mentor Classroom)'}
-                      {specialistMainTab === 'payments' && 'পেমেন্ট ও আর্নিং ড্যাশবোর্ড'}
+                      {specialistMainTab === 'payments' && '৩. অ্যাকাউন্ট স্টেটমেন্ট ও উইথড্রয়াল'}
                       {specialistMainTab === 'ai_toolkit' && '৪. ফ্রি ফ্রিল্যান্সার এআই টুলকিট (Free Tools)'}
                     </span>
                   </div>
@@ -2940,10 +2942,54 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                     </>
                   )}
 
-                  {/* CATEGORY 3: PAYMENTS & CASHOUT SUMMARY HEADER */}
+                  {/* CATEGORY 3: PAYMENTS & CASHOUT SUB-ITEMS */}
                   {specialistMainTab === 'payments' && (
-                    <div className="flex items-center justify-between gap-3 overflow-x-auto scrollbar-none py-1 text-xs font-bold w-full">
-                      <span className="text-slate-300 text-xs">পেমেন্ট ও উইথড্রয়াল ম্যানেজমেন্ট</span>
+                    <div className="flex items-center justify-between gap-2 overflow-x-auto scrollbar-none py-0.5 w-full">
+                      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+                        <button
+                          onClick={() => setPayoutSubTab('overview')}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                            payoutSubTab === 'overview'
+                              ? 'bg-[#1DB954] text-slate-950 font-black shadow-md'
+                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                          }`}
+                        >
+                          <span>📊 সামারি ও ব্যালেন্স</span>
+                        </button>
+
+                        <button
+                          onClick={() => setPayoutSubTab('sources')}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                            payoutSubTab === 'sources'
+                              ? 'bg-[#1DB954] text-slate-950 font-black shadow-md'
+                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                          }`}
+                        >
+                          <span>⚡ যৌথ ইনকাম সোর্স</span>
+                        </button>
+
+                        <button
+                          onClick={() => setPayoutSubTab('history')}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                            payoutSubTab === 'history'
+                              ? 'bg-[#1DB954] text-slate-950 font-black shadow-md'
+                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                          }`}
+                        >
+                          <span>📜 পেআউট হিস্টোরি</span>
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setWithdrawSuccess(false);
+                          setIsWithdrawModalOpen(true);
+                        }}
+                        className="px-4 py-1.5 rounded-full text-xs font-black transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#1DB954]/20 border border-emerald-400 shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>ক্যাশআউট রিকোয়েস্ট</span>
+                      </button>
                     </div>
                   )}
 
@@ -3782,31 +3828,40 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                             )}
 
                             {/* Inner Sub-Navigation Tab Bar */}
-                            <div className="flex items-center gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800 pb-3 scrollbar-none">
-                              {[
-                                { id: 'overview', label: '📊 সামারি ও ব্যালেন্স', desc: 'ব্যালেন্স ও ওভারভিউ' },
-                                { id: 'sources', label: '⚡ যৌথ ইনকাম সোর্স', desc: 'কোর্স ও মার্কেটপ্লেস লিষ্ট' },
-                                { id: 'withdraw', label: '💳 ক্যাশআউট রিকোয়েস্ট', desc: 'ইনস্ট্যান্ট পেআউট' },
-                                { id: 'history', label: '📜 পেআউট হিস্টোরি', desc: 'ফিল্টার ও ট্রানজেকশন' }
-                              ].map(sub => {
-                                const isActive = payoutSubTab === sub.id;
-                                return (
-                                  <button
-                                    key={sub.id}
-                                    onClick={() => setPayoutSubTab(sub.id as any)}
-                                    className={`px-4 py-2.5 rounded-2xl transition cursor-pointer text-left shrink-0 border ${
-                                      isActive
-                                        ? 'bg-[#1DB954] text-slate-950 font-black border-[#1DB954] shadow-md'
-                                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#1DB954]'
-                                    }`}
-                                  >
-                                    <span className="block text-xs font-black">{sub.label}</span>
-                                    <span className={`block text-[10px] ${isActive ? 'text-slate-950/80' : 'text-slate-400'}`}>
-                                      {sub.desc}
-                                    </span>
-                                  </button>
-                                );
-                              })}
+                            <div className="flex items-center justify-between gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800 pb-3 scrollbar-none">
+                              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
+                                {[
+                                  { id: 'overview', label: '📊 সামারি ও ব্যালেন্স' },
+                                  { id: 'sources', label: '⚡ যৌথ ইনকাম সোর্স' },
+                                  { id: 'history', label: '📜 পেআউট হিস্টোরি' }
+                                ].map(sub => {
+                                  const isActive = payoutSubTab === sub.id;
+                                  return (
+                                    <button
+                                      key={sub.id}
+                                      onClick={() => setPayoutSubTab(sub.id as any)}
+                                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 border ${
+                                        isActive
+                                          ? 'bg-[#1DB954] text-slate-950 font-black border-[#1DB954] shadow-md'
+                                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#1DB954]'
+                                      }`}
+                                    >
+                                      <span>{sub.label}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  setWithdrawSuccess(false);
+                                  setIsWithdrawModalOpen(true);
+                                }}
+                                className="px-4 py-1.5 rounded-full text-xs font-black transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 hover:scale-[1.02] active:scale-[0.98] shadow-md border border-emerald-400 shrink-0"
+                              >
+                                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                                <span>ক্যাশআউট রিকোয়েস্ট</span>
+                              </button>
                             </div>
 
                             {/* TAB 1: OVERVIEW */}
@@ -7664,6 +7719,172 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                 <span>হ্যাঁ, ডিলিট করুন</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CASHOUT REQUEST POP-UP MODAL */}
+      {isWithdrawModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+          <div className="bg-slate-900 border border-slate-800 text-white w-full max-w-lg rounded-3xl p-6 shadow-2xl relative space-y-5 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20">
+                  <Wallet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">💳 ক্যাশআউট রিকোয়েস্ট</h3>
+                  <p className="text-xs text-slate-400">ইনস্ট্যান্ট পেআউট সার্ভিস</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsWithdrawModalOpen(false)}
+                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Balance Status Card */}
+            <div className="bg-gradient-to-r from-slate-950 to-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-400 block mb-0.5">ক্যাশআউটযোগ্য ব্যালেন্স</span>
+                <span className="text-2xl font-black text-[#1DB954]">
+                  ৳{availableBalance.toLocaleString('bn-BD')}
+                </span>
+              </div>
+              <div className="px-3 py-1 rounded-full bg-[#1DB954]/10 border border-[#1DB954]/30 text-[#1DB954] text-[11px] font-black">
+                {availableBalance > 0 ? 'ইনস্ট্যান্ট প্রসেসিং' : 'ব্যালেন্স ০.০০'}
+              </div>
+            </div>
+
+            {/* Zero Balance Condition */}
+            {availableBalance <= 0 ? (
+              <div className="bg-amber-500/10 border border-amber-500/30 p-5 rounded-2xl text-center space-y-3">
+                <div className="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-amber-400">ক্যাশআউট করার মতো ব্যালেন্স নেই</h4>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    বর্তমানে আপনার অ্যাকাউন্টে কোনো ক্যাশআউটযোগ্য অবশিষ্ট ব্যালেন্স নেই। আপনার সার্ভিস বা কোর্স বিক্রি সম্পন্ন হলে অর্জিত ফান্ড এখানে জমা হবে।
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsWithdrawModalOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700 transition cursor-pointer"
+                >
+                  ঠিক আছে
+                </button>
+              </div>
+            ) : withdrawSuccess ? (
+              /* Success State */
+              <div className="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-2xl text-center space-y-3">
+                <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-emerald-400">রিকোয়েস্ট সফল হয়েছে!</h4>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    আপনার ৳{withdrawAmount.toLocaleString('bn-BD')} ক্যাশআউট রিকোয়েস্ট গ্রহণ করা হয়েছে। ১-২৪ ঘণ্টার মধ্যে {withdrawMethod.toUpperCase()} ({withdrawAccount})-এ টাকা পাঠিয়ে দেওয়া হবে।
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsWithdrawModalOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-[#1DB954] text-slate-950 font-black text-xs hover:bg-emerald-400 transition cursor-pointer shadow-lg"
+                >
+                  বন্ধ করুন
+                </button>
+              </div>
+            ) : (
+              /* Form State */
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-extrabold text-slate-300 mb-1.5">
+                    পেমেন্ট মেথড সিলেক্ট করুন
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'bKash', name: 'বিকাশ', color: 'border-pink-500/50 bg-pink-500/10 text-pink-400' },
+                      { id: 'Nagad', name: 'নগদ', color: 'border-orange-500/50 bg-orange-500/10 text-orange-400' },
+                      { id: 'Bank', name: 'ব্যাংক', color: 'border-sky-500/50 bg-sky-500/10 text-sky-400' }
+                    ].map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setWithdrawMethod(m.id as any)}
+                        className={`p-2.5 rounded-xl border text-xs font-black transition cursor-pointer text-center ${
+                          withdrawMethod === m.id
+                            ? `${m.color} ring-2 ring-[#1DB954]`
+                            : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-extrabold text-slate-300 mb-1.5">
+                    অ্যাকাউন্ট / মোবাইল নম্বর
+                  </label>
+                  <input
+                    type="text"
+                    value={withdrawAccount}
+                    onChange={(e) => setWithdrawAccount(e.target.value)}
+                    placeholder="যেমন: 017xxxxxxxx"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#1DB954]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-extrabold text-slate-300 mb-1.5">
+                    উইথড্রয়াল অ্যামাউন্ট (৳)
+                  </label>
+                  <input
+                    type="number"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(Number(e.target.value))}
+                    placeholder="সর্বনিম্ন ৳৫০০"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-[#1DB954] font-black focus:outline-none focus:border-[#1DB954]"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    * সর্বনিম্ন ক্যাশআউট ৳৫০০। সর্বোচ্চ ক্যাশআউটযোগ্য: ৳{availableBalance.toLocaleString('bn-BD')}
+                  </span>
+                </div>
+
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsWithdrawModalOpen(false)}
+                    className="w-1/3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer"
+                  >
+                    বাতিল
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!withdrawAmount || withdrawAmount < 500) {
+                        alert('সর্বনিম্ন ক্যাশআউট অ্যামাউন্ট ৳৫০০ হতে হবে!');
+                        return;
+                      }
+                      if (withdrawAmount > availableBalance) {
+                        alert(`আপনার ক্যাশআউটযোগ্য ব্যালেন্স ৳${availableBalance.toLocaleString('bn-BD')} এর বেশি দেওয়া সম্ভব নয়!`);
+                        return;
+                      }
+                      setWithdrawSuccess(true);
+                      setAvailableBalance(prev => Math.max(0, prev - withdrawAmount));
+                    }}
+                    className="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 font-black text-xs hover:opacity-95 transition cursor-pointer shadow-lg shadow-[#1DB954]/20"
+                  >
+                    রিকোয়েস্ট কনফার্ম করুন
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
