@@ -3824,101 +3824,84 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                                 )}
 
                                 {((activePendingPayout && activePendingPayout.status === 'Pending') || sellerPayouts.some(p => p.status === 'Pending')) && (
-                                  <div className="p-5 sm:p-6 bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-950/50 border-2 border-amber-500/50 rounded-3xl space-y-4 font-bengali shadow-2xl shadow-amber-500/10 relative overflow-hidden backdrop-blur-xl group">
-                                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-
-                                    {/* Header with 3-Dot Options Button */}
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-                                      <div className="flex items-center gap-3">
-                                        <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 shrink-0 shadow-inner">
-                                          <Clock className="w-5 h-5 animate-pulse text-amber-400" />
-                                        </div>
-                                        <div>
-                                          <h4 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
-                                            ১টি ক্যাশআউট / বিল আবেদন এডমিন পর্যালোচনায় প্রক্রিয়াধীন রয়েছে
-                                          </h4>
-                                          <span className="text-xs text-amber-400 font-extrabold inline-flex items-center gap-1.5 mt-0.5">
-                                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                                            ⏳ প্রসেসিং চলছে (২৪ ঘণ্টার মধ্যে পরিশোধিত হবে)
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      {/* 3-Dot Actions Menu Button */}
-                                      <div className="relative shrink-0 self-start sm:self-auto">
-                                        <button
-                                          onClick={() => setIsPendingMenuOpen(!isPendingMenuOpen)}
-                                          className="p-2.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40 transition cursor-pointer flex items-center justify-center gap-1 shadow-md hover:scale-105 active:scale-95"
-                                          title="আবেদন নিয়ন্ত্রণ (এডিট / বাতিল)"
-                                        >
-                                          <MoreVertical className="w-5 h-5" />
-                                        </button>
-
-                                        {/* Dropdown Menu */}
-                                        {isPendingMenuOpen && (
-                                          <div className="absolute right-0 top-12 z-50 w-52 bg-slate-900/95 border border-amber-500/40 rounded-2xl p-2 shadow-2xl backdrop-blur-2xl animate-fadeIn space-y-1">
-                                            <div className="px-3 py-1.5 text-[10px] font-black text-amber-400/90 uppercase tracking-wider border-b border-slate-800/80">
-                                              আবেদন নিয়ন্ত্রণ অপশন
-                                            </div>
-                                            <button
-                                              onClick={() => {
-                                                const p = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
-                                                if (p) {
-                                                  setIsPendingMenuOpen(false);
-                                                  setEditPendingAmount(p.amount);
-                                                  setEditPendingMethod((p.paymentMethod || 'bKash') as any);
-                                                  setEditPendingAccount(p.accountNumber);
-                                                  setIsEditPendingModalOpen(true);
-                                                }
-                                              }}
-                                              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                                            >
-                                              <Pencil className="w-4 h-4 text-[#1DB954]" />
-                                              <span>✏️ আবেদন এডিট করুন</span>
-                                            </button>
-                                            <button
-                                              onClick={() => {
-                                                const p = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
-                                                if (p) {
-                                                  if (confirm(`আপনি কি ৳${p.amount.toLocaleString('bn-BD')} এর ক্যাশআউট আবেদনটি বাতিল করতে চান?`)) {
-                                                    setAvailableBalance(prev => prev + p.amount);
-                                                    setActivePendingPayout(null);
-                                                    setIsPendingMenuOpen(false);
-                                                    alert('আপনার ক্যাশআউট আবেদনটি সফলভাবে বাতিল করা হয়েছে এবং পুরো টাকা ব্যালেন্সে ফেরত এসেছে।');
-                                                  }
-                                                }
-                                              }}
-                                              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-500/20 transition cursor-pointer"
-                                            >
-                                              <Trash2 className="w-4 h-4 text-rose-400" />
-                                              <span>🗑️ আবেদন বাতিল করুন</span>
-                                            </button>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Grid Data */}
+                                  <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/50 border border-amber-500/40 rounded-2xl font-bengali shadow-md relative backdrop-blur-md">
                                     {(() => {
                                       const pending = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
                                       if (!pending) return null;
                                       return (
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-950/80 p-4 rounded-2xl border border-amber-500/30 font-bold backdrop-blur-md relative z-10">
-                                          <div className="space-y-0.5">
-                                            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">অনুরোধকৃত পরিমাণ</span>
-                                            <span className="text-lg sm:text-xl font-black text-[#1DB954]">৳{pending.amount.toLocaleString('bn-BD')}</span>
+                                        <div className="flex items-center justify-between gap-3">
+                                          {/* Left Compact Info */}
+                                          <div className="flex items-center gap-3 min-w-0">
+                                            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+                                              <Clock className="w-4 h-4 animate-pulse text-amber-400" />
+                                            </div>
+                                            <div className="min-w-0">
+                                              <div className="flex items-center gap-2 flex-wrap">
+                                                <h4 className="text-xs sm:text-sm font-black text-white">
+                                                  ১টি ক্যাশআউট আবেদন প্রক্রিয়াধীন
+                                                </h4>
+                                                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black border border-amber-500/30">
+                                                  ⏳ ২৪ ঘণ্টার মধ্যে প্রসেস হবে
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-2.5 text-xs text-slate-300 font-bold mt-1 flex-wrap">
+                                                <span>পরিমাণ: <strong className="text-[#1DB954] font-black">৳{pending.amount.toLocaleString('bn-BD')}</strong></span>
+                                                <span className="text-slate-600">•</span>
+                                                <span>মেথড: <strong className="text-slate-100">{pending.paymentMethod}</strong> ({pending.accountNumber})</span>
+                                                <span className="hidden md:inline text-slate-600">•</span>
+                                                <span className="hidden md:inline text-slate-400 text-[11px]">{pending.requestedAt}</span>
+                                              </div>
+                                            </div>
                                           </div>
-                                          <div className="space-y-0.5">
-                                            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">পেমেন্ট মেথড</span>
-                                            <span className="text-sm font-black text-slate-200">{pending.paymentMethod}</span>
-                                          </div>
-                                          <div className="space-y-0.5">
-                                            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">অ্যাকাউন্ট নম্বর</span>
-                                            <span className="font-mono text-sm font-bold text-slate-200">{pending.accountNumber}</span>
-                                          </div>
-                                          <div className="space-y-0.5">
-                                            <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">আবেদনের তারিখ</span>
-                                            <span className="text-xs text-slate-300 font-bold">{pending.requestedAt}</span>
+
+                                          {/* Right 3-Dot Actions Menu Button */}
+                                          <div className="relative shrink-0">
+                                            <button
+                                              onClick={() => setIsPendingMenuOpen(!isPendingMenuOpen)}
+                                              className="p-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40 transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95"
+                                              title="অপশন (এডিট / বাতিল)"
+                                            >
+                                              <MoreVertical className="w-4 h-4" />
+                                            </button>
+
+                                            {/* Dropdown Menu */}
+                                            {isPendingMenuOpen && (
+                                              <div className="absolute right-0 top-10 z-50 w-44 bg-slate-900 border border-amber-500/40 rounded-xl p-1.5 shadow-2xl backdrop-blur-2xl animate-fadeIn space-y-1">
+                                                <button
+                                                  onClick={() => {
+                                                    const p = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
+                                                    if (p) {
+                                                      setIsPendingMenuOpen(false);
+                                                      setEditPendingAmount(p.amount);
+                                                      setEditPendingMethod((p.paymentMethod || 'bKash') as any);
+                                                      setEditPendingAccount(p.accountNumber);
+                                                      setIsEditPendingModalOpen(true);
+                                                    }
+                                                  }}
+                                                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                                                >
+                                                  <Pencil className="w-3.5 h-3.5 text-[#1DB954]" />
+                                                  <span>✏️ এডিট করুন</span>
+                                                </button>
+                                                <button
+                                                  onClick={() => {
+                                                    const p = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
+                                                    if (p) {
+                                                      if (confirm(`আপনি কি ৳${p.amount.toLocaleString('bn-BD')} এর ক্যাশআউট আবেদনটি বাতিল করতে চান?`)) {
+                                                        setAvailableBalance(prev => prev + p.amount);
+                                                        setActivePendingPayout(null);
+                                                        setIsPendingMenuOpen(false);
+                                                        alert('আপনার ক্যাশআউট আবেদনটি সফলভাবে বাতিল করা হয়েছে।');
+                                                      }
+                                                    }
+                                                  }}
+                                                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-500/20 transition cursor-pointer"
+                                                >
+                                                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                                                  <span>🗑️ বাতিল করুন</span>
+                                                </button>
+                                              </div>
+                                            )}
                                           </div>
                                         </div>
                                       );
