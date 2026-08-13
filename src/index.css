@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Hind Siliguri', 'Noto Sans Bengali', 'Anek Bangla', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Hind Siliguri', 'Sora', 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    --font-bengali: 'Hind Siliguri', 'Noto Sans Bengali', 'Anek Bangla', sans-serif;
+    --font-english: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    letter-spacing: normal;
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+}
+
+/* Typography Utilities */
+.font-sans {
+  font-family: 'Hind Siliguri', 'Noto Sans Bengali', 'Anek Bangla', 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+}
+
+.font-heading {
+  font-family: 'Hind Siliguri', 'Sora', 'Plus Jakarta Sans', 'Outfit', sans-serif !important;
+  letter-spacing: normal;
+}
+
+.font-bengali {
+  font-family: 'Hind Siliguri', 'Noto Sans Bengali', 'Anek Bangla', sans-serif !important;
+}
+
+.font-english {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+  letter-spacing: -0.015em;
+}
+
+/* PTENit Brand Color Palette Helpers */
+.bg-ptenit-green {
+  background-color: #1DB954;
+}
+
+.text-ptenit-green {
+  color: #1DB954;
+}
+
+.border-ptenit-green {
+  border-color: #1DB954;
+}
+
+.bg-ptenit-dark {
+  background-color: #0B132B;
+}
+
+.bg-ptenit-card {
+  background-color: #131F37;
+}
+
+/* Custom scrollbar */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1DB954;
+}
+
+/* Glassmorphism helpers */
+.glass-nav {
+  background: rgba(11, 19, 43, 0.94);
+  backdrop-filter: blur(16px);
+}
+
+.glass-card {
+  background: rgba(19, 31, 55, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(29, 185, 84, 0.2);
+}
+
+
