@@ -2759,7 +2759,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         <span className={`block text-[10px] font-bold truncate ${
                           specialistMainTab === 'payments' ? 'text-slate-900/80' : 'text-slate-400'
                         }`}>
-                          মার্কেট + মেন্টর যৌথ হিসাব
+                          আর্নিং ও পেমেন্ট হিস্টোরি
                         </span>
                       </div>
                     </div>
@@ -2823,13 +2823,10 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                     <span className="uppercase tracking-wider text-[11px] font-black text-[#1DB954]">
                       {specialistMainTab === 'marketplace' && '১. মার্কেটপ্লেস ওয়ার্কস্পেস (Marketplace Services)'}
                       {specialistMainTab === 'mentor' && '২. মেন্টর সার্ভিস ওয়ার্কস্পেস (Mentor Classroom)'}
-                      {specialistMainTab === 'payments' && '৩. পেমেন্ট ও ক্যাশআউট ড্যাশবোর্ড (Earning & Payout)'}
+                      {specialistMainTab === 'payments' && 'পেমেন্ট ও আর্নিং ড্যাশবোর্ড'}
                       {specialistMainTab === 'ai_toolkit' && '৪. ফ্রি ফ্রিল্যান্সার এআই টুলকিট (Free Tools)'}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#1DB954] bg-[#1DB954]/10 px-3 py-1 rounded-full border border-[#1DB954]/30 font-extrabold hidden sm:inline-block">
-                    ⚡ সেলার + মেন্টর ৪-ইন-১ সার্ভিস হাব
-                  </span>
                 </div>
 
                 {/* Secondary Dynamic Sub-Navigation Bar (Pills + Action Buttons) */}
@@ -2946,24 +2943,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                   {/* CATEGORY 3: PAYMENTS & CASHOUT SUMMARY HEADER */}
                   {specialistMainTab === 'payments' && (
                     <div className="flex items-center justify-between gap-3 overflow-x-auto scrollbar-none py-1 text-xs font-bold w-full">
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/40 rounded-full flex items-center gap-1.5 font-black text-xs shrink-0">
-                          <Wallet className="w-3.5 h-3.5 text-[#1DB954]" /> ক্যাশআউটযোগ্য যৌথ ব্যালেন্স: ৳৬,৮৩,৯১৯
-                        </span>
-                        <span className="text-slate-400 text-xs hidden md:inline-block">
-                          (মার্কেটপ্লেস ও মেন্টরিং সার্ভিস যৌথ ফান্ড)
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setPayoutSubTab('withdraw');
-                          setIsCashoutFormOpen(true);
-                        }}
-                        className="px-3.5 py-1.5 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black text-xs rounded-xl shadow transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0"
-                      >
-                        <CreditCard className="w-3.5 h-3.5" />
-                        <span>+ ইনস্ট্যান্ট ক্যাশআউট</span>
-                      </button>
+                      <span className="text-slate-300 text-xs">পেমেন্ট ও উইথড্রয়াল ম্যানেজমেন্ট</span>
                     </div>
                   )}
 
