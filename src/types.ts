@@ -13,6 +13,19 @@ export interface User {
   institution?: string;
   createdAt: string;
   blocked?: boolean;
+  isMentor?: boolean;
+  mentorStatus?: 'not_applied' | 'pending' | 'approved' | 'rejected';
+  mentorApplication?: {
+    expertise: string[];
+    experienceYears: string;
+    bio: string;
+    portfolioUrl?: string;
+    proposedCourseTopic?: string;
+    phone?: string;
+    appliedAt: string;
+    status: 'pending' | 'approved' | 'rejected';
+    rejectionReason?: string;
+  };
 }
 
 export interface Lesson {
@@ -264,9 +277,22 @@ export interface NotificationItem {
   message: string;
   time: string;
   read: boolean;
-  type: 'info' | 'success' | 'warning';
+  type: 'info' | 'success' | 'warning' | 'error';
+  category?: 'seller' | 'mentor' | 'message' | 'payout' | 'system';
   targetTab?: string;
   targetId?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  actionLabel?: string;
+  details?: {
+    orderId?: string;
+    courseId?: string;
+    assignmentId?: string;
+    clientName?: string;
+    amount?: number;
+    badgeText?: string;
+    note?: string;
+  };
 }
 
 export interface DirectMessageItem {

@@ -46,7 +46,10 @@ import {
   Shield,
   Phone,
   Save,
-  Image
+  Image,
+  Pencil,
+  MoreVertical,
+  Zap
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Assignment, AssignmentSubmission } from '../types';
@@ -123,10 +126,27 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [withdrawMethod, setWithdrawMethod] = useState<'bkash' | 'nagad' | 'bank'>('bkash');
   const [withdrawAccount, setWithdrawAccount] = useState('');
   const [payoutsList, setPayoutsList] = useState([
-    { id: 'W-9081', date: '2026-07-28', amount: 12500, method: 'bKash (01712***89)', status: 'Approved' },
-    { id: 'W-8812', date: '2026-07-15', amount: 8000, method: 'Nagad (01812***34)', status: 'Approved' },
+    { id: 'W-9081', date: '2026-07-28', amount: 12500, method: 'bKash (01712***89)', paymentMethod: 'bKash', accountNumber: '01712000089', status: 'Approved' },
+    { id: 'W-8812', date: '2026-07-15', amount: 8000, method: 'Nagad (01812***34)', paymentMethod: 'Nagad', accountNumber: '01812000034', status: 'Approved' },
   ]);
   const [withdrawSuccessMsg, setWithdrawSuccessMsg] = useState('');
+  const [isEditPayoutModalOpen, setIsEditPayoutModalOpen] = useState(false);
+  const [openTeacherPayoutMenuId, setOpenTeacherPayoutMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setOpenTeacherPayoutMenuId(null);
+    };
+    if (openTeacherPayoutMenuId) {
+      window.addEventListener('click', handleGlobalClick);
+      return () => window.removeEventListener('click', handleGlobalClick);
+    }
+  }, [openTeacherPayoutMenuId]);
+
+  const [editingPayoutItem, setEditingPayoutItem] = useState<{ id: string; amount: number; paymentMethod: string; accountNumber: string } | null>(null);
+  const [editPayoutAmount, setEditPayoutAmount] = useState<number>(0);
+  const [editPayoutMethod, setEditPayoutMethod] = useState<'bkash' | 'nagad' | 'bank'>('bkash');
+  const [editPayoutAccount, setEditPayoutAccount] = useState('');
   
   // Assignment Creation Modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -558,7 +578,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <h1 className="text-xl sm:text-3xl font-black text-white">{currentUser?.name}</h1>
                 <span className="bg-teal-500/20 text-teal-300 border border-teal-500/40 text-[11px] sm:text-xs px-2.5 py-0.5 sm:py-1 rounded-full font-bold flex items-center gap-1">
-                  <GraduationCap className="w-3.5 h-3.5" /> টিচার ড্যাশবোর্ড
+                  <Zap className="w-3.5 h-3.5 text-amber-400" /> স্পেশালিস্ট ড্যাশবোর্ড
                 </span>
               </div>
               <p className="text-slate-300 text-xs sm:text-sm font-medium">{currentUser?.title || 'ইনস্ট্রাক্টর ও কোর্স মেন্টর'}</p>
@@ -1616,36 +1636,182 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   <CreditCard className="w-5 h-5 text-blue-500" /> ক্যাশআউট হিস্টোরি ও ট্রানজেকশন
                 </h3>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-800">
-                      <tr>
-                        <th className="p-3">আইডি</th>
-                        <th className="p-3">তারিখ</th>
-                        <th className="p-3">পরিমাণ</th>
-                        <th className="p-3">মেথড</th>
-                        <th className="p-3">স্ট্যাটাস</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {payoutsList.map(pay => (
-                        <tr key={pay.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                          <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">{pay.id}</td>
-                          <td className="p-3 text-slate-400">{pay.date}</td>
-                          <td className="p-3 font-bold text-[#1DB954]">৳ {(pay.amount || 0).toLocaleString()} BDT</td>
-                          <td className="p-3">{pay.method}</td>
-                          <td className="p-3">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              pay.status === 'Approved' ? 'bg-emerald-500/20 text-[#1DB954]' : 'bg-amber-500/20 text-amber-500'
-                            }`}>
-                              {pay.status === 'Approved' ? 'অনুমোদিত' : 'প্রসেসিং'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {(() => {
+                  const userContextPayouts = payouts.filter(p =>
+                    !currentUser ||
+                    p.teacherId === currentUser.id ||
+                    (currentUser.name && p.teacherName?.toLowerCase().includes(currentUser.name.toLowerCase()))
+                  );
+
+                  const allPayoutRows = [
+                    ...userContextPayouts.map(p => ({
+                      id: p.id,
+                      date: p.requestedAt,
+                      amount: p.amount,
+                      method: `${p.paymentMethod} (${p.accountNumber})`,
+                      paymentMethod: p.paymentMethod,
+                      accountNumber: p.accountNumber,
+                      status: p.status,
+                      isPending: p.status === 'Pending'
+                    })),
+                    ...payoutsList.filter(pl => !userContextPayouts.some(p => p.id === pl.id)).map(pl => ({
+                      ...pl,
+                      isPending: pl.status === 'Pending'
+                    }))
+                  ];
+
+                  if (allPayoutRows.length === 0) {
+                    return (
+                      <div className="p-8 text-center text-slate-400 space-y-2">
+                        <Wallet className="w-8 h-8 mx-auto text-slate-300 dark:text-slate-700" />
+                        <p className="text-xs font-bold">কোনো উইথড্রয়াল হিস্টোরি পাওয়া যায়নি</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-800">
+                          <tr>
+                            <th className="p-3">আইডি</th>
+                            <th className="p-3">তারিখ</th>
+                            <th className="p-3">পরিমাণ</th>
+                            <th className="p-3">মেথড</th>
+                            <th className="p-3">স্ট্যাটাস</th>
+                            <th className="p-3 text-right">অ্যাকশন</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {allPayoutRows.map((pay, idx) => {
+                            const isPending = pay.isPending || pay.status === 'Pending';
+                            const isPaid = pay.status === 'Approved' || pay.status === 'Paid';
+                            const openUpward = idx >= allPayoutRows.length - 2 && allPayoutRows.length > 2;
+
+                            return (
+                              <tr
+                                key={pay.id}
+                                className={`transition ${
+                                  isPending
+                                    ? 'bg-amber-500/5 hover:bg-amber-500/10 dark:bg-amber-950/20'
+                                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                                }`}
+                              >
+                                <td className="p-3 font-mono font-bold text-slate-900 dark:text-white">{pay.id}</td>
+                                <td className="p-3 text-slate-400 whitespace-nowrap">{pay.date}</td>
+                                <td className="p-3 font-bold text-[#1DB954] whitespace-nowrap">৳ {(pay.amount || 0).toLocaleString()} BDT</td>
+                                <td className="p-3 whitespace-nowrap">{pay.method}</td>
+                                <td className="p-3 whitespace-nowrap">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                    isPending
+                                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
+                                      : isPaid
+                                      ? 'bg-emerald-500/20 text-[#1DB954]'
+                                      : 'bg-rose-500/20 text-rose-500'
+                                  }`}>
+                                    {isPending ? '⏳ প্রসেসিং / পেন্ডিং' : isPaid ? '✓ অনুমোদিত' : pay.status}
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right whitespace-nowrap relative">
+                                  <div className="relative inline-block text-left">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenTeacherPayoutMenuId(openTeacherPayoutMenuId === pay.id ? null : pay.id);
+                                      }}
+                                      title="মেনু অপশন (এডিট / বাতিল)"
+                                      className={`p-1.5 rounded-lg border transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 ${
+                                        isPending
+                                          ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                          : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                      }`}
+                                    >
+                                      <MoreVertical className="w-4 h-4" />
+                                    </button>
+
+                                    {openTeacherPayoutMenuId === pay.id && (
+                                      <div
+                                        onClick={(e) => e.stopPropagation()}
+                                        className={`absolute right-0 z-50 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 shadow-2xl backdrop-blur-xl animate-fadeIn space-y-1 text-left font-sans ${
+                                          openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
+                                        }`}
+                                      >
+                                        {isPending ? (
+                                          <>
+                                            <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-[10px] font-bold text-amber-500">
+                                              <Clock className="w-3 h-3 animate-pulse" />
+                                              <span>প্রক্রিয়াধীন আবেদন</span>
+                                            </div>
+                                            <button
+                                              onClick={() => {
+                                                setOpenTeacherPayoutMenuId(null);
+                                                setEditingPayoutItem({
+                                                  id: pay.id,
+                                                  amount: pay.amount,
+                                                  paymentMethod: pay.paymentMethod || 'bKash',
+                                                  accountNumber: pay.accountNumber || ''
+                                                });
+                                                setEditPayoutAmount(pay.amount);
+                                                setEditPayoutMethod(pay.paymentMethod === 'Nagad' ? 'nagad' : pay.paymentMethod === 'Bank' || pay.paymentMethod === 'Bank Transfer' ? 'bank' : 'bkash');
+                                                setEditPayoutAccount(pay.accountNumber || '');
+                                                setIsEditPayoutModalOpen(true);
+                                              }}
+                                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-500/15 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
+                                            >
+                                              <Pencil className="w-3.5 h-3.5 text-blue-500" />
+                                              <span>এডিট করুন</span>
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                setOpenTeacherPayoutMenuId(null);
+                                                if (confirm(`আপনি কি ৳${pay.amount.toLocaleString()} এর উইথড্রয়াল আবেদনটি বাতিল করতে চান?`)) {
+                                                  setPayoutsList(prev => prev.filter(item => item.id !== pay.id));
+                                                  alert('আপনার উইথড্রয়াল আবেদনটি সফলভাবে বাতিল করা হয়েছে।');
+                                                }
+                                              }}
+                                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition cursor-pointer"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                              <span>বাতিল করুন</span>
+                                            </button>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-[10px] font-bold text-emerald-500">
+                                              <CheckCircle2 className="w-3 h-3" />
+                                              <span>{isPaid ? 'অনুমোদিত' : 'স্ট্যাটাস চূড়ান্ত'}</span>
+                                            </div>
+                                            <div
+                                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed select-none"
+                                              title="অনুমোদিত হওয়ায় এডিট করা যাবে না"
+                                            >
+                                              <Lock className="w-3.5 h-3.5" />
+                                              <span>এডিট (লকড)</span>
+                                            </div>
+                                            <div
+                                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed select-none"
+                                              title="অনুমোদিত হওয়ায় বাতিল করা যাবে না"
+                                            >
+                                              <Lock className="w-3.5 h-3.5" />
+                                              <span>বাতিল (লকড)</span>
+                                            </div>
+                                            <p className="px-2 pb-0.5 text-[9px] text-slate-400 font-normal leading-tight">
+                                              টাকা পরিশোধ সম্পন্ন হওয়ায় এটি পরিবর্তনযোগ্য নয়।
+                                            </p>
+                                          </>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -1699,6 +1865,113 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         {/* TAB 2: TEACHER COURSES & VIDEO LESSONS */}
         {activeTab === 'courses' && (
           <div className="space-y-6">
+            {/* ADMIN COURSE OFFERS SECTION - RECEIVE OFFERS */}
+            {offeredCourses.length > 0 && (
+              <div className="bg-gradient-to-r from-amber-500/15 via-slate-900/90 to-amber-950/30 border-2 border-amber-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 font-bengali">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-amber-500/30">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-3 h-3 rounded-full bg-amber-400 animate-ping shrink-0" />
+                    <div>
+                      <h3 className="text-base sm:text-lg font-black text-amber-300 flex items-center gap-2">
+                        <span>📩 মেইন এডমিন থেকে প্রাপ্ত কোর্স অফারসমূহ</span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-xs">
+                          {offeredCourses.length}টি অফার অপেক্ষমাণ
+                        </span>
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        এডমিন কর্তৃক আপনাকে নির্ধারিত কোর্সের অফার ও দায়িত্ব রিভিউ করুন এবং রিসিভ করে ক্লাস শুরু করুন।
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/40 shrink-0">
+                    ইনস্ট্যান্ট রিসিভ সুবিধাযুক্ত
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {offeredCourses.map(course => (
+                    <div
+                      key={course.id}
+                      className="bg-white dark:bg-slate-900/90 rounded-2xl p-4 border border-amber-500/40 shadow-md flex flex-col justify-between space-y-3 hover:border-amber-400 transition"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                          <img
+                            src={course.thumbnail}
+                            alt={course.title}
+                            className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-700"
+                          />
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30">
+                                {course.level === 'basic' ? '🟢 বেসিক লেভেল' : course.level === 'advanced' ? '⚡ এডভান্সড লেভেল' : course.level === 'professional' ? '🎓 প্রফেশনাল' : '📘 কোর্স অফার'}
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                {course.category}
+                              </span>
+                            </div>
+                            <h4 className="font-black text-sm text-slate-900 dark:text-white leading-snug line-clamp-2">
+                              {course.title}
+                            </h4>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                          {course.description}
+                        </p>
+
+                        {/* Admin Offer Breakdown */}
+                        <div className="grid grid-cols-3 gap-2 p-2.5 bg-amber-500/5 dark:bg-amber-950/20 rounded-xl border border-amber-500/20 text-center">
+                          <div>
+                            <span className="text-[9px] text-slate-400 block font-bold">মডিউল টার্গেট</span>
+                            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">
+                              {course.targetModules || 4}টি
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 block font-bold">ক্লাস টার্গেট</span>
+                            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">
+                              {course.targetLessons || 16}টি
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 block font-bold">শিক্ষক কমিশন</span>
+                            <span className="font-black text-xs text-emerald-600 dark:text-[#1DB954]">
+                              {course.teacherCommissionRate || 35}% ফি
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons: Accept / Decline */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                          onClick={() => {
+                            acceptCourseOffer(course.id, currentUser?.id, currentUser?.name);
+                            playChimeSound('accept');
+                          }}
+                          className="flex-1 py-2 px-3 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 dark:text-white font-black text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-slate-950 dark:text-white" />
+                          <span>রিসিভ করুন</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            declineCourseOffer(course.id);
+                            playChimeSound('decline');
+                          }}
+                          className="py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/20 text-slate-600 dark:text-slate-300 hover:text-rose-500 font-bold text-xs rounded-xl transition border border-slate-200 dark:border-slate-700 cursor-pointer flex items-center gap-1"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>প্রত্যাখ্যান</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
                 <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
@@ -3056,6 +3329,114 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 </button>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* EDIT PENDING PAYOUT MODAL */}
+        {isEditPayoutModalOpen && editingPayoutItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+            <div className="bg-slate-900 border border-slate-800 text-white w-full max-w-md rounded-3xl p-6 shadow-2xl relative space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20">
+                    <Pencil className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold text-white">ক্যাশআউট রিকোয়েস্ট পরিবর্তন</h3>
+                    <p className="text-[11px] text-slate-400 font-mono">আইডি: {editingPayoutItem.id}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditPayoutModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!editPayoutAmount || editPayoutAmount <= 0) {
+                    alert('সঠিক টাকার পরিমাণ দিন!');
+                    return;
+                  }
+                  if (!editPayoutAccount) {
+                    alert('সঠিক অ্যাকাউন্ট নম্বর দিন!');
+                    return;
+                  }
+                  setPayoutsList(prev => prev.map(item => {
+                    if (item.id === editingPayoutItem.id) {
+                      const methodLabel = editPayoutMethod === 'bkash' ? 'bKash' : editPayoutMethod === 'nagad' ? 'Nagad' : 'Bank Transfer';
+                      return {
+                        ...item,
+                        amount: editPayoutAmount,
+                        method: `${methodLabel} (${editPayoutAccount})`,
+                        paymentMethod: methodLabel,
+                        accountNumber: editPayoutAccount
+                      };
+                    }
+                    return item;
+                  }));
+                  setIsEditPayoutModalOpen(false);
+                  alert('আপনার ক্যাশআউট রিকোয়েস্ট সফলভাবে আপডেট করা হয়েছে!');
+                }}
+                className="space-y-4 text-xs"
+              >
+                <div>
+                  <label className="block font-bold text-slate-300 mb-1">পেমেন্ট মেথড</label>
+                  <select
+                    value={editPayoutMethod}
+                    onChange={(e) => setEditPayoutMethod(e.target.value as any)}
+                    className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-[#1DB954]"
+                  >
+                    <option value="bkash">bKash (বিকাশ পার্সোনাল)</option>
+                    <option value="nagad">Nagad (নগদ পার্সোনাল)</option>
+                    <option value="bank">Bank Transfer (ব্যাংক একাউন্ট)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-300 mb-1">একাউন্ট/মোবাইল নম্বর *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editPayoutAccount}
+                    onChange={(e) => setEditPayoutAccount(e.target.value)}
+                    className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-[#1DB954]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-300 mb-1">ক্যাশআউট পরিমাণ (টাকা) *</label>
+                  <input
+                    type="number"
+                    required
+                    min={100}
+                    value={editPayoutAmount}
+                    onChange={(e) => setEditPayoutAmount(Number(e.target.value))}
+                    className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-[#1DB954]"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditPayoutModalOpen(false)}
+                    className="w-1/3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition cursor-pointer"
+                  >
+                    বাতিল
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 font-black hover:opacity-95 transition cursor-pointer shadow-lg shadow-[#1DB954]/20"
+                  >
+                    আপডেট সংরক্ষণ করুন
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

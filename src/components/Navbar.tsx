@@ -115,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const getDashboardTitle = (role?: string) => {
     if (role === 'admin') return t('এডমিন প্যানেল', 'Admin Panel');
-    if (role === 'instructor') return t('টিচার ড্যাশবোর্ড', 'Teacher Dashboard');
+    if (role === 'instructor') return t('স্পেশালিস্ট ড্যাশবোর্ড', 'Specialist Dashboard');
     return t('গ্রাহক ড্যাশবোর্ড', 'Customer Dashboard');
   };
 
@@ -666,7 +666,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         {currentUser.name}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
-                        {currentUser.role === 'admin' ? '🛡️ এডমিন' : currentUser.role === 'instructor' ? '🎓 ইনস্ট্রাক্টর (সেলার)' : currentUser.role === 'customer' ? '💼 কাস্টমার (বায়ার)' : '⚡ স্টুডেন্ট'}
+                        {currentUser.role === 'admin' ? '🛡️ এডমিন' : currentUser.role === 'instructor' ? '⚡ স্পেশালিস্ট' : '💼 গ্রাহক'}
                       </span>
                     </div>
 
@@ -685,7 +685,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         />
                         <div className="min-w-0 flex-1">
                           <p className="font-extrabold text-white text-xs truncate">{currentUser.name}</p>
-                          <p className="text-[10px] text-slate-400 truncate font-mono">PTENit: {currentUser.role === 'admin' ? 'এডমিন' : currentUser.role === 'instructor' ? 'ট্রেইনার' : currentUser.role === 'customer' ? 'ক্লায়েন্ট' : 'স্টুডেন্ট'}</p>
+                          <p className="text-[10px] text-slate-400 truncate font-mono">PTENit: {currentUser.role === 'admin' ? 'এডমিন' : currentUser.role === 'instructor' ? 'স্পেশালিস্ট' : 'গ্রাহক'}</p>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/40">
                               🎓 PTENit একাডেমি
@@ -1087,14 +1087,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Role Switcher in Mobile Drawer */}
               <div className="p-3 bg-slate-900/90 rounded-xl border border-emerald-500/40 space-y-2">
                 <p className="text-xs font-black text-emerald-400 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-amber-300" /> ১-ক্লিকে রোল সুইচ করুন:
+                  <Sparkles className="w-4 h-4 text-amber-300" /> ড্যাশবোর্ড সুইচ:
                 </p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   {[
-                    { role: 'student' as const, label: 'স্টুডেন্ট', tab: 'student-dashboard' },
-                    { role: 'instructor' as const, label: 'টিচার', tab: 'teacher-dashboard' },
-                    { role: 'customer' as const, label: 'বায়ার', tab: 'marketplace' },
-                    { role: 'admin' as const, label: 'এডমিন', tab: 'admin' },
+                    { role: 'admin' as const, label: 'এডমিন প্যানেল', tab: 'admin' },
+                    { role: 'customer' as const, label: 'গ্রাহক ড্যাশবোর্ড', tab: 'customer-dashboard' },
+                    { role: 'instructor' as const, label: 'স্পেশালিস্ট ড্যাশবোর্ড', tab: 'teacher-dashboard' },
                   ].map(item => (
                     <button
                       key={item.role}
@@ -1103,9 +1102,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                         setActiveTab(item.tab);
                         setMobileMenuOpen(false);
                       }}
-                      className={`py-2 px-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                      className={`py-2 px-1.5 text-[11px] font-bold rounded-lg border transition-all cursor-pointer text-center leading-tight ${
                         currentUser?.role === item.role
-                          ? 'bg-[#1DB954] text-white border-[#1DB954]'
+                          ? 'bg-[#1DB954] text-white border-[#1DB954] shadow-md'
                           : 'bg-slate-800 text-slate-200 border-slate-700 hover:border-emerald-500'
                       }`}
                     >

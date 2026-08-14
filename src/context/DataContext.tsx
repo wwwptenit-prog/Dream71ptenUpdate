@@ -105,6 +105,7 @@ interface DataContextType {
   approveOrderAndReleaseEscrow: (orderId: string, rating?: number, reviewComment?: string) => void;
   cancelMarketplaceOrder: (orderId: string, reason?: string) => void;
   updateMarketplaceOrderStatus: (orderId: string, status: MarketplaceOrder['status'], updateNote?: string) => void;
+  addMarketplaceOrder: (order: MarketplaceOrder) => void;
   dispatchJobToStaff: (jobId: string, staffId: string, staffName: string) => void;
   
   // Auth & Profile
@@ -172,6 +173,12 @@ interface DataContextType {
   // Notifications
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
+  sendCentralNotification: (notif: Omit<NotificationItem, 'id' | 'time' | 'read'>) => void;
+  
+  // Mentorship Application & Role Actions
+  applyForMentorship: (data: { expertise: string[]; experienceYears: string; bio: string; portfolioUrl?: string; proposedCourseTopic?: string; phone?: string }) => void;
+  approveMentorApplication: (userId?: string) => void;
+  rejectMentorApplication: (userId?: string, reason?: string) => void;
   
   // Direct Messages & Popovers
   markDirectMessageRead: (id: string) => void;
@@ -627,7 +634,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [marketplaceOrders, setMarketplaceOrders] = useState<MarketplaceOrder[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_marketplace_orders`);
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try {
+        const parsed: MarketplaceOrder[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasPendingApproval = parsed.some(o => o.status === 'pending_approval');
+          if (!hasPendingApproval) {
+            const demoOrd = initialMarketplaceOrders.find(o => o.id === 'ord-mkt-4');
+            if (demoOrd) {
+              const without4 = parsed.filter(o => o.id !== 'ord-mkt-4');
+              return [demoOrd, ...without4];
+            }
+          }
+          return parsed;
+        }
+      } catch {}
     }
     return initialMarketplaceOrders;
   });
@@ -865,12 +885,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const demoLogin = (role: 'student' | 'instructor' | 'customer' | 'admin') => {
-    const target = users.find(u => u.role === role);
-    if (target) {
-      setCurrentUser(target);
+    let target = users.find(u => u.role === role);
+    if (!target) {
+      target = initialUsers.find(u => u.role === role) || initialUsers[0];
+    }
+    setCurrentUser(target);
+    
+    // Synchronize marketplace user appropriately
+    if (role === 'instructor') {
+      const seller = users.find(u => u.id === 'mkt-seller-1') || initialUsers.find(u => u.id === 'mkt-seller-1') || initialUsers[4];
+      setMarketplaceUser(seller);
+    } else if (role === 'customer') {
+      const buyer = users.find(u => u.id === 'mkt-buyer-1') || initialUsers.find(u => u.id === 'mkt-buyer-1') || initialUsers[5];
+      setMarketplaceUser(buyer);
+    } else if (role === 'admin') {
+      const adminMkt = users.find(u => u.role === 'admin') || initialUsers[0];
+      setMarketplaceUser(adminMkt);
     } else {
-      const match = initialUsers.find(u => u.role === role) || initialUsers[0];
-      setCurrentUser(match);
+      const studentBuyer = users.find(u => u.id === 'mkt-buyer-1') || initialUsers.find(u => u.id === 'mkt-buyer-1') || initialUsers[5];
+      setMarketplaceUser(studentBuyer);
     }
   };
 
@@ -1128,6 +1161,144 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const markAllNotificationsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setDirectMessages(prev => prev.map(m => ({ ...m, read: true })));
+  };
+
+  const sendCentralNotification = (notif: Omit<NotificationItem, 'id' | 'time' | 'read'>) => {
+    const newNotif: NotificationItem = {
+      ...notif,
+      id: `notif-${Date.now()}`,
+      time: 'এখনই',
+      read: false
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+  };
+
+  const applyForMentorship = (data: {
+    expertise: string[];
+    experienceYears: string;
+    bio: string;
+    portfolioUrl?: string;
+    proposedCourseTopic?: string;
+    phone?: string;
+  }) => {
+    const targetUser = currentUser || marketplaceUser;
+    if (!targetUser) return;
+
+    const updatedUser: User = {
+      ...targetUser,
+      mentorStatus: 'pending',
+      mentorApplication: {
+        ...data,
+        appliedAt: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }),
+        status: 'pending'
+      }
+    };
+
+    if (currentUser) setPtenitUser(updatedUser);
+    if (marketplaceUser) setMarketplaceUser(updatedUser);
+    setUsers(prev => prev.map(u => u.id === targetUser.id ? updatedUser : u));
+
+    sendCentralNotification({
+      title: '📋 মেন্টরশিপ আবেদন সফলভাবে জমা হয়েছে',
+      message: `আপনার মেন্টরশিপ আবেদন পর্যালোচনা করা হচ্ছে। এডমিন প্যানেল থেকে খুব শীঘ্রই অনুমোদন দেওয়া হবে।`,
+      type: 'info',
+      category: 'mentor',
+      targetTab: 'mentor',
+      actionLabel: 'আবেদন স্ট্যাটাস দেখুন',
+      details: {
+        badgeText: 'অপেক্ষমান (Pending Review)',
+        note: `এক্সপার্টিজ: ${data.expertise.join(', ')} • অভিজ্ঞতা: ${data.experienceYears}`
+      }
+    });
+  };
+
+  const approveMentorApplication = (userId?: string) => {
+    const targetId = userId || currentUser?.id || marketplaceUser?.id;
+    if (!targetId) return;
+
+    setUsers(prev => prev.map(u => {
+      if (u.id === targetId) {
+        return {
+          ...u,
+          role: 'instructor',
+          isMentor: true,
+          mentorStatus: 'approved',
+          mentorApplication: u.mentorApplication ? { ...u.mentorApplication, status: 'approved' } : undefined
+        };
+      }
+      return u;
+    }));
+
+    if (currentUser && currentUser.id === targetId) {
+      setPtenitUser({
+        ...currentUser,
+        role: 'instructor',
+        isMentor: true,
+        mentorStatus: 'approved',
+        mentorApplication: currentUser.mentorApplication ? { ...currentUser.mentorApplication, status: 'approved' } : undefined
+      });
+    }
+
+    if (marketplaceUser && marketplaceUser.id === targetId) {
+      setMarketplaceUser({
+        ...marketplaceUser,
+        role: 'instructor',
+        isMentor: true,
+        mentorStatus: 'approved',
+        mentorApplication: marketplaceUser.mentorApplication ? { ...marketplaceUser.mentorApplication, status: 'approved' } : undefined
+      });
+    }
+
+    sendCentralNotification({
+      title: '🎉 অভিনন্দন! আপনার মেন্টরশিপ আবেদন অনুমোদিত হয়েছে',
+      message: 'আপনি এখন PTENit ভেরিফায়েড মেন্টর। আপনার কোর্স তৈরি, অ্যাসাইনমেন্ট প্রদান ও স্টুডেন্টদের মেন্টরিং করার সকল ফিচার আনলক করা হয়েছে!',
+      type: 'success',
+      category: 'mentor',
+      targetTab: 'mentor',
+      actionLabel: 'মেন্টর প্যানেলে যান',
+      details: {
+        badgeText: 'ভেরিফায়েড মেন্টর (Approved)',
+        note: 'কোর্স ও লাইভ ক্লাস ম্যানেজমেন্ট শুরু করুন।'
+      }
+    });
+  };
+
+  const rejectMentorApplication = (userId?: string, reason?: string) => {
+    const targetId = userId || currentUser?.id || marketplaceUser?.id;
+    if (!targetId) return;
+
+    setUsers(prev => prev.map(u => {
+      if (u.id === targetId) {
+        return {
+          ...u,
+          mentorStatus: 'rejected',
+          mentorApplication: u.mentorApplication ? { ...u.mentorApplication, status: 'rejected', rejectionReason: reason } : undefined
+        };
+      }
+      return u;
+    }));
+
+    if (currentUser && currentUser.id === targetId) {
+      setPtenitUser({
+        ...currentUser,
+        mentorStatus: 'rejected',
+        mentorApplication: currentUser.mentorApplication ? { ...currentUser.mentorApplication, status: 'rejected', rejectionReason: reason } : undefined
+      });
+    }
+
+    sendCentralNotification({
+      title: '⚠️ মেন্টরশিপ আবেদন সংক্রান্ত আপডেট',
+      message: `আপনার মেন্টরশিপ আবেদনটি এই মুহূর্তে অনুমোদন করা সম্ভব হয়নি। কারণ: ${reason || 'প্রয়োজনীয় অভিজ্ঞতার ঘাটতি'}`,
+      type: 'warning',
+      category: 'mentor',
+      targetTab: 'mentor',
+      actionLabel: 'পুনরায় আবেদন করুন',
+      details: {
+        badgeText: 'প্রত্যাখ্যাত (Rejected)',
+        note: reason || 'প্রয়োজনীয় তথ্যাবলি হালনাগাদ করে পুনরায় আবেদন করুন।'
+      }
+    });
   };
 
   const markDirectMessageRead = (id: string) => {
@@ -1568,7 +1739,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sellerPayout: Math.round(pkg.price * 0.9),
       paymentMethod: buyerDetails?.paymentMethod || 'Escrow (bKash/Nagad)',
       transactionId: buyerDetails?.transactionId || `TRX-GIG-${Math.floor(100000 + Math.random() * 900000)}`,
-      status: 'in_progress',
+      status: 'pending',
       deliveryNote: customNote,
       createdAt: new Date().toISOString(),
       deadlineDate: new Date(Date.now() + pkg.deliveryDays * 86400000).toISOString().split('T')[0]
@@ -1750,6 +1921,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ]);
   };
 
+  const addMarketplaceOrder = (order: MarketplaceOrder) => {
+    setMarketplaceOrders(prev => [order, ...prev]);
+  };
+
   const dispatchJobToStaff = (jobId: string, staffId: string, staffName: string) => {
     setJobs(prev => prev.map(j => {
       if (j.id === jobId) {
@@ -1867,6 +2042,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         approveOrderAndReleaseEscrow,
         cancelMarketplaceOrder,
         updateMarketplaceOrderStatus,
+        addMarketplaceOrder,
         dispatchJobToStaff,
         login,
         signup,
@@ -1913,6 +2089,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         markMessageRead,
         markNotificationRead,
         markAllNotificationsRead,
+        sendCentralNotification,
+        applyForMentorship,
+        approveMentorApplication,
+        rejectMentorApplication,
         markDirectMessageRead,
         markAllDirectMessagesRead,
         sendDirectMessage,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   LayoutDashboard,
   Settings,
@@ -43,6 +43,7 @@ import {
   MapPin,
   Calendar,
   MessageCircle,
+  Info,
   Wallet,
   Award,
   TrendingUp,
@@ -127,11 +128,16 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     approveOrderAndReleaseEscrow,
     cancelMarketplaceOrder,
     updateMarketplaceOrderStatus,
+    addMarketplaceOrder,
     payouts,
     requestTeacherPayout,
     notifications,
     markNotificationRead,
     markAllNotificationsRead,
+    sendCentralNotification,
+    applyForMentorship,
+    approveMentorApplication,
+    rejectMentorApplication,
     directMessages,
     markDirectMessageRead,
     markAllDirectMessagesRead,
@@ -140,7 +146,9 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     customerProjects,
     createCustomerProject,
     updateMarketplaceOrder,
-    deleteMarketplaceOrder
+    deleteMarketplaceOrder,
+    acceptCourseOffer,
+    declineCourseOffer
   } = useData();
 
   const allBuyerOrders = useMemo(() => {
@@ -252,6 +260,9 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   }, [marketplaceOrders, customerProjects]);
 
   const currentUser = marketplaceUser || ptenitUser;
+  const offeredCourses = useMemo(() => {
+    return (courses || []).filter(c => c.offerStatus === 'offered');
+  }, [courses]);
   const userEnrollments = useMemo(() => {
     if (!currentUser) return [];
     return (enrollments || []).filter(e => e.userId === currentUser.id || e.studentId === currentUser.id);
@@ -465,9 +476,14 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Whenever initialCategory or marketplace route is navigated to, set viewMode to 'buying' and sync selectedCategory
+  // Whenever initialCategory or marketplace route is navigated to, sync viewMode and subTabs
   useEffect(() => {
-    setViewMode('buying');
+    if (initialCategory === 'selling' || initialCategory === 'seller' || currentUser?.role === 'instructor') {
+      setViewMode('selling');
+    } else {
+      setViewMode('buying');
+    }
+
     if (initialCategory === 'my-orders' || initialCategory === 'My Orders') {
       setActiveSubTab('my-orders');
       setSelectedGig(null);
@@ -477,11 +493,11 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     } else if (initialCategory === 'my-courses') {
       setActiveSubTab('my-courses');
       setSelectedGig(null);
-    } else if (initialCategory) {
+    } else if (initialCategory && initialCategory !== 'selling' && initialCategory !== 'seller') {
       setSelectedCategory(initialCategory);
       setActiveSubTab('gigs');
     }
-  }, [initialCategory]);
+  }, [initialCategory, currentUser?.role]);
 
   // Freelancer Free Tech Toolkit States
   const [activeToolkit, setActiveToolkit] = useState<'proposal' | 'invoice' | 'calculator' | 'contract'>('proposal');
@@ -680,6 +696,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   });
 
   const [isPendingMenuOpen, setIsPendingMenuOpen] = useState(false);
+  const [openPayoutMenuId, setOpenPayoutMenuId] = useState<string | null>(null);
   const [isEditPendingModalOpen, setIsEditPendingModalOpen] = useState(false);
   const [editPendingAmount, setEditPendingAmount] = useState<number>(683919);
   const [editPendingMethod, setEditPendingMethod] = useState<'bKash' | 'Nagad' | 'Bank'>('bKash');
@@ -717,6 +734,16 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
       setBuyerEditEmail(currentUser.email || 'buyer@ptenit.com');
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setOpenPayoutMenuId(null);
+    };
+    if (openPayoutMenuId) {
+      window.addEventListener('click', handleGlobalClick);
+      return () => window.removeEventListener('click', handleGlobalClick);
+    }
+  }, [openPayoutMenuId]);
 
   const handleSaveBuyerProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -767,6 +794,32 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isInboxModalOpen, setIsInboxModalOpen] = useState(false);
+  const [isCentralNotificationOpen, setIsCentralNotificationOpen] = useState(false);
+  const [centralNotifFilter, setCentralNotifFilter] = useState<'all' | 'messages' | 'orders' | 'mentor' | 'payouts'>('all');
+  const [centralNotifSearch, setCentralNotifSearch] = useState('');
+
+  // Mentorship Application & Role-Based Access States
+  const [isMentorAppModalOpen, setIsMentorAppModalOpen] = useState(false);
+  const [isMentorStatusModalOpen, setIsMentorStatusModalOpen] = useState(false);
+  const [mentorAppExpertise, setMentorAppExpertise] = useState<string[]>(['Web Development', 'UI/UX Design']);
+  const [mentorAppExperience, setMentorAppExperience] = useState('3+ Years');
+  const [mentorAppBio, setMentorAppBio] = useState('আমি ৫+ বছর ধরে প্রফেশনাল ওয়েব ডেভেলপমেন্ট এবং শিক্ষার্থীদের মেন্টরিং করে আসছি।');
+  const [mentorAppPortfolio, setMentorAppPortfolio] = useState('https://github.com/expert-mentor');
+  const [mentorAppProposedTopic, setMentorAppProposedTopic] = useState('Full-Stack Web Development & Modern React Bootcamp');
+  const [mentorAppPhone, setMentorAppPhone] = useState(currentUser?.mobile || '01700000000');
+  const [mentorAppSubmittedSuccess, setMentorAppSubmittedSuccess] = useState(false);
+
+  // Role-Based Checks
+  const isMentor = Boolean(
+    currentUser?.role === 'instructor' || 
+    currentUser?.isMentor === true || 
+    currentUser?.mentorStatus === 'approved'
+  );
+  const mentorAppStatus = currentUser?.mentorStatus || (currentUser?.mentorApplication ? currentUser.mentorApplication.status : 'not_applied');
+  const isMentorPending = mentorAppStatus === 'pending';
+
+  // Central Combined Unread Notification Counter
+  const totalUnreadCount = (notifications?.filter(n => !n.read).length || 0) + (directMessages?.filter(m => !m.read).length || 0);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isProSubscribed, setIsProSubscribed] = useState(true);
   const [subscriptionSuccess, setSubscriptionSuccess] = useState(false);
@@ -777,6 +830,314 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   const [editProfileBio, setEditProfileBio] = useState('Expert developer with 5+ years of experience delivering high-converting websites, web apps, and AI chatbots.');
   const [editProfileSkills, setEditProfileSkills] = useState('React, TypeScript, Node.js, Python, Tailwind CSS, Next.js, AI Agents');
   const [editProfileSuccess, setEditProfileSuccess] = useState(false);
+
+  // Live Offer / Order Notification Banner States (Cover Banner)
+  interface LiveOfferItem {
+    id: string;
+    type: 'personal' | 'public' | 'course';
+    typeLabel: string;
+    source: string;
+    clientName: string;
+    clientAvatar: string;
+    title: string;
+    category: string;
+    budget: number;
+    deadline: string;
+    rating: string;
+    isVerified: boolean;
+    durationSec: number; // Dynamic duration (Admin/Client set)
+    requirements: string;
+    deliverables: string[];
+    clientLocation: string;
+    postedTime: string;
+  }
+
+  const INITIAL_LIVE_OFFERS: LiveOfferItem[] = [
+    {
+      id: 'live-ord-101',
+      type: 'personal',
+      typeLabel: '🔒 ডিরেক্ট পার্সোনাল অর্ডার',
+      source: 'Client Direct Request',
+      clientName: 'মোশাররফ হোসেন',
+      clientAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+      clientLocation: 'ঢাকা, বাংলাদেশ',
+      postedTime: '১০ মিনিট আগে',
+      title: 'ফুল-স্ট্যাক ই-কমার্স ওয়েবসাইট UI/UX রি-ডিজাইন ও পেমেন্ট ইন্টিগ্রেশন (bKash/Nagad)',
+      category: 'Web Development',
+      budget: 14500,
+      deadline: '২ দিন',
+      rating: '4.9 (24 রিভিউ)',
+      isVerified: true,
+      durationSec: 15,
+      requirements: 'আমাদের রানিং ফ্যাশন ব্র্যান্ডের জন্য Next.js ও Tailwind CSS বেসড একটি রেসপনসিভ অনলাইন স্টোর তৈরি করতে হবে। সাথে SSLCommerz/bKash পেমেন্ট গেটওয়ে এবং ইনভয়েস জেনারেশন সিস্টেম যুক্ত থাকবে। Figma ফাইল প্রস্তুত আছে।',
+      deliverables: [
+        'ফুল রেসপনসিভ ফ্রন্টএন্ড ডিজাইন (Next.js 14)',
+        'SSLCommerz & bKash পেমেন্ট গেটওয়ে সেটআপ',
+        'অটোমেটেড SMS ও ইমেইল ইনভয়েস সিস্টেম',
+        '৭ দিনের ফ্রি বাগ ফিক্সিং ওয়ারেন্টি'
+      ]
+    },
+    {
+      id: 'live-ord-102',
+      type: 'public',
+      typeLabel: '⚡ লাইভ পাবলিক প্রজেক্ট অফার',
+      source: 'Admin Panel Featured',
+      clientName: 'তানভীর হাসান (Dhaka IT Solutions)',
+      clientAvatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80',
+      clientLocation: 'চট্টগ্রাম, বাংলাদেশ',
+      postedTime: '২৫ মিনিট আগে',
+      title: 'লারাভেল ও রিয়্যাক্ট লাইভ মেন্টরশিপ & রিয়েল-টাইম প্রজেক্ট সাপোর্ট সেশন',
+      category: 'Live Mentorship',
+      budget: 6000,
+      deadline: 'আজকের মধ্যে',
+      rating: '5.0 (48 রিভিউ)',
+      isVerified: true,
+      durationSec: 20,
+      requirements: 'আমাদের জুনিয়র ডেভেলপার টিমের জন্য ২ ঘণ্টার লাইভ কোডিং ও প্রবলেম সলভিং সেশন পরিচালনা করতে হবে। মূল ফোকাস: RESTful API সিকিউরিটি, JWT অথেনটিকেশন এবং স্টেট ম্যানেজমেন্ট।',
+      deliverables: [
+        '২ ঘণ্টার ওয়ান-টু-ওয়ান গুগল মিট সেশন',
+        'কোড রিভিউ ও সিকিউরিটি অডিট গাইডলাইন',
+        'প্রজেক্ট আর্কিটেকচার স্যাম্পল রেপো'
+      ]
+    },
+    {
+      id: 'live-ord-103',
+      type: 'personal',
+      typeLabel: '🔒 ডিরেক্ট পার্সোনাল অর্ডার',
+      source: 'Client Direct Request',
+      clientName: 'ফারহানা চৌধুরী (NexGen Agency)',
+      clientAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+      clientLocation: 'বনানী, ঢাকা',
+      postedTime: '১ ঘণ্টা আগে',
+      title: 'মোবাইল অ্যাপ স্ক্রিন প্রোটোটাইপিং (Figma to Flutter/React Native)',
+      category: 'UI/UX Design',
+      budget: 8500,
+      deadline: '২৪ ঘণ্টা',
+      rating: '5.0 (19 রিভিউ)',
+      isVerified: true,
+      durationSec: 12,
+      requirements: 'একটি হেলথ-টেক স্টার্টআপের জন্য ১২টি প্রিমিয়াম মোবাইল স্ক্রিনের আধুনিক Figma প্রোটোটাইপ ও কম্পোনেন্ট সিস্টেম ডিজাইন করতে হবে। ডার্ক ও লাইট মোড উভয়ই থাকতে হবে।',
+      deliverables: [
+        '১২টি ফুল ইন্টারঅ্যাক্টিভ Figma স্ক্রিন',
+        'অটো-লেআউট এবং ডিজাইন টোকেনস',
+        'ডেভেলপার হ্যান্ডঅফ রেডি এসেটস'
+      ]
+    },
+    {
+      id: 'live-ord-104',
+      type: 'public',
+      typeLabel: '⚡ লাইভ কোর্স এনরোলমেন্ট',
+      source: 'Admin Panel Featured',
+      clientName: 'রাকিব আহমেদ',
+      clientAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+      clientLocation: 'সিলেট, বাংলাদেশ',
+      postedTime: '২ ঘণ্টা আগে',
+      title: 'প্রফেশনাল ডিজিটাল মার্কেটিং ও ফেসবুক এডস কনসালটেশন প্যাক',
+      category: 'Digital Marketing',
+      budget: 4500,
+      deadline: '৩ দিন',
+      rating: '4.8 (12 রিভিউ)',
+      isVerified: true,
+      durationSec: 18,
+      requirements: 'একটি ই-কমার্স ব্র্যান্ডের জন্য মেটা ও গুগল এডস ক্যাম্পেইন সেটআপ, পিক্সেল ট্র্যাকিং এবং কাস্টম অডিয়েন্স ফানেল তৈরি করতে হবে।',
+      deliverables: [
+        'টার্গেটেড এডস স্ট্র্যাটেজি প্ল্যান',
+        'ROAS অপটিমাইজেশন গাইড',
+        'ক্যাম্পেইন মনিটরিং সাপোর্ট'
+      ]
+    },
+  ];
+
+  const [activeOffersList, setActiveOffersList] = useState<LiveOfferItem[]>(INITIAL_LIVE_OFFERS);
+  const [activeOfferIndex, setActiveOfferIndex] = useState(0);
+  const [isOfferPaused, setIsOfferPaused] = useState(false);
+  const [offerCountdown, setOfferCountdown] = useState(15);
+  const [totalOfferDuration, setTotalOfferDuration] = useState(15);
+  
+  // Modals for Offer details and See all
+  const [selectedOfferForModal, setSelectedOfferForModal] = useState<LiveOfferItem | null>(null);
+  const [isSeeAllOffersModalOpen, setIsSeeAllOffersModalOpen] = useState(false);
+  const [justActionedOfferId, setJustActionedOfferId] = useState<string | null>(null);
+  const [offerActionType, setOfferActionType] = useState<'received' | 'rejected' | null>(null);
+  const activeAudioContextRef = useRef<AudioContext | null>(null);
+
+  // Instantly stop any running offer sound
+  const stopOfferNotificationSound = useCallback(() => {
+    try {
+      if (activeAudioContextRef.current && activeAudioContextRef.current.state !== 'closed') {
+        activeAudioContextRef.current.close().catch(() => {});
+        activeAudioContextRef.current = null;
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Web Audio Notification Sound Chime (Plays on new offer, immediately stoppable on action)
+  const playOfferNotificationSound = useCallback(() => {
+    try {
+      // Close previous audio if running
+      if (activeAudioContextRef.current && activeAudioContextRef.current.state !== 'closed') {
+        activeAudioContextRef.current.close().catch(() => {});
+        activeAudioContextRef.current = null;
+      }
+
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      activeAudioContextRef.current = ctx;
+
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      // Play a soft recurring rhythmic chime for 10 seconds
+      const startTime = ctx.currentTime;
+      const chimeTones = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (Pleasing chord)
+      
+      for (let i = 0; i < 5; i++) {
+        const intervalTime = startTime + i * 2.0; // every 2 seconds for 10 seconds total
+        chimeTones.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, intervalTime + idx * 0.08);
+
+          gain.gain.setValueAtTime(0, intervalTime + idx * 0.08);
+          gain.gain.linearRampToValueAtTime(0.08, intervalTime + idx * 0.08 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, intervalTime + idx * 0.08 + 0.6);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(intervalTime + idx * 0.08);
+          osc.stop(intervalTime + idx * 0.08 + 0.6);
+        });
+      }
+
+      // Auto close audio context after 10.5 seconds
+      setTimeout(() => {
+        if (ctx.state !== 'closed') {
+          ctx.close().catch(() => {});
+          if (activeAudioContextRef.current === ctx) {
+            activeAudioContextRef.current = null;
+          }
+        }
+      }, 10500);
+    } catch {
+      // Audio autoplay policy fallback
+    }
+  }, []);
+
+  // When active offer changes, reset countdown based on that offer's dynamic duration and play sound
+  useEffect(() => {
+    if (activeOffersList.length === 0) return;
+    const safeIndex = activeOfferIndex % activeOffersList.length;
+    const currentOffer = activeOffersList[safeIndex];
+    if (currentOffer) {
+      const dur = currentOffer.durationSec || 15;
+      setTotalOfferDuration(dur);
+      setOfferCountdown(dur);
+      playOfferNotificationSound();
+    }
+  }, [activeOfferIndex, activeOffersList.length, playOfferNotificationSound]);
+
+  // Live Dynamic Countdown Timer Effect with Hover-to-Pause Support
+  useEffect(() => {
+    if (activeOffersList.length === 0 || isOfferPaused || selectedOfferForModal || isSeeAllOffersModalOpen || justActionedOfferId) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setOfferCountdown((prev) => {
+        if (prev <= 1) {
+          setActiveOfferIndex((curr) => (curr + 1) % activeOffersList.length);
+          return totalOfferDuration;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isOfferPaused, selectedOfferForModal, isSeeAllOffersModalOpen, justActionedOfferId, activeOffersList.length, totalOfferDuration]);
+
+  // Handle Receive Action (Creates order in marketplaceOrders with 'pending' status and switches to pending tab)
+  const handleReceiveLiveOffer = (offer: LiveOfferItem) => {
+    // Instantly stop ringing chime
+    stopOfferNotificationSound();
+    setJustActionedOfferId(offer.id);
+    setOfferActionType('received');
+
+    const newOrder: MarketplaceOrder = {
+      id: `ord-mkt-${Date.now()}`,
+      type: 'custom_agency_order',
+      title: offer.title,
+      category: offer.category || 'Specialist Project',
+      buyerId: offer.clientName.toLowerCase().replace(/\s+/g, '-'),
+      buyerName: offer.clientName,
+      buyerEmail: 'client@ptenit.com',
+      buyerPhone: '01812345678',
+      sellerId: currentUser?.id || 'teacher-1',
+      sellerName: currentUser?.name || 'প্রকৌশলী আল-আমিন',
+      sellerAvatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      packageType: 'Standard',
+      amount: offer.budget,
+      adminCommission: Math.round(offer.budget * 0.1),
+      sellerPayout: Math.round(offer.budget * 0.9),
+      paymentMethod: 'bKash Escrow Security',
+      transactionId: `TRX-${Date.now().toString().slice(-8)}`,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      deadlineDate: new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0],
+      deliveryNote: offer.requirements
+    };
+
+    addMarketplaceOrder(newOrder);
+    setSwitchSuccessMsg(`🎉 '${offer.title}' অফারটি সফলভাবে রিসিভ করা হয়েছে! বাজেট: ৳${offer.budget.toLocaleString()}`);
+    setTimeout(() => {
+      setSwitchSuccessMsg('');
+    }, 5000);
+
+    setSpecialistMainTab('marketplace');
+    setSellerSubTab('orders');
+    setSellerOrderFilter('pending');
+
+    setTimeout(() => {
+      // Remove from active list
+      setActiveOffersList((prev) => prev.filter((item) => item.id !== offer.id));
+      setJustActionedOfferId(null);
+      setOfferActionType(null);
+      setSelectedOfferForModal(null);
+      setActiveOfferIndex((curr) => (curr >= activeOffersList.length - 1 ? 0 : curr));
+
+      const el = document.getElementById('seller-orders-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 400);
+  };
+
+  // Handle Reject Action (Removes offer from active list)
+  const handleRejectLiveOffer = (offer: LiveOfferItem) => {
+    // Instantly stop ringing chime
+    stopOfferNotificationSound();
+    setJustActionedOfferId(offer.id);
+    setOfferActionType('rejected');
+
+    setSwitchSuccessMsg(`⚠️ '${offer.title.substring(0, 35)}...' অফারটি বাতিল/রিজেক্ট করা হয়েছে।`);
+    setTimeout(() => {
+      setSwitchSuccessMsg('');
+    }, 4000);
+
+    setTimeout(() => {
+      // Remove from active list
+      setActiveOffersList((prev) => prev.filter((item) => item.id !== offer.id));
+      setJustActionedOfferId(null);
+      setOfferActionType(null);
+      setSelectedOfferForModal(null);
+      setActiveOfferIndex((curr) => (curr >= activeOffersList.length - 1 ? 0 : curr));
+    }, 600);
+  };
 
   // Order Details Modal (Checkout & Freelancer Showcase)
   const [selectedGig, setSelectedGig] = useState<MarketplaceGig | null>(() => {
@@ -1048,20 +1409,36 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
       if (openAuthModal) openAuthModal();
       return;
     }
-    if (!cashoutAmount || cashoutAmount <= 0) {
+    const numAmt = Number(cashoutAmount);
+    if (!numAmt || numAmt <= 0) {
       alert('দয়া করে ক্যাশআউটের জন্য সঠিক টাকার পরিমাণ প্রদান করুন!');
       return;
     }
+    const newId = `pay-${Date.now().toString().slice(-6)}`;
+    const nowTime = new Date().toLocaleString('bn-BD');
+
     requestTeacherPayout({
       teacherId: currentUser.id,
       teacherName: currentUser.name,
       teacherEmail: currentUser.email || 'seller@ptenit.com',
-      amount: Number(cashoutAmount),
+      amount: numAmt,
       paymentMethod: cashoutMethod,
       accountNumber: cashoutAccountNumber,
       note: cashoutNote || `Seller Bill Cashout Request via ${cashoutMethod}`
     });
-    setCashoutSuccessMsg(`✓ আপনার ৳${Number(cashoutAmount).toLocaleString('bn-BD')} বিল ক্যাশআউট আবেদন সফলভাবে জমা দেওয়া হয়েছে! ২৪ ঘণ্টার মধ্যে টাকা প্রসেস করা হবে।`);
+
+    setActivePendingPayout({
+      id: newId,
+      amount: numAmt,
+      paymentMethod: cashoutMethod,
+      accountNumber: cashoutAccountNumber,
+      requestedAt: nowTime,
+      status: 'Pending'
+    });
+
+    setAvailableBalance(prev => Math.max(0, prev - numAmt));
+    setPayoutSubTab('history');
+    setCashoutSuccessMsg(`✓ আপনার ৳${numAmt.toLocaleString('bn-BD')} বিল ক্যাশআউট আবেদন সফলভাবে জমা দেওয়া হয়েছে! ২৪ ঘণ্টার মধ্যে টাকা প্রসেস করা হবে।`);
     setIsCashoutFormOpen(false);
     setTimeout(() => {
       setCashoutSuccessMsg('');
@@ -2258,281 +2635,485 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
             return (
               <>
-                {/* STICKY TOP HEADER & ACTION BAR FOR SELLER DASHBOARD */}
-                <div className="sticky top-0 z-30 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md pt-2 pb-3 space-y-3 -mx-4 sm:-mx-8 md:-mx-12 lg:-mx-16 xl:-mx-20 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+                {/* Account Switch Toast Notification */}
+                {switchSuccessMsg && (
+                  <div className="p-4 bg-[#1DB954]/15 text-[#1DB954] font-black text-xs sm:text-sm rounded-2xl border border-[#1DB954]/40 shadow-md flex items-center justify-between gap-3 animate-fadeIn mb-4">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 shrink-0 text-[#1DB954]" />
+                      <span>{switchSuccessMsg}</span>
+                    </div>
+                    <button onClick={() => setSwitchSuccessMsg('')} className="p-1 hover:bg-[#1DB954]/20 rounded-lg text-slate-400 hover:text-white transition">✕</button>
+                  </div>
+                )}
+
+                {/* SPECIALIST DASHBOARD 2-COLUMN LAYOUT WITH LEFT SIDEBAR */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 font-bengali animate-fadeIn">
                   
-                  {/* DEDICATED CLEAN SELLER DASHBOARD TOP HEADER */}
-                  <div className="bg-slate-900 text-white rounded-2xl p-3.5 sm:p-5 border border-slate-800 shadow-xl">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md shadow-amber-500/20">
-                          <Zap className="w-5 h-5 text-slate-950" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h1 className="text-lg sm:text-xl font-black text-white">
-                              স্পেশালিস্ট ড্যাশবোর্ড (সেলার + টিচার)
-                            </h1>
-                            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-extrabold rounded-full border border-amber-500/40">
-                              ⚡ সেলার & ট্রেনারের কাস্টমাইজড হাব
-                            </span>
+                  {/* UNIFIED SINGLE CONTAINER: COVER BANNER + ACTIONS + PROFILE INFO */}
+                  <div className="lg:col-span-3 xl:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl text-slate-900 dark:text-white shadow-xl shadow-slate-950/5 dark:shadow-black/40 font-bengali relative z-20 overflow-visible transition-all duration-300">
+                    
+                    {/* 1. DYNAMIC TOP COVER BANNER: Auto-expands when live offers exist, shrinks gracefully when empty */}
+                    <div className={`relative w-full overflow-hidden rounded-t-3xl bg-slate-950 flex flex-col justify-between p-4 sm:p-6 transition-all duration-500 ease-in-out ${
+                      activeOffersList.length > 0
+                        ? 'min-h-[250px] sm:min-h-[280px] md:min-h-[300px] pb-8 sm:pb-10'
+                        : 'min-h-[135px] sm:min-h-[150px] md:min-h-[165px] pb-4'
+                    }`}>
+                      {/* Cover Photo / Texture with Dark/Emerald Tint */}
+                      <img
+                        src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1600&q=80"
+                        alt="Cover Banner"
+                        className="absolute inset-0 w-full h-full object-cover opacity-35 mix-blend-overlay pointer-events-none"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/40 pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-emerald-950/30 to-slate-950/90 pointer-events-none" />
+
+                      {/* Top Overlay Controls on Cover: Left Badge & Right Action Buttons */}
+                      <div className="relative z-20 flex flex-wrap items-center justify-between gap-3">
+                        
+                        {/* Left: Specialist Title / Badge */}
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md shadow-amber-500/20">
+                            <Zap className="w-5 h-5 text-slate-950" />
                           </div>
-                          <p className="text-[11px] text-slate-400 mt-0.5 font-bold hidden sm:block">
-                            আপনার ফ্রিল্যান্স সার্ভিস, ক্লায়েন্ট অর্ডার, পরিচালিত কোর্স, ক্লাসরুম অ্যাসাইনমেন্ট, সার্টিফিকেট ও ক্যাশআউট হাব
-                          </p>
+                          <div className="text-white">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h1 className="text-sm sm:text-base font-black text-white drop-shadow-md">
+                                স্পেশালিস্ট ড্যাশবোর্ড
+                              </h1>
+                              <span className="px-2.5 py-0.5 bg-amber-500/25 backdrop-blur-md text-amber-300 text-[10px] font-extrabold rounded-full border border-amber-400/40 shadow-xs">
+                                ⚡ সেলার & ট্রেনার হাব
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Transparent / Glassmorphism Action Bar */}
+                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                          
+                          {/* 1. PTEN IT Home Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (setActiveTab) setActiveTab('home');
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/60 hover:bg-slate-900/90 backdrop-blur-md text-slate-200 border border-white/15 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95 shadow-sm"
+                            title="PTEN IT হোম পেজে ফিরে যান"
+                          >
+                            <Home className="w-4 h-4 text-emerald-400" />
+                            <span className="hidden sm:inline">হোম</span>
+                          </button>
+
+                          {/* 2. Buyer Marketplace Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setViewMode('buying');
+                              setActiveSubTab('gigs');
+                              setSelectedGig(null);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1DB954] hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer shadow-md active:scale-95"
+                            title="বায়ার মার্কেটপ্লেসে ফিরে যান"
+                          >
+                            <Store className="w-4 h-4 text-slate-950" />
+                            <span>বায়ার মোড</span>
+                          </button>
+
+                          {/* 3. Messenger / Direct Inbox Button (মেসেঞ্জার) */}
+                          <button
+                            id="messenger-direct-btn"
+                            onClick={() => {
+                              setIsInboxModalOpen(!isInboxModalOpen);
+                              setIsCentralNotificationOpen(false);
+                              setIsProfileDropdownOpen(false);
+                            }}
+                            className={`relative p-2 sm:p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center border backdrop-blur-md shadow-sm active:scale-95 ${
+                              isInboxModalOpen
+                                ? 'bg-[#1DB954] text-slate-950 border-[#1DB954]'
+                                : 'bg-slate-900/60 hover:bg-slate-900/90 text-slate-200 border-white/15'
+                            }`}
+                            title="মেসেঞ্জার ও ক্লায়েন্ট চ্যাট"
+                          >
+                            <Mail className={`w-4 h-4 ${isInboxModalOpen ? 'text-slate-950' : 'text-slate-200'}`} />
+                            {directMessages.filter(m => !m.read).length > 0 && (
+                              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#1DB954] text-slate-950 text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-slate-950 shadow-md">
+                                {directMessages.filter(m => !m.read).length}
+                              </span>
+                            )}
+                          </button>
+
+                          {/* 4. Central Notification Hub (নোটিফিকেশন) */}
+                          <button
+                            id="central-notification-btn"
+                            onClick={() => {
+                              setIsCentralNotificationOpen(!isCentralNotificationOpen);
+                              setIsInboxModalOpen(false);
+                              setIsProfileDropdownOpen(false);
+                            }}
+                            className={`relative p-2 sm:p-2.5 rounded-xl transition cursor-pointer flex items-center justify-center border backdrop-blur-md shadow-sm active:scale-95 ${
+                              isCentralNotificationOpen
+                                ? 'bg-[#1DB954] text-slate-950 border-[#1DB954]'
+                                : 'bg-slate-900/60 hover:bg-slate-900/90 text-slate-200 border-white/15'
+                            }`}
+                            title="সেন্ট্রাল নোটিফিকেশন হাব (সকল আপডেট)"
+                          >
+                            <Bell className={`w-4 h-4 ${isCentralNotificationOpen ? 'text-slate-950 fill-slate-950' : 'text-slate-200'}`} />
+                            {notifications.filter(n => !n.read).length > 0 && (
+                              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-slate-950 shadow-md animate-pulse">
+                                {notifications.filter(n => !n.read).length}
+                              </span>
+                            )}
+                          </button>
+
+                          {/* 5. Profile & Dropdown */}
+                          {currentUser && (
+                            <div className="relative">
+                              <button
+                                onClick={() => {
+                                  setIsProfileDropdownOpen(!isProfileDropdownOpen);
+                                  setIsNotificationsOpen(false);
+                                  setIsInboxModalOpen(false);
+                                }}
+                                className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 backdrop-blur-md border border-white/15 transition cursor-pointer shadow-sm"
+                                title="প্রোফাইল অ্যাকাউন্ট মেনু"
+                              >
+                                <img
+                                  src={activeAccount.avatar || currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
+                                  alt={activeAccount.name}
+                                  className="w-6 h-6 rounded-full object-cover border border-[#1DB954]"
+                                />
+                                <ChevronDown className={`w-3 h-3 text-slate-300 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
+                              </button>
+
+                              {/* Profile Dropdown Popup */}
+                              {isProfileDropdownOpen && (
+                                <>
+                                  <div 
+                                    className="fixed inset-0 z-40" 
+                                    onClick={() => setIsProfileDropdownOpen(false)}
+                                  />
+                                  <div className="absolute right-0 top-10 z-50 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 font-bengali text-white animate-fadeIn">
+                                    <div className="px-3.5 py-2 border-b border-slate-800 flex items-center gap-2">
+                                      <img
+                                        src={activeAccount.avatar || currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
+                                        alt={activeAccount.name}
+                                        className="w-7 h-7 rounded-full object-cover border border-[#1DB954]"
+                                      />
+                                      <div className="min-w-0">
+                                        <p className="text-xs font-black text-white truncate">{activeAccount.name}</p>
+                                        <p className="text-[10px] text-amber-400 font-bold truncate">⚡ সেলার প্রো</p>
+                                      </div>
+                                    </div>
+
+                                    <div className="py-1">
+                                      <button
+                                        onClick={() => {
+                                          setIsProfileDropdownOpen(false);
+                                          setIsEditProfileModalOpen(true);
+                                        }}
+                                        className="w-full px-3.5 py-1.5 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-[#1DB954] flex items-center gap-2 transition cursor-pointer"
+                                      >
+                                        <Settings className="w-3.5 h-3.5 text-slate-400" />
+                                        <span>সেটিং ও প্রোফাইল</span>
+                                      </button>
+                                    </div>
+
+                                    <div className="pt-1 border-t border-slate-800">
+                                      <button
+                                        onClick={() => {
+                                          setIsProfileDropdownOpen(false);
+                                          setViewMode('buying');
+                                          logout();
+                                        }}
+                                        className="w-full px-3.5 py-1.5 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 flex items-center gap-2 transition cursor-pointer"
+                                      >
+                                        <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                                        <span>লগ আউট</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Quick Logout Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsProfileDropdownOpen(false);
+                              setViewMode('buying');
+                              logout();
+                            }}
+                            className="p-1.5 sm:p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/40 backdrop-blur-md text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer flex items-center justify-center shrink-0 shadow-sm"
+                            title="লগ আউট"
+                          >
+                            <LogOut className="w-4 h-4 text-rose-300" />
+                          </button>
                         </div>
                       </div>
 
-                      {/* Right Header Action Bar: Home, Marketplace, Messenger, Notifications, Profile & Logout */}
-                      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
-                        
-                        {/* 1. PTEN IT Home Button */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (setActiveTab) setActiveTab('home');
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
-                          title="PTEN IT হোম পেজে ফিরে যান"
-                        >
-                          <Home className="w-4 h-4 text-emerald-400" />
-                          <span>হোম</span>
-                        </button>
+                      {/* LIVE OFFER / ORDER NOTIFICATION BANNER (PERFECTLY CENTERED ON COVER) */}
+                      {activeOffersList.length > 0 && activeOffersList[activeOfferIndex % activeOffersList.length] && (
+                        <div className="relative z-20 my-auto w-full max-w-4xl mx-auto py-2 sm:py-3">
+                          {(() => {
+                            const currentOffer = activeOffersList[activeOfferIndex % activeOffersList.length];
+                            const timerPercentage = totalOfferDuration > 0 ? (offerCountdown / totalOfferDuration) * 100 : 0;
+                            const isBeingActioned = justActionedOfferId === currentOffer.id;
 
-                        {/* 2. Buyer Marketplace Button */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setViewMode('buying');
-                            setActiveSubTab('gigs');
-                            setSelectedGig(null);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-2 bg-[#1DB954] hover:bg-emerald-500 text-slate-950 rounded-xl text-xs font-black transition cursor-pointer shadow-xs active:scale-95"
-                          title="বায়ার মার্কেটপ্লেসে ফিরে যান"
-                        >
-                          <Store className="w-4 h-4 text-slate-950" />
-                          <span>বায়ার মোড</span>
-                        </button>
+                            return (
+                              <div
+                                onMouseEnter={() => setIsOfferPaused(true)}
+                                onMouseLeave={() => setIsOfferPaused(false)}
+                                className={`relative overflow-hidden backdrop-blur-2xl bg-slate-900/90 hover:bg-slate-900/95 border ${
+                                  currentOffer.type === 'personal'
+                                    ? 'border-amber-500/40 shadow-amber-500/10'
+                                    : 'border-[#1DB954]/40 shadow-[#1DB954]/10'
+                                } rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xl shadow-black/60 transition-all duration-300 group`}
+                              >
+                                {/* Ambient Background Lighting */}
+                                <div className={`absolute -right-10 -top-10 w-44 h-44 rounded-full blur-3xl pointer-events-none transition-all duration-500 ${
+                                  currentOffer.type === 'personal' ? 'bg-amber-500/15' : 'bg-[#1DB954]/15'
+                                }`} />
 
-                        {/* 3. Messenger / Direct Inbox */}
-                        <button
-                          onClick={() => {
-                            setIsInboxModalOpen(!isInboxModalOpen);
-                            setIsNotificationsOpen(false);
-                          }}
-                          className={`relative p-2 rounded-xl transition cursor-pointer flex items-center justify-center border ${
-                            isInboxModalOpen
-                              ? 'bg-[#1DB954]/20 text-[#1DB954] border-[#1DB954]/40'
-                              : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                          }`}
-                          title="মেসেঞ্জার ও চ্যাট"
-                        >
-                          <Mail className="w-4 h-4 text-slate-200" />
-                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-[#1DB954] text-slate-950 text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-slate-900 shadow-xs">
-                            {directMessages.filter(m => !m.read).length || 3}
-                          </span>
-                        </button>
+                                {/* Top Bar: Badge, Source, Countdown Badge, See All, Next */}
+                                <div className="flex items-center justify-between gap-2.5 pb-2.5 border-b border-white/10 flex-wrap">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="relative flex h-2.5 w-2.5">
+                                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                                        currentOffer.type === 'personal' ? 'bg-amber-400' : 'bg-[#1DB954]'
+                                      }`}></span>
+                                      <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                                        currentOffer.type === 'personal' ? 'bg-amber-400' : 'bg-[#1DB954]'
+                                      }`}></span>
+                                    </span>
+                                    
+                                    <span className={`text-[10px] sm:text-xs font-black px-3 py-0.5 rounded-full border flex items-center gap-1 shadow-sm ${
+                                      currentOffer.type === 'personal'
+                                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                    }`}>
+                                      {currentOffer.typeLabel}
+                                    </span>
 
-                        {/* 4. Notification Bell */}
-                        <button
-                          onClick={() => {
-                            setIsNotificationsOpen(!isNotificationsOpen);
-                            setIsInboxModalOpen(false);
-                          }}
-                          className={`relative p-2 rounded-xl transition cursor-pointer flex items-center justify-center border ${
-                            isNotificationsOpen
-                              ? 'bg-[#1DB954]/20 text-[#1DB954] border-[#1DB954]/40'
-                              : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                          }`}
-                          title="নটিফিকেশনসমূহ"
-                        >
-                          <Bell className="w-4 h-4 text-slate-200" />
-                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-slate-900 shadow-xs">
-                            {notifications.filter(n => !n.read).length || 3}
-                          </span>
-                        </button>
+                                    <span className="text-[10px] text-slate-300 font-bold px-2.5 py-0.5 bg-white/5 rounded-lg border border-white/10 hidden xs:inline-block">
+                                      {currentOffer.category}
+                                    </span>
+                                  </div>
 
-                        {/* 5. Profile & Dropdown */}
-                        {currentUser && (
-                          <div className="relative">
-                            <button
-                              onClick={() => {
-                                setIsProfileDropdownOpen(!isProfileDropdownOpen);
-                                setIsNotificationsOpen(false);
-                                setIsInboxModalOpen(false);
-                              }}
-                              className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition cursor-pointer"
-                              title="প্রোফাইল অ্যাকাউন্ট মেনু"
-                            >
-                              <img
-                                src={activeAccount.avatar || currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
-                                alt={activeAccount.name}
-                                className="w-6 h-6 rounded-full object-cover border border-[#1DB954]"
-                              />
-                              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${isProfileDropdownOpen ? 'rotate-180' : ''}`} />
-                            </button>
+                                  {/* Timer Badge + Pause Indicator + See All Button */}
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    {/* Hover Pause Status Indicator */}
+                                    {isOfferPaused && (
+                                      <span className="text-[10px] font-bold text-amber-300 bg-amber-950/90 border border-amber-500/40 px-2.5 py-0.5 rounded-full animate-pulse flex items-center gap-1 shadow-xs">
+                                        ⏸️ পজড (Hovered)
+                                      </span>
+                                    )}
 
-                            {/* Profile Dropdown Popup inside Dashboard Header */}
-                            {isProfileDropdownOpen && (
-                              <>
-                                <div 
-                                  className="fixed inset-0 z-40" 
-                                  onClick={() => setIsProfileDropdownOpen(false)}
-                                />
-                                <div className="absolute right-0 top-10 z-50 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl py-2 font-bengali text-white">
-                                  <div className="px-3.5 py-2 border-b border-slate-800 flex items-center gap-2">
+                                    {/* Circular & Numeric Countdown */}
+                                    <div
+                                      className="flex items-center gap-1.5 px-3 py-1 bg-slate-950/90 border border-amber-400/40 text-amber-300 rounded-full text-[10px] sm:text-xs font-black shadow-inner"
+                                      title="মাউস হোভার করলে কাউন্টডাউন পজ থাকবে"
+                                    >
+                                      <Clock className={`w-3.5 h-3.5 text-amber-400 ${isOfferPaused ? '' : 'animate-spin'}`} style={{ animationDuration: '4s' }} />
+                                      <span className="font-mono text-white bg-amber-500/25 px-1.5 py-0.2 rounded">
+                                        {offerCountdown}s
+                                      </span>
+                                    </div>
+
+                                    {/* 'See All' button if multiple offers exist */}
+                                    {activeOffersList.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setIsSeeAllOffersModalOpen(true)}
+                                        className="px-3 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white text-[10px] sm:text-xs font-bold border border-white/15 transition-all cursor-pointer flex items-center gap-1 shadow-sm active:scale-95"
+                                        title="সবগুলো অফার একসাথে দেখুন"
+                                      >
+                                        <span>সকল অফার ({activeOffersList.length})</span>
+                                        <ChevronRight className="w-3 h-3 text-[#1DB954]" />
+                                      </button>
+                                    )}
+
+                                    {/* Next Switch Control */}
+                                    {activeOffersList.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveOfferIndex((curr) => (curr + 1) % activeOffersList.length);
+                                        }}
+                                        className="p-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer border border-white/10 active:scale-95"
+                                        title="পরবর্তী অফার"
+                                      >
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Main Content: Client Info, Offer Title, Budget, Buttons */}
+                                <div className="pt-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                  
+                                  {/* Left: Client Avatar + Name + Title */}
+                                  <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
                                     <img
-                                      src={activeAccount.avatar || currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
-                                      alt={activeAccount.name}
-                                      className="w-7 h-7 rounded-full object-cover border border-[#1DB954]"
+                                      src={currentOffer.clientAvatar}
+                                      alt={currentOffer.clientName}
+                                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl object-cover border-2 border-[#1DB954] shrink-0 shadow-md"
                                     />
-                                    <div className="min-w-0">
-                                      <p className="text-xs font-black text-white truncate">{activeAccount.name}</p>
-                                      <p className="text-[10px] text-amber-400 font-bold truncate">⚡ সেলার প্রো</p>
+                                    <div className="min-w-0 flex-1 space-y-0.5">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-xs sm:text-sm font-black text-white truncate">
+                                          {currentOffer.clientName}
+                                        </span>
+                                        {currentOffer.isVerified && (
+                                          <BadgeCheck className="w-3.5 h-3.5 text-[#1DB954] shrink-0" />
+                                        )}
+                                        <span className="text-[10px] text-amber-400 font-bold">★ {currentOffer.rating}</span>
+                                        <span className="text-[10px] text-slate-400">• {currentOffer.clientLocation}</span>
+                                      </div>
+                                      <p className="text-xs sm:text-sm font-bold text-slate-100 dark:text-white line-clamp-1">
+                                        {currentOffer.title}
+                                      </p>
                                     </div>
                                   </div>
 
-                                  <div className="py-1">
-                                    <button
-                                      onClick={() => {
-                                        setIsProfileDropdownOpen(false);
-                                        setIsEditProfileModalOpen(true);
-                                      }}
-                                      className="w-full px-3.5 py-1.5 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-[#1DB954] flex items-center gap-2 transition cursor-pointer"
-                                    >
-                                      <Settings className="w-3.5 h-3.5 text-slate-400" />
-                                      <span>সেটিং ও প্রোফাইল</span>
-                                    </button>
-                                  </div>
+                                  {/* Right: Budget + Action Buttons (View Details & Receive) */}
+                                  <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/10 flex-wrap">
+                                    <div className="text-left md:text-right pr-1">
+                                      <div className="flex items-center gap-1 md:justify-end">
+                                        <span className="text-[10px] text-slate-300 font-bold">বাজেট:</span>
+                                        <span className="text-base sm:text-lg font-black text-[#1DB954] drop-shadow-sm">
+                                          ৳{currentOffer.budget.toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                                        <Clock className="w-3 h-3 text-slate-400" /> ডেলিভারি: {currentOffer.deadline}
+                                      </span>
+                                    </div>
 
-                                  <div className="pt-1 border-t border-slate-800">
-                                    <button
-                                      onClick={() => {
-                                        setIsProfileDropdownOpen(false);
-                                        setViewMode('buying');
-                                        logout();
-                                      }}
-                                      className="w-full px-3.5 py-1.5 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 flex items-center gap-2 transition cursor-pointer"
-                                    >
-                                      <LogOut className="w-3.5 h-3.5 text-rose-500" />
-                                      <span>লগ আউট</span>
-                                    </button>
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-2">
+                                      {/* View Details Button */}
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedOfferForModal(currentOffer)}
+                                        className="px-3.5 sm:px-4 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border border-white/15 transition-all cursor-pointer shadow-sm flex items-center gap-1.5 active:scale-95"
+                                      >
+                                        <Info className="w-3.5 h-3.5 text-[#1DB954]" />
+                                        <span>View Details (বিস্তারিত)</span>
+                                      </button>
+
+                                      {/* Receive Button */}
+                                      {isBeingActioned && offerActionType === 'received' ? (
+                                        <button
+                                          disabled
+                                          className="px-4.5 py-2 bg-emerald-500 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/30 animate-pulse"
+                                        >
+                                          <CheckCircle2 className="w-4 h-4 text-slate-950" />
+                                          <span>রিসিভড!</span>
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleReceiveLiveOffer(currentOffer)}
+                                          className="px-4.5 sm:px-5 py-2 bg-gradient-to-r from-[#1DB954] to-emerald-400 hover:from-emerald-400 hover:to-[#1DB954] text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center gap-1.5 shadow-lg shadow-[#1DB954]/25 hover:shadow-[#1DB954]/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                                        >
+                                          <Zap className="w-4 h-4 fill-slate-950 text-slate-950" />
+                                          <span>রিসিভ করুন</span>
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </>
-                            )}
-                          </div>
-                        )}
 
-                        {/* Quick Logout Button */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsProfileDropdownOpen(false);
-                            setViewMode('buying');
-                            logout();
-                          }}
-                          className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold transition cursor-pointer flex items-center justify-center shrink-0"
-                          title="লগ আউট"
-                        >
-                          <LogOut className="w-4 h-4 text-rose-400" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-
-
-                {/* Account Switch Toast Notification */}
-          {switchSuccessMsg && (
-            <div className="p-4 bg-[#1DB954]/15 text-[#1DB954] font-black text-xs sm:text-sm rounded-2xl border border-[#1DB954]/40 shadow-md flex items-center justify-between gap-3 animate-fadeIn">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 shrink-0 text-[#1DB954]" />
-                <span>{switchSuccessMsg}</span>
-              </div>
-              <button onClick={() => setSwitchSuccessMsg('')} className="p-1 hover:bg-[#1DB954]/20 rounded-lg text-slate-400 hover:text-white transition">✕</button>
-            </div>
-          )}
-
-          {/* SPECIALIST DASHBOARD 2-COLUMN LAYOUT WITH LEFT SIDEBAR */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 font-bengali animate-fadeIn">
-            
-            {/* SINGLE ELEGANT HORIZONTAL SPECIALIST HEADER BAR */}
-            <div className="lg:col-span-3 xl:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 text-slate-900 dark:text-white shadow-sm font-bengali">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                
-                {/* Left Side: Avatar + Name + Title + Skills Chips */}
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="relative shrink-0">
-                    <img
-                      src={activeAccount.avatar || currentUser?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
-                      alt={activeAccount.name}
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[#1DB954]"
-                    />
-                    <span className="w-3.5 h-3.5 rounded-full bg-[#1DB954] border-2 border-white dark:border-slate-900 absolute bottom-0 right-0" title="Online Now"></span>
-                  </div>
-
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-base font-black text-slate-900 dark:text-white truncate">
-                        {activeAccount.name}
-                      </h2>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/30">
-                        <BadgeCheck className="w-3 h-3 text-[#1DB954]" />
-                        {activeAccount.role}
-                      </span>
-                      <span className="text-amber-500 font-black text-xs flex items-center gap-0.5">
-                        ★ 5.0 <span className="text-slate-400 font-normal text-[10px]">(52)</span>
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">
-                      @{activeAccount.name ? activeAccount.name.toLowerCase().replace(/\s+/g, '') : 'ptenitadmin'} | {editProfileTitle}
-                    </p>
-
-                    {/* Compact Skills Chips */}
-                    <div className="flex flex-wrap items-center gap-1 pt-0.5">
-                      {editProfileSkills.split(',').slice(0, 4).map((skill, idx) => (
-                        <span key={idx} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-md border border-slate-200 dark:border-slate-700">
-                          {skill.trim()}
-                        </span>
-                      ))}
-                      {editProfileSkills.split(',').length > 4 && (
-                        <span className="text-[10px] text-slate-400 font-bold">+{editProfileSkills.split(',').length - 4} more</span>
+                                {/* Dynamic Smooth Progress Bar */}
+                                <div className="w-full bg-slate-800/90 rounded-full h-1.5 mt-3.5 overflow-hidden">
+                                  <div
+                                    className="bg-gradient-to-r from-amber-400 via-[#1DB954] to-emerald-400 h-full rounded-full transition-all duration-1000 ease-linear shadow-xs"
+                                    style={{ width: `${timerPercentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
                       )}
                     </div>
-                  </div>
-                </div>
 
-                {/* Center / Right: 1-Click Portfolio Sync + 3-Dot More Info & Edit Button */}
-                <div className="flex items-center gap-3 w-full lg:w-auto shrink-0 justify-between lg:justify-end">
-                  
-                  {/* 1-Click Portfolio Sync Bar */}
-                  <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex-1 sm:flex-initial">
-                    <span className="text-xs font-black text-slate-700 dark:text-amber-400 flex items-center gap-1 shrink-0 hidden sm:flex">
-                      <ExternalLink className="w-3.5 h-3.5 text-[#1DB954]" />
-                      1-Click Portfolio Sync:
-                    </span>
-                    <input
-                      type="url"
-                      placeholder="e.g. behance.net/username..."
-                      value={portfolioUrlInput}
-                      onChange={(e) => setPortfolioUrlInput(e.target.value)}
-                      className="w-36 sm:w-44 px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#1DB954]"
-                    />
-                    <button
-                      onClick={handleImportPortfolio}
-                      disabled={isImportingPortfolio}
-                      className="px-3 py-1 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-extrabold text-xs rounded-xl shadow-xs cursor-pointer transition shrink-0"
-                    >
-                      {isImportingPortfolio ? '...' : 'Sync Now'}
-                    </button>
-                  </div>
+                    {/* 2. BOTTOM PROFILE INFO AREA OVERLAPPING COVER BANNER WITH GENEROUS SPACING */}
+                    <div className="px-5 sm:px-8 pb-6 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800/50">
+                      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                        
+                        {/* Left Side: Avatar (Overlapping Cover) + Name + Title + Skills Chips */}
+                        <div className="flex items-start sm:items-center gap-4 min-w-0">
+                          <div className="relative -mt-10 sm:-mt-12 shrink-0 z-10">
+                            <img
+                              src={activeAccount.avatar || currentUser?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
+                              alt={activeAccount.name}
+                              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl object-cover border-4 border-white dark:border-slate-900 shadow-xl"
+                            />
+                            <span className="w-4 h-4 rounded-full bg-[#1DB954] border-2 border-white dark:border-slate-900 absolute bottom-1 right-1 shadow-sm" title="Online Now"></span>
+                          </div>
+
+                          <div className="min-w-0 space-y-1 pt-1 sm:pt-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white truncate">
+                                {activeAccount.name}
+                              </h2>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/30">
+                                <BadgeCheck className="w-3.5 h-3.5 text-[#1DB954]" />
+                                {activeAccount.role}
+                              </span>
+                              <span className="text-amber-500 font-black text-xs flex items-center gap-0.5">
+                                ★ 5.0 <span className="text-slate-400 font-normal text-[10px]">(52)</span>
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">
+                              @{activeAccount.name ? activeAccount.name.toLowerCase().replace(/\s+/g, '') : 'ptenitadmin'} | {editProfileTitle}
+                            </p>
+
+                            {/* Compact Skills Chips */}
+                            <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                              {editProfileSkills.split(',').slice(0, 4).map((skill, idx) => (
+                                <span key={idx} className="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700">
+                                  {skill.trim()}
+                                </span>
+                              ))}
+                              {editProfileSkills.split(',').length > 4 && (
+                                <span className="text-[10px] text-slate-400 font-bold">+{editProfileSkills.split(',').length - 4} more</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Side: 1-Click Portfolio Sync + 3-Dot More Info & Edit Button */}
+                        <div className="flex items-center gap-3 w-full lg:w-auto shrink-0 justify-between lg:justify-end mt-2 lg:mt-0">
+                          
+                          {/* 1-Click Portfolio Sync Bar */}
+                          <div className="flex items-center gap-2 p-1.5 sm:p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex-1 sm:flex-initial">
+                            <span className="text-xs font-black text-slate-700 dark:text-amber-400 flex items-center gap-1 shrink-0 hidden sm:flex">
+                              <ExternalLink className="w-3.5 h-3.5 text-[#1DB954]" />
+                              1-Click Sync:
+                            </span>
+                            <input
+                              type="url"
+                              placeholder="e.g. behance.net/username..."
+                              value={portfolioUrlInput}
+                              onChange={(e) => setPortfolioUrlInput(e.target.value)}
+                              className="w-36 sm:w-44 px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#1DB954]"
+                            />
+                            <button
+                              onClick={handleImportPortfolio}
+                              disabled={isImportingPortfolio}
+                              className="px-3 py-1 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-extrabold text-xs rounded-xl shadow-xs cursor-pointer transition shrink-0"
+                            >
+                              {isImportingPortfolio ? '...' : 'Sync'}
+                            </button>
+                          </div>
 
                   {/* 3-Dots Button -> Opens Menu with Full Profile Info, Edit Profile, Account Switcher */}
-                  <div className="relative shrink-0">
+                  <div className="relative shrink-0 z-30">
                     <button
                       onClick={() => setIsHeaderMoreMenuOpen(!isHeaderMoreMenuOpen)}
                       className="p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition cursor-pointer border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center gap-1 font-bold text-xs"
@@ -2544,10 +3125,10 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                     {isHeaderMoreMenuOpen && (
                       <>
                         <div
-                          className="fixed inset-0 z-40 cursor-default"
+                          className="fixed inset-0 z-50 cursor-default"
                           onClick={() => setIsHeaderMoreMenuOpen(false)}
                         />
-                        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-50 p-4 space-y-3 font-bengali text-xs animate-fadeIn max-h-[85vh] overflow-y-auto">
+                        <div className="absolute right-0 top-full mt-2 w-80 sm:w-88 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-[60] p-4 space-y-3 font-bengali text-xs animate-fadeIn max-h-[85vh] overflow-y-auto ring-1 ring-black/10 dark:ring-white/10">
                           
                           {/* Full Profile Info Section */}
                           <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
@@ -2682,19 +3263,225 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                               <span>সাবস্ক্রিপশন (৳৪৯৯/মাস)</span>
                             </button>
                           </div>
-
                         </div>
                       </>
                     )}
                   </div>
-
                 </div>
-
               </div>
             </div>
+          </div>
 
-            {/* LEFT VERTICAL NAVIGATION SIDEBAR CARD */}
+                  {/* LEFT VERTICAL NAVIGATION SIDEBAR CARD */}
             <div className="lg:col-span-1 space-y-4">
+
+              {/* LIVE OFFER VIEW DETAILS MODAL */}
+              {selectedOfferForModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+                  <div className="bg-slate-900 border border-slate-700/80 w-full max-w-2xl rounded-3xl p-5 sm:p-7 text-white shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
+                    {/* Close Button */}
+                    <button
+                      onClick={() => setSelectedOfferForModal(null)}
+                      className="absolute top-5 right-5 p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+
+                    {/* Modal Header */}
+                    <div className="flex items-start gap-3.5 pr-8">
+                      <img
+                        src={selectedOfferForModal.clientAvatar}
+                        alt={selectedOfferForModal.clientName}
+                        className="w-12 h-12 rounded-2xl object-cover border-2 border-[#1DB954] shrink-0"
+                      />
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                            selectedOfferForModal.type === 'personal'
+                              ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                              : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                          }`}>
+                            {selectedOfferForModal.typeLabel}
+                          </span>
+                          <span className="text-xs text-slate-400 font-bold">• {selectedOfferForModal.source}</span>
+                          <span className="text-xs text-amber-400 font-bold">★ {selectedOfferForModal.rating}</span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-black text-white">
+                          {selectedOfferForModal.title}
+                        </h3>
+                        <p className="text-xs text-slate-400">
+                          ক্লায়েন্ট: <strong className="text-white">{selectedOfferForModal.clientName}</strong> ({selectedOfferForModal.clientLocation}) • {selectedOfferForModal.postedTime}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick Highlights Bar */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-slate-950/70 border border-slate-800 rounded-2xl">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold block">বাজেট (Budget)</span>
+                        <span className="text-base sm:text-lg font-black text-[#1DB954]">৳{selectedOfferForModal.budget.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold block">ডেলিভারি সময়</span>
+                        <span className="text-xs sm:text-sm font-bold text-slate-200">{selectedOfferForModal.deadline}</span>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <span className="text-[10px] text-slate-400 font-bold block">ক্যাটাগরি</span>
+                        <span className="text-xs sm:text-sm font-bold text-amber-300">{selectedOfferForModal.category}</span>
+                      </div>
+                    </div>
+
+                    {/* Requirements & Description */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs sm:text-sm font-black text-slate-200 flex items-center gap-1.5">
+                        <FileText className="w-4 h-4 text-[#1DB954]" /> প্রজেক্টের রিকোয়ারমেন্টস ও কাজের বিবরণ:
+                      </h4>
+                      <div className="p-4 bg-slate-950/50 border border-slate-800/80 rounded-2xl text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        {selectedOfferForModal.requirements}
+                      </div>
+                    </div>
+
+                    {/* Deliverables Checklist */}
+                    {selectedOfferForModal.deliverables && selectedOfferForModal.deliverables.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-200 flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-[#1DB954]" /> যা যা ডেলিভারি দিতে হবে:
+                        </h4>
+                        <div className="space-y-1.5">
+                          {selectedOfferForModal.deliverables.map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-2 p-2 bg-slate-950/40 rounded-xl border border-slate-800/60 text-xs text-slate-300">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></span>
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer Actions: Receive (Green) vs Reject (Red) */}
+                    <div className="pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleRejectLiveOffer(selectedOfferForModal)}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 hover:text-rose-200 border border-rose-500/30 font-bold text-xs sm:text-sm transition cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <X className="w-4 h-4 text-rose-400" />
+                        <span>বাতিল করুন</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleReceiveLiveOffer(selectedOfferForModal)}
+                        className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-[#1DB954] to-emerald-400 hover:from-emerald-400 hover:to-[#1DB954] text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#1DB954]/25 hover:scale-105 active:scale-95 transition cursor-pointer"
+                      >
+                        <Zap className="w-4 h-4 fill-slate-950 text-slate-950" />
+                        <span>রিসিভ করুন (৳{selectedOfferForModal.budget.toLocaleString()})</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SEE ALL OFFERS MODAL */}
+              {isSeeAllOffersModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+                  <div className="bg-slate-900 border border-slate-700/80 w-full max-w-3xl rounded-3xl p-5 sm:p-7 text-white shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto">
+                    {/* Header */}
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                      <div>
+                        <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                          <Zap className="w-5 h-5 text-[#1DB954]" />
+                          <span>সকল পেন্ডিং লাইভ অফার ও অর্ডার সমূহ ({activeOffersList.length})</span>
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          আপনার দক্ষতা অনুযায়ী পাওয়া ক্লায়েন্ট ও পাবলিক রিকোয়েস্ট তালিকা
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setIsSeeAllOffersModalOpen(false)}
+                        className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Offers List */}
+                    <div className="space-y-3">
+                      {activeOffersList.length === 0 ? (
+                        <div className="text-center py-10 text-slate-400 text-sm">
+                          ✨ বর্তমানে কোনো লাইভ অফার নেই।
+                        </div>
+                      ) : (
+                        activeOffersList.map((offer) => (
+                          <div
+                            key={offer.id}
+                            className="p-4 bg-slate-950/70 border border-slate-800 hover:border-[#1DB954]/50 rounded-2xl transition space-y-3"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                <img
+                                  src={offer.clientAvatar}
+                                  alt={offer.clientName}
+                                  className="w-10 h-10 rounded-full object-cover border-2 border-[#1DB954] shrink-0"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs font-black text-white truncate">{offer.clientName}</span>
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                                      offer.type === 'personal'
+                                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                    }`}>
+                                      {offer.typeLabel}
+                                    </span>
+                                    <span className="text-[10px] text-amber-400 font-bold">★ {offer.rating}</span>
+                                  </div>
+                                  <h4 className="text-xs sm:text-sm font-black text-slate-100 mt-1">
+                                    {offer.title}
+                                  </h4>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                <div className="text-left sm:text-right">
+                                  <span className="text-sm sm:text-base font-black text-[#1DB954]">
+                                    ৳{offer.budget.toLocaleString()}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 block">
+                                    ডেলিভারি: {offer.deadline}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setIsSeeAllOffersModalOpen(false);
+                                      setSelectedOfferForModal(offer);
+                                    }}
+                                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-white/10"
+                                  >
+                                    বিস্তারিত
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleReceiveLiveOffer(offer)}
+                                    className="px-3.5 py-1.5 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black rounded-xl text-xs flex items-center gap-1 shadow-md cursor-pointer"
+                                  >
+                                    <Zap className="w-3.5 h-3.5 fill-slate-950" />
+                                    <span>রিসিভ</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 text-slate-900 dark:text-white shadow-sm font-bengali space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
@@ -2706,117 +3493,206 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                   </span>
                 </div>
 
-                {/* Vertical Navigation Items (Top to Bottom) */}
-                <div className="space-y-2">
-                  {/* 1. মার্কেটপ্লেস */}
+                {/* Vertical Navigation Items (Top to Bottom) - Short, Crisp & Large Typography */}
+                <div className="space-y-2.5">
+                  {/* 1. সেলার সার্ভিস (মার্কেটপ্লেস) */}
                   <button
+                    id="nav-specialist-marketplace"
                     onClick={() => {
                       setSpecialistMainTab('marketplace');
                       setSellerSubTab('orders');
                     }}
-                    className={`w-full p-3.5 rounded-2xl font-black text-xs transition flex items-center justify-between gap-2 cursor-pointer border text-left ${
+                    className={`w-full p-4 rounded-2xl font-black transition flex items-center justify-between gap-3 cursor-pointer border text-left active:scale-[0.99] ${
                       specialistMainTab === 'marketplace'
-                        ? 'bg-[#1DB954] text-slate-950 border-[#1DB954] shadow-md scale-[1.01]'
-                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-[#1DB954] text-slate-950 border-[#1DB954] shadow-md ring-2 ring-[#1DB954]/20'
+                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`p-2 rounded-xl shrink-0 ${specialistMainTab === 'marketplace' ? 'bg-slate-950 text-[#1DB954]' : 'bg-slate-200 dark:bg-slate-700 text-amber-500'}`}>
-                        <Briefcase className="w-4 h-4" />
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className={`p-2.5 rounded-xl shrink-0 ${specialistMainTab === 'marketplace' ? 'bg-slate-950 text-[#1DB954]' : 'bg-slate-200 dark:bg-slate-700 text-amber-500'}`}>
+                        <Briefcase className="w-5 h-5" />
                       </div>
                       <div className="truncate">
-                        <span className="block font-black text-xs">মার্কেটপ্লেস</span>
-                        <span className={`block text-[10px] font-bold truncate ${
-                          specialistMainTab === 'marketplace' ? 'text-slate-900/80' : 'text-slate-400'
+                        <div className="flex items-center gap-2">
+                          <span className="block font-black text-sm sm:text-base tracking-tight leading-snug">
+                            সেলার সার্ভিস
+                          </span>
+                          {/* Active Dot */}
+                          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                            <span className="w-2 h-2 rounded-full bg-[#1DB954] animate-pulse" />
+                            অ্যাক্টিভ
+                          </span>
+                        </div>
+                        <span className={`block text-xs font-bold truncate mt-0.5 ${
+                          specialistMainTab === 'marketplace' ? 'text-slate-950/80 font-extrabold' : 'text-slate-500 dark:text-slate-400'
                         }`}>
                           ক্লায়েন্ট অর্ডারস (32) • সার্ভিসেস ({sellerGigs.length || 2})
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className={`w-4 h-4 shrink-0 ${specialistMainTab === 'marketplace' ? 'text-slate-950' : 'text-slate-400'}`} />
+                    <ChevronRight className={`w-5 h-5 shrink-0 ${specialistMainTab === 'marketplace' ? 'text-slate-950 font-black' : 'text-slate-400'}`} />
                   </button>
 
-                  {/* 2. মেন্টর সার্ভিস */}
-                  <button
-                    onClick={() => {
-                      setSpecialistMainTab('mentor');
-                      setSellerSubTab('courses');
-                    }}
-                    className={`w-full p-3.5 rounded-2xl font-black text-xs transition flex items-center justify-between gap-2 cursor-pointer border text-left ${
-                      specialistMainTab === 'mentor'
-                        ? 'bg-teal-500 text-slate-950 border-teal-500 shadow-md scale-[1.01]'
-                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`p-2 rounded-xl shrink-0 ${specialistMainTab === 'mentor' ? 'bg-slate-950 text-teal-400' : 'bg-slate-200 dark:bg-slate-700 text-teal-500'}`}>
-                        <GraduationCap className="w-4 h-4" />
+                  {/* 2. মেন্টর সার্ভিস (এক্টিভ থাকলে ডট শো করবে, না থাকলে নিচে আবেদন করুন থাকবে) */}
+                  {isMentor ? (
+                    <button
+                      id="nav-mentor-services"
+                      onClick={() => {
+                        setSpecialistMainTab('mentor');
+                        setSellerSubTab('courses');
+                      }}
+                      className={`w-full p-4 rounded-2xl font-black transition flex items-center justify-between gap-3 cursor-pointer border text-left active:scale-[0.99] ${
+                        specialistMainTab === 'mentor'
+                          ? 'bg-teal-500 text-slate-950 border-teal-500 shadow-md ring-2 ring-teal-500/20'
+                          : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className={`p-2.5 rounded-xl shrink-0 ${specialistMainTab === 'mentor' ? 'bg-slate-950 text-teal-400' : 'bg-slate-200 dark:bg-slate-700 text-teal-500'}`}>
+                          <GraduationCap className="w-5 h-5" />
+                        </div>
+                        <div className="truncate">
+                          <div className="flex items-center gap-2">
+                            <span className="block font-black text-sm sm:text-base tracking-tight leading-snug">
+                              মেন্টর সার্ভিস
+                            </span>
+                            {/* Active Dot */}
+                            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-bold bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/40">
+                              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+                              অ্যাক্টিভ
+                            </span>
+                          </div>
+                          <span className={`block text-xs font-bold truncate mt-0.5 ${
+                            specialistMainTab === 'mentor' ? 'text-slate-950/80 font-extrabold' : 'text-slate-500 dark:text-slate-400'
+                          }`}>
+                            কোর্স • ক্লাসরুম • স্টুডেন্ট (3)
+                          </span>
+                        </div>
                       </div>
-                      <div className="truncate">
-                        <span className="block font-black text-xs">মেন্টর সার্ভিস</span>
-                        <span className={`block text-[10px] font-bold truncate ${
-                          specialistMainTab === 'mentor' ? 'text-slate-900/80' : 'text-slate-400'
-                        }`}>
-                          কোর্স • ক্লাসরুম • স্টুডেন্ট (3)
+                      <ChevronRight className={`w-5 h-5 shrink-0 ${specialistMainTab === 'mentor' ? 'text-slate-950 font-black' : 'text-slate-400'}`} />
+                    </button>
+                  ) : isMentorPending ? (
+                    <div className="space-y-1.5">
+                      <button
+                        id="nav-mentor-pending"
+                        onClick={() => setIsMentorStatusModalOpen(true)}
+                        className="w-full p-4 rounded-2xl font-black transition flex items-center justify-between gap-3 cursor-pointer border text-left bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs active:scale-[0.99]"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="p-2.5 rounded-xl shrink-0 bg-amber-500/20 text-amber-400">
+                            <Clock className="w-5 h-5 animate-spin" />
+                          </div>
+                          <div className="truncate">
+                            <div className="flex items-center gap-2">
+                              <span className="block font-black text-sm sm:text-base text-amber-200 tracking-tight leading-snug">
+                                মেন্টর সার্ভিস
+                              </span>
+                              <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 bg-amber-500/30 text-amber-300 rounded-full font-bold border border-amber-500/50">
+                                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                                পেন্ডিং ⏳
+                              </span>
+                            </div>
+                            <span className="block text-xs font-bold text-amber-400/80 truncate mt-0.5">
+                              এডমিন পর্যালোচনায় রয়েছে
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 shrink-0 text-amber-400" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
+                            <GraduationCap className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="block font-black text-sm sm:text-base text-slate-800 dark:text-slate-200">
+                              মেন্টর সার্ভিস
+                            </span>
+                            <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                              ইনঅ্যাক্টিভ (লকড)
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-md">
+                          লক
                         </span>
                       </div>
+                      
+                      {/* আবেদন করুন বাটন নিচে */}
+                      <button
+                        id="nav-mentor-apply"
+                        onClick={() => setIsMentorAppModalOpen(true)}
+                        className="w-full py-2.5 px-3 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-slate-950 font-black text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                      >
+                        <span>মেন্টর হতে আবেদন করুন</span>
+                        <ArrowRight className="w-4 h-4 text-slate-950" />
+                      </button>
                     </div>
-                    <ChevronRight className={`w-4 h-4 shrink-0 ${specialistMainTab === 'mentor' ? 'text-slate-950' : 'text-slate-400'}`} />
-                  </button>
+                  )}
 
-                  {/* 3. পেমেন্ট ও ক্যাশআউট */}
+                  {/* 3. একাউন্ট স্টেটমেন্ট */}
                   <button
+                    id="nav-specialist-statement"
                     onClick={() => {
                       setSpecialistMainTab('payments');
                       setSellerSubTab('earnings');
                     }}
-                    className={`w-full p-3.5 rounded-2xl font-black text-xs transition flex items-center justify-between gap-2 cursor-pointer border text-left ${
+                    className={`w-full p-4 rounded-2xl font-black transition flex items-center justify-between gap-3 cursor-pointer border text-left active:scale-[0.99] ${
                       specialistMainTab === 'payments'
-                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md scale-[1.01]'
-                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-500/20'
+                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`p-2 rounded-xl shrink-0 ${specialistMainTab === 'payments' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 dark:bg-slate-700 text-amber-500'}`}>
-                        <Wallet className="w-4 h-4" />
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className={`p-2.5 rounded-xl shrink-0 ${specialistMainTab === 'payments' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 dark:bg-slate-700 text-amber-500'}`}>
+                        <span className="material-symbols-outlined text-[22px] leading-none select-none">account_balance_wallet</span>
                       </div>
                       <div className="truncate">
-                        <span className="block font-black text-xs">পেমেন্ট ও ক্যাশআউট</span>
-                        <span className={`block text-[10px] font-bold truncate ${
-                          specialistMainTab === 'payments' ? 'text-slate-900/80' : 'text-slate-400'
+                        <span className="block font-black text-sm sm:text-base tracking-tight leading-snug">
+                          একাউন্ট স্টেটমেন্ট
+                        </span>
+                        <span className={`block text-xs font-bold truncate mt-0.5 ${
+                          specialistMainTab === 'payments' ? 'text-slate-950/80 font-extrabold' : 'text-slate-500 dark:text-slate-400'
                         }`}>
                           আর্নিং ও পেমেন্ট হিস্টোরি
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className={`w-4 h-4 shrink-0 ${specialistMainTab === 'payments' ? 'text-slate-950' : 'text-slate-400'}`} />
+                    <ChevronRight className={`w-5 h-5 shrink-0 ${specialistMainTab === 'payments' ? 'text-slate-950 font-black' : 'text-slate-400'}`} />
                   </button>
 
                   {/* 4. ফ্রি টুলস্ */}
                   <button
+                    id="nav-specialist-free-tools"
                     onClick={() => {
                       setSpecialistMainTab('ai_toolkit');
+                      setSellerSubTab('orders');
                     }}
-                    className={`w-full p-3.5 rounded-2xl font-black text-xs transition flex items-center justify-between gap-2 cursor-pointer border text-left ${
+                    className={`w-full p-4 rounded-2xl font-black transition flex items-center justify-between gap-3 cursor-pointer border text-left active:scale-[0.99] ${
                       specialistMainTab === 'ai_toolkit'
-                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-500 shadow-md scale-[1.01]'
-                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-500 shadow-md ring-2 ring-purple-500/20'
+                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700/60 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`p-2 rounded-xl shrink-0 ${specialistMainTab === 'ai_toolkit' ? 'bg-white/20 text-amber-300' : 'bg-slate-200 dark:bg-slate-700 text-purple-400'}`}>
-                        <Sparkles className="w-4 h-4 animate-pulse" />
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className={`p-2.5 rounded-xl shrink-0 ${specialistMainTab === 'ai_toolkit' ? 'bg-white/20 text-amber-300' : 'bg-slate-200 dark:bg-slate-700 text-purple-400'}`}>
+                        <Sparkles className="w-5 h-5 animate-pulse" />
                       </div>
                       <div className="truncate">
-                        <span className="block font-black text-xs">ফ্রি টুলস্</span>
-                        <span className={`block text-[10px] font-bold truncate ${
-                          specialistMainTab === 'ai_toolkit' ? 'text-white/80' : 'text-slate-400'
+                        <span className="block font-black text-sm sm:text-base tracking-tight leading-snug">
+                          ফ্রি টুলস্
+                        </span>
+                        <span className={`block text-xs font-bold truncate mt-0.5 ${
+                          specialistMainTab === 'ai_toolkit' ? 'text-white/90 font-extrabold' : 'text-slate-500 dark:text-slate-400'
                         }`}>
                           ⚡ ১০০% ফ্রী ফ্রিল্যান্সিং টুলস
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className={`w-4 h-4 shrink-0 ${specialistMainTab === 'ai_toolkit' ? 'text-white' : 'text-slate-400'}`} />
+                    <ChevronRight className={`w-5 h-5 shrink-0 ${specialistMainTab === 'ai_toolkit' ? 'text-white font-black' : 'text-slate-400'}`} />
                   </button>
                 </div>
 
@@ -2902,68 +3778,90 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
                   {/* CATEGORY 2: MENTOR SERVICE SUB-ITEMS */}
                   {specialistMainTab === 'mentor' && (
-                    <>
-                      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
-                        <button
-                          onClick={() => setSellerSubTab('courses')}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                            sellerSubTab === 'courses'
-                              ? 'bg-teal-400 text-slate-950 font-black shadow-md'
-                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
-                          }`}
-                        >
-                          <BookOpen className="w-3.5 h-3.5" />
-                          <span>আমার পরিচালিত কোর্স</span>
-                        </button>
+                    isMentor ? (
+                      <>
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
+                          <button
+                            onClick={() => setSellerSubTab('courses')}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                              sellerSubTab === 'courses'
+                                ? 'bg-teal-400 text-slate-950 font-black shadow-md'
+                                : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                            }`}
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>আমার পরিচালিত কোর্স</span>
+                          </button>
+
+                          <button
+                            onClick={() => setSellerSubTab('assignments')}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                              sellerSubTab === 'assignments'
+                                ? 'bg-teal-400 text-slate-950 font-black shadow-md'
+                                : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                            }`}
+                          >
+                            <FileCheck className="w-3.5 h-3.5" />
+                            <span>অ্যাসাইনমেন্ট ও ক্লাসরুম</span>
+                          </button>
+
+                          <button
+                            onClick={() => setSellerSubTab('students')}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                              sellerSubTab === 'students'
+                                ? 'bg-teal-400 text-slate-950 font-black shadow-md'
+                                : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                            }`}
+                          >
+                            <Users className="w-3.5 h-3.5" />
+                            <span>শিক্ষার্থীবৃন্দ (3)</span>
+                          </button>
+
+                          <button
+                            onClick={() => setSellerSubTab('certificates')}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                              sellerSubTab === 'certificates'
+                                ? 'bg-teal-400 text-slate-950 font-black shadow-md'
+                                : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                            }`}
+                          >
+                            <Award className="w-3.5 h-3.5" />
+                            <span>সার্টিফিকেট প্রদান (1)</span>
+                          </button>
+                        </div>
 
                         <button
-                          onClick={() => setSellerSubTab('assignments')}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                            sellerSubTab === 'assignments'
-                              ? 'bg-teal-400 text-slate-950 font-black shadow-md'
-                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
-                          }`}
+                          onClick={() => {
+                            setSellerSubTab('assignments');
+                            setIsCreateAssignmentModalOpen(true);
+                          }}
+                          className="px-4 py-2 bg-gradient-to-r from-teal-400 to-emerald-400 hover:opacity-90 text-slate-950 font-black text-xs rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
                         >
-                          <FileCheck className="w-3.5 h-3.5" />
-                          <span>অ্যাসাইনমেন্ট ও ক্লাসরুম</span>
+                          <PlusCircle className="w-4 h-4" />
+                          <span>+ নতুন অ্যাসাইনমেন্ট দিন</span>
                         </button>
-
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3 w-full py-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-teal-300 font-black flex items-center gap-1.5">
+                            <GraduationCap className="w-4 h-4" />
+                            মেন্টরশিপ অ্যাপ্লিকেশন হাব
+                          </span>
+                          {isMentorPending && (
+                            <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold border border-amber-500/30">
+                              ⏳ আবেদন এডমিন রিভিউতে রয়েছে
+                            </span>
+                          )}
+                        </div>
                         <button
-                          onClick={() => setSellerSubTab('students')}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                            sellerSubTab === 'students'
-                              ? 'bg-teal-400 text-slate-950 font-black shadow-md'
-                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
-                          }`}
+                          onClick={() => isMentorPending ? setIsMentorStatusModalOpen(true) : setIsMentorAppModalOpen(true)}
+                          className="px-3.5 py-1 rounded-full text-xs font-bold bg-teal-500 hover:bg-teal-400 text-slate-950 transition cursor-pointer"
                         >
-                          <Users className="w-3.5 h-3.5" />
-                          <span>শিক্ষার্থীবৃন্দ (3)</span>
-                        </button>
-
-                        <button
-                          onClick={() => setSellerSubTab('certificates')}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                            sellerSubTab === 'certificates'
-                              ? 'bg-teal-400 text-slate-950 font-black shadow-md'
-                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
-                          }`}
-                        >
-                          <Award className="w-3.5 h-3.5" />
-                          <span>সার্টিফিকেট প্রদান (1)</span>
+                          {isMentorPending ? 'আবেদনের তথ্য' : 'ফর্ম ওপেন করুন 📝'}
                         </button>
                       </div>
-
-                      <button
-                        onClick={() => {
-                          setSellerSubTab('assignments');
-                          setIsCreateAssignmentModalOpen(true);
-                        }}
-                        className="px-4 py-2 bg-gradient-to-r from-teal-400 to-emerald-400 hover:opacity-90 text-slate-950 font-black text-xs rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        <PlusCircle className="w-4 h-4" />
-                        <span>+ নতুন অ্যাসাইনমেন্ট দিন</span>
-                      </button>
-                    </>
+                    )
                   )}
 
                   {/* CATEGORY 3: PAYMENTS & CASHOUT SUB-ITEMS */}
@@ -2973,23 +3871,13 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         <button
                           onClick={() => setPayoutSubTab('overview')}
                           className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                            payoutSubTab === 'overview'
+                            payoutSubTab === 'overview' || payoutSubTab === 'sources'
                               ? 'bg-[#1DB954] text-slate-950 font-black shadow-md'
                               : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                           }`}
                         >
-                          <span>📊 সামারি ও ব্যালেন্স</span>
-                        </button>
-
-                        <button
-                          onClick={() => setPayoutSubTab('sources')}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                            payoutSubTab === 'sources'
-                              ? 'bg-[#1DB954] text-slate-950 font-black shadow-md'
-                              : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
-                          }`}
-                        >
-                          <span>⚡ যৌথ ইনকাম সোর্স</span>
+                          <span className="material-symbols-outlined text-[16px] leading-none select-none">bar_chart</span>
+                          <span>সামারি ও ব্যালেন্স</span>
                         </button>
 
                         <button
@@ -3000,7 +3888,8 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                               : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                           }`}
                         >
-                          <span>📜 পেআউট হিস্টোরি</span>
+                          <span className="material-symbols-outlined text-[16px] leading-none select-none">receipt_long</span>
+                          <span>উইথড্র হিস্টোরি</span>
                         </button>
                       </div>
 
@@ -3011,8 +3900,8 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         }}
                         className="px-4 py-1.5 rounded-full text-xs font-black transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#1DB954]/20 border border-emerald-400 shrink-0"
                       >
-                        <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                        <span>ক্যাশআউট রিকোয়েস্ট</span>
+                        <span className="material-symbols-outlined text-[16px] leading-none select-none">payments</span>
+                        <span>ক্যাশআউট রিকোয়েস্ট</span>
                       </button>
                     </div>
                   )}
@@ -3262,7 +4151,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
 
                   {/* SUBTAB: TEACHER / SPECIALIST MODULES (Courses, Assignments, Students, Certificates) */}
-                  {(sellerSubTab === 'courses' || sellerSubTab === 'assignments' || sellerSubTab === 'students' || sellerSubTab === 'certificates') && (
+                  {specialistMainTab === 'mentor' && (sellerSubTab === 'courses' || sellerSubTab === 'assignments' || sellerSubTab === 'students' || sellerSubTab === 'certificates') && (
                     <div className="space-y-4 animate-fadeIn">
                       <TeacherDashboard
                         initialTab={
@@ -3282,7 +4171,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                   )}
 
                   {/* SUBTAB 1: Active Uploaded Orders */}
-                  {sellerSubTab === 'gigs' && (
+                  {specialistMainTab === 'marketplace' && sellerSubTab === 'gigs' && (
                     <div className="space-y-4">
                       {sellerGigs.length === 0 ? (
                         <div className="p-8 sm:p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl text-center space-y-4 font-bengali">
@@ -3463,52 +4352,65 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                   )}
 
                   {/* SUBTAB 2: Active Client Orders Workspace */}
-                  {sellerSubTab === 'orders' && (
+                  {specialistMainTab === 'marketplace' && sellerSubTab === 'orders' && (
                     <div id="seller-orders-section" className="space-y-6 animate-fadeIn font-bengali">
                       {/* Filter Header & Stats */}
                       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 sm:p-4 rounded-xl shadow-xs space-y-3">
                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                          <div>
-                            <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                              <Package className="w-4 h-4 text-[#1DB954]" />
-                              <span>বায়ার ক্লায়েন্ট প্রজেক্ট অর্ডার ড্যাশবোর্ড</span>
-                            </h3>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                              বায়ারদের প্রজেক্ট অর্ডার পরিচালনা করুন, নতুন কাজ শুরু করুন ও আপডেট দিন।
-                            </p>
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 flex-1">
+                            <div>
+                              <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                                <Package className="w-4 h-4 text-[#1DB954]" />
+                                <span>অর্ডার ও অফার</span>
+                              </h3>
+                            </div>
                           </div>
 
-                          {/* Status Filter Tabs - Guaranteed 1-line layout */}
-                          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl overflow-x-auto whitespace-nowrap max-w-full scrollbar-none shrink-0">
-                            {[
-                              { id: 'all', label: 'সকল অর্ডার', count: marketplaceOrders.length },
-                              { id: 'pending', label: 'নতুন পেন্ডিং', count: marketplaceOrders.filter(o => o.status === 'pending' || o.status === 'pending_approval').length, badgeColor: 'bg-amber-500 text-white' },
-                              { id: 'in_progress', label: 'চলমান কাজ', count: marketplaceOrders.filter(o => o.status === 'in_progress').length, badgeColor: 'bg-blue-500 text-white' },
-                              { id: 'in_review', label: 'রিভিউ এর অপেক্ষায়', count: marketplaceOrders.filter(o => o.status === 'in_review' || o.status === 'revision_requested').length, badgeColor: 'bg-purple-500 text-white' },
-                              { id: 'completed', label: 'সম্পন্ন', count: marketplaceOrders.filter(o => o.status === 'completed').length, badgeColor: 'bg-emerald-500 text-white' },
-                            ].map(tab => (
-                              <button
-                                key={tab.id}
-                                onClick={() => setSellerOrderFilter(tab.id as any)}
-                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0 ${
-                                  sellerOrderFilter === tab.id
-                                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-black border border-slate-200 dark:border-slate-700'
-                                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                                }`}
-                              >
-                                <span>{tab.label}</span>
-                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                                  tab.badgeColor || 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                                }`}>
-                                  {tab.count}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
+                        </div>
+
+                        {/* Status Filter Tabs - Stacked Style (Label on Top, Count below) */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 pt-1">
+                          {(() => {
+                            const pendingOrdersCount = marketplaceOrders.filter(o => o.status === 'pending' || o.status === 'pending_approval').length + offeredCourses.length;
+                            const inProgressCount = marketplaceOrders.filter(o => o.status === 'in_progress').length;
+                            const inReviewCount = marketplaceOrders.filter(o => o.status === 'in_review' || o.status === 'revision_requested').length;
+                            const completedCount = marketplaceOrders.filter(o => o.status === 'completed').length;
+                            const totalCount = marketplaceOrders.length + offeredCourses.length;
+
+                            return [
+                              { id: 'all', label: 'সকল অর্ডার', count: totalCount },
+                              { id: 'pending', label: 'নতুন পেন্ডিং', count: pendingOrdersCount },
+                              { id: 'in_progress', label: 'চলমান কাজ', count: inProgressCount },
+                              { id: 'in_review', label: 'রিভিউ অপেক্ষায়', count: inReviewCount },
+                              { id: 'completed', label: 'সম্পন্ন', count: completedCount },
+                            ].map(tab => {
+                              const isSelected = sellerOrderFilter === tab.id;
+                              return (
+                                <button
+                                  key={tab.id}
+                                  onClick={() => setSellerOrderFilter(tab.id as any)}
+                                  className={`py-2 px-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                                    isSelected
+                                      ? 'bg-slate-100 dark:bg-slate-800 border-[#1DB954] text-slate-950 dark:text-white shadow-xs font-black ring-1 ring-[#1DB954]/30'
+                                      : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
+                                  }`}
+                                >
+                                  <span className="text-[11px] sm:text-xs font-bold leading-tight">{tab.label}</span>
+                                  <span className={`text-base sm:text-lg font-black leading-tight ${
+                                    isSelected ? 'text-[#1DB954]' : 'text-slate-800 dark:text-slate-200'
+                                  }`}>
+                                    {tab.count}
+                                  </span>
+                                </button>
+                              );
+                            });
+                          })()}
                         </div>
 
                         {/* Filtered Order List */}
                         {(() => {
+                          const showCourseOffers = offeredCourses.length > 0 && (sellerOrderFilter === 'all' || sellerOrderFilter === 'pending');
+                          
                           const filtered = marketplaceOrders.filter(o => {
                             if (sellerOrderFilter === 'all') return true;
                             if (sellerOrderFilter === 'pending') return o.status === 'pending' || o.status === 'pending_approval';
@@ -3518,19 +4420,127 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                             return true;
                           });
 
-                          if (filtered.length === 0) {
+                          if (!showCourseOffers && filtered.length === 0) {
                             return (
                               <div className="p-8 text-center text-slate-400 space-y-2">
                                 <Package className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
-                                <p className="text-xs font-bold">এই ফিল্টারে কোনো প্রজেক্ট অর্ডার পাওয়া যায়নি</p>
+                                <p className="text-xs font-bold">এই ফিল্টারে কোনো প্রজেক্ট অর্ডার বা অফার পাওয়া যায়নি</p>
                               </div>
                             );
                           }
 
                           return (
                             <div className="space-y-4">
+                              {/* ADMIN COURSE OFFERS CARD SECTION (Unified in same orders place) */}
+                              {showCourseOffers && (
+                                <div className="bg-gradient-to-r from-amber-500/15 via-slate-900/90 to-amber-950/30 border-2 border-amber-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl space-y-4 font-bengali">
+                                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-amber-500/30">
+                                    <div className="flex items-center gap-2.5">
+                                      <span className="w-3 h-3 rounded-full bg-amber-400 animate-ping shrink-0" />
+                                      <div>
+                                        <h3 className="text-sm sm:text-base font-black text-amber-300 flex items-center gap-2">
+                                          <span>📩 মেইন এডমিন থেকে প্রাপ্ত কোর্স অফারসমূহ</span>
+                                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-xs">
+                                            {offeredCourses.length}টি অফার অপেক্ষমাণ
+                                          </span>
+                                        </h3>
+                                        <p className="text-[11px] text-slate-300 mt-0.5">
+                                          এডমিন কর্তৃক নির্ধারিত কোর্স অফার রিভিউ করে সরাসরি রিসিভ করুন এবং ক্লাস শুরু করুন।
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <span className="text-[10px] font-bold px-2.5 py-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/40 shrink-0">
+                                      ইনস্ট্যান্ট রিসিভ সুবিধাযুক্ত
+                                    </span>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                    {offeredCourses.map(course => (
+                                      <div
+                                        key={course.id}
+                                        className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-amber-500/40 shadow-md flex flex-col justify-between space-y-3 hover:border-amber-400 transition"
+                                      >
+                                        <div className="space-y-2.5">
+                                          <div className="flex items-start gap-3">
+                                            <img
+                                              src={course.thumbnail}
+                                              alt={course.title}
+                                              className="w-14 h-14 rounded-xl object-cover shrink-0 border border-slate-700 shadow-xs"
+                                            />
+                                            <div className="min-w-0 flex-1 space-y-1">
+                                              <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30">
+                                                  {course.level === 'basic' ? '🟢 বেসিক লেভেল' : course.level === 'advanced' ? '⚡ এডভান্সড লেভেল' : course.level === 'professional' ? '🎓 প্রফেশনাল' : '📘 কোর্স অফার'}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                                                  {course.category}
+                                                </span>
+                                              </div>
+                                              <h4 className="font-black text-xs sm:text-sm text-slate-900 dark:text-white leading-snug line-clamp-2">
+                                                {course.title}
+                                              </h4>
+                                            </div>
+                                          </div>
+
+                                          <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                                            {course.description}
+                                          </p>
+
+                                          {/* Offer Targets & Commission */}
+                                          <div className="grid grid-cols-3 gap-1.5 p-2 bg-amber-500/5 dark:bg-amber-950/20 rounded-xl border border-amber-500/20 text-center">
+                                            <div>
+                                              <span className="text-[9px] text-slate-400 block font-bold">মডিউল টার্গেট</span>
+                                              <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">
+                                                {course.targetModules || 4}টি
+                                              </span>
+                                            </div>
+                                            <div>
+                                              <span className="text-[9px] text-slate-400 block font-bold">ক্লাস টার্গেট</span>
+                                              <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">
+                                                {course.targetLessons || 16}টি
+                                              </span>
+                                            </div>
+                                            <div>
+                                              <span className="text-[9px] text-slate-400 block font-bold">শিক্ষক কমিশন</span>
+                                              <span className="font-black text-xs text-emerald-600 dark:text-[#1DB954]">
+                                                {course.teacherCommissionRate || 35}% ফি
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Actions: Receive / Decline */}
+                                        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                          <button
+                                            onClick={() => {
+                                              stopOfferNotificationSound();
+                                              acceptCourseOffer(course.id, currentUser?.id, currentUser?.name);
+                                              setSellerOrderFilter('pending');
+                                            }}
+                                            className="flex-1 py-2 px-3 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 dark:text-white font-black text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                          >
+                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                            <span>রিসিভ করুন</span>
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              stopOfferNotificationSound();
+                                              declineCourseOffer(course.id);
+                                            }}
+                                            className="py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/20 text-slate-600 dark:text-slate-300 hover:text-rose-500 font-bold text-xs rounded-xl transition border border-slate-200 dark:border-slate-700 cursor-pointer flex items-center gap-1 active:scale-95"
+                                          >
+                                            <X className="w-3.5 h-3.5" />
+                                            <span>প্রত্যাখ্যান</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                               {filtered.map(ord => {
-                                const isPending = ord.status === 'pending' || ord.status === 'pending_approval';
+                                const isPendingApproval = ord.status === 'pending_approval';
+                                const isPending = ord.status === 'pending';
                                 const isInProgress = ord.status === 'in_progress';
                                 const isInReview = ord.status === 'in_review' || ord.status === 'revision_requested';
                                 const isCompleted = ord.status === 'completed';
@@ -3541,10 +4551,15 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                                 let statusLabel = "কাজ চলছে";
                                 let StatusIcon = Clock;
 
-                                if (isPending) {
-                                  cardStatusClasses = "border-l-8 border-l-amber-500 bg-gradient-to-r from-amber-500/10 via-slate-50/50 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
-                                  badgeClasses = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30";
-                                  statusLabel = "পেন্ডিং প্রজেক্ট";
+                                if (isPendingApproval) {
+                                  cardStatusClasses = "border-l-8 border-l-amber-500 bg-gradient-to-r from-amber-500/15 via-slate-50/50 to-white dark:from-amber-950/40 dark:via-slate-900 dark:to-slate-900 border-amber-500/30 shadow-md";
+                                  badgeClasses = "bg-amber-500 text-slate-950 font-black border-amber-500";
+                                  statusLabel = "📩 নতুন প্রজেক্ট অফার";
+                                  StatusIcon = Clock;
+                                } else if (isPending) {
+                                  cardStatusClasses = "border-l-8 border-l-amber-400 bg-gradient-to-r from-amber-500/10 via-slate-50/50 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
+                                  badgeClasses = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30 font-bold";
+                                  statusLabel = "পেন্ডিং প্রজেক্ট (কাজ করুন)";
                                   StatusIcon = Clock;
                                 } else if (isInReview) {
                                   cardStatusClasses = "border-l-8 border-l-purple-500 bg-gradient-to-r from-purple-500/10 via-slate-50/50 to-white dark:from-purple-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
@@ -3640,13 +4655,31 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                                         </button>
 
                                         {/* Primary Action Button depending on status */}
+                                        {isPendingApproval && (
+                                          <button
+                                            onClick={() => {
+                                              stopOfferNotificationSound();
+                                              updateMarketplaceOrderStatus(ord.id, 'pending', 'অর্ডার রিসিভ করা হয়েছে এবং নতুন পেন্ডিং লিস্টে যুক্ত করা হয়েছে।');
+                                              setSellerOrderFilter('pending');
+                                            }}
+                                            className="px-3.5 py-1.5 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
+                                          >
+                                            <CheckCircle2 className="w-4 h-4 text-slate-950" />
+                                            <span>রিসিভ করুন</span>
+                                          </button>
+                                        )}
+
                                         {isPending && (
                                           <button
-                                            onClick={() => updateMarketplaceOrderStatus(ord.id, 'in_progress', 'কাজ শুরু করা হয়েছে।')}
-                                            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                                            onClick={() => {
+                                              stopOfferNotificationSound();
+                                              updateMarketplaceOrderStatus(ord.id, 'in_progress', 'কাজ শুরু করা হয়েছে।');
+                                              setSellerOrderFilter('in_progress');
+                                            }}
+                                            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
                                           >
-                                            <Play className="w-4 h-4 fill-slate-950" />
-                                            <span>কাজ শুরু করুন</span>
+                                            <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
+                                            <span>কাজ করুন</span>
                                           </button>
                                         )}
 
@@ -3728,9 +4761,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                   )}
 
                   {/* SUBTAB 4: Bill Cashout / Earnings Management */}
-
-                  {/* SUBTAB 4: Bill Cashout / Earnings Management */}
-                  {sellerSubTab === 'earnings' && (
+                  {specialistMainTab === 'payments' && sellerSubTab === 'earnings' && (
                     <div className="space-y-6 font-bengali animate-fadeIn">
                       {(() => {
                         const mktEarned = sellerGigs.reduce((acc, g) => acc + ((g.price || g.packages?.basic?.price || 2500) * (g.salesCount || 12)), 0) || 125000;
@@ -3746,7 +4777,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           (currentUser.name && p.teacherName.toLowerCase().includes(currentUser.name.toLowerCase()))
                         ) : payouts;
 
-                        const sellerPayouts = rawPayouts.length > 0 ? rawPayouts : [
+                        const defaultSellerPayouts = [
                           {
                             id: "pay-105",
                             teacherId: currentUser?.id || "usr-1",
@@ -3785,6 +4816,23 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           }
                         ];
 
+                        const basePayouts = rawPayouts.length > 0 ? rawPayouts : defaultSellerPayouts;
+                        const sellerPayouts = [
+                          ...(activePendingPayout ? [{
+                            id: activePendingPayout.id,
+                            teacherId: currentUser?.id || "usr-1",
+                            teacherName: currentUser?.name || "MD S Kazi Sohag",
+                            teacherEmail: currentUser?.email || "sohag@ptenit.com",
+                            amount: activePendingPayout.amount,
+                            paymentMethod: activePendingPayout.paymentMethod,
+                            accountNumber: activePendingPayout.accountNumber,
+                            note: "অনলাইন ক্যাশআউট আবেদন (প্রক্রিয়াধীন)",
+                            status: activePendingPayout.status,
+                            requestedAt: activePendingPayout.requestedAt
+                          }] : []),
+                          ...basePayouts.filter(p => !activePendingPayout || p.id !== activePendingPayout.id)
+                        ];
+
                         const approvedPayouts = sellerPayouts.filter(p => p.status === 'Approved' || p.status === 'Paid');
                         const lastCashout = approvedPayouts.length > 0 ? approvedPayouts[0] : sellerPayouts[0];
                         const totalApprovedPaid = approvedPayouts.reduce((acc, p) => acc + p.amount, 0);
@@ -3810,401 +4858,216 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
                         return (
                           <>
-                            {/* PROMINENT TOP CASHOUT & BILL APPLICATION ALERT BANNER */}
-                            {(cashoutSuccessMsg || (activePendingPayout && activePendingPayout.status === 'Pending') || sellerPayouts.some(p => p.status === 'Pending')) && (
+                            {/* SUCCESS ALERT BANNER */}
+                            {cashoutSuccessMsg && (
                               <div className="space-y-3 animate-fadeIn">
-                                {cashoutSuccessMsg && (
-                                  <div className="p-4 bg-emerald-500/15 text-[#1DB954] font-black text-xs sm:text-sm rounded-2xl border-2 border-[#1DB954]/50 shadow-md flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2.5">
-                                      <CheckCircle2 className="w-5 h-5 shrink-0 fill-[#1DB954] text-slate-950 animate-bounce" />
-                                      <span>{cashoutSuccessMsg}</span>
-                                    </div>
-                                    <button onClick={() => setCashoutSuccessMsg('')} className="p-1 hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-white transition cursor-pointer">✕</button>
+                                <div className="p-4 bg-emerald-500/15 text-[#1DB954] font-black text-xs sm:text-sm rounded-2xl border-2 border-[#1DB954]/50 shadow-md flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2.5">
+                                    <CheckCircle2 className="w-5 h-5 shrink-0 fill-[#1DB954] text-slate-950 animate-bounce" />
+                                    <span>{cashoutSuccessMsg}</span>
                                   </div>
-                                )}
-
-                                {((activePendingPayout && activePendingPayout.status === 'Pending') || sellerPayouts.some(p => p.status === 'Pending')) && (
-                                  <div className="p-3 sm:p-4 bg-gradient-to-r from-amber-950/70 via-slate-900 to-amber-950/50 border border-amber-500/40 rounded-2xl font-bengali shadow-md relative backdrop-blur-md">
-                                    {(() => {
-                                      const pending = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
-                                      if (!pending) return null;
-                                      return (
-                                        <div className="flex items-center justify-between gap-3">
-                                          {/* Left Compact Info */}
-                                          <div className="flex items-center gap-3 min-w-0">
-                                            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
-                                              <Clock className="w-4 h-4 animate-pulse text-amber-400" />
-                                            </div>
-                                            <div className="min-w-0">
-                                              <div className="flex items-center gap-2 flex-wrap">
-                                                <h4 className="text-xs sm:text-sm font-black text-white">
-                                                  ১টি ক্যাশআউট আবেদন প্রক্রিয়াধীন
-                                                </h4>
-                                                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-black border border-amber-500/30">
-                                                  ⏳ ২৪ ঘণ্টার মধ্যে প্রসেস হবে
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center gap-2.5 text-xs text-slate-300 font-bold mt-1 flex-wrap">
-                                                <span>পরিমাণ: <strong className="text-[#1DB954] font-black">৳{pending.amount.toLocaleString('bn-BD')}</strong></span>
-                                                <span className="text-slate-600">•</span>
-                                                <span>মেথড: <strong className="text-slate-100">{pending.paymentMethod}</strong> ({pending.accountNumber})</span>
-                                                <span className="hidden md:inline text-slate-600">•</span>
-                                                <span className="hidden md:inline text-slate-400 text-[11px]">{pending.requestedAt}</span>
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Right 3-Dot Actions Menu Button */}
-                                          <div className="relative shrink-0">
-                                            <button
-                                              onClick={() => setIsPendingMenuOpen(!isPendingMenuOpen)}
-                                              className="p-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-white border border-amber-500/40 transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95"
-                                              title="অপশন (এডিট / বাতিল)"
-                                            >
-                                              <MoreVertical className="w-4 h-4" />
-                                            </button>
-
-                                            {/* Dropdown Menu */}
-                                            {isPendingMenuOpen && (
-                                              <div className="absolute right-0 top-10 z-50 w-44 bg-slate-900 border border-amber-500/40 rounded-xl p-1.5 shadow-2xl backdrop-blur-2xl animate-fadeIn space-y-1">
-                                                <button
-                                                  onClick={() => {
-                                                    const p = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
-                                                    if (p) {
-                                                      setIsPendingMenuOpen(false);
-                                                      setEditPendingAmount(p.amount);
-                                                      setEditPendingMethod((p.paymentMethod || 'bKash') as any);
-                                                      setEditPendingAccount(p.accountNumber);
-                                                      setIsEditPendingModalOpen(true);
-                                                    }
-                                                  }}
-                                                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                                                >
-                                                  <Pencil className="w-3.5 h-3.5 text-[#1DB954]" />
-                                                  <span>✏️ এডিট করুন</span>
-                                                </button>
-                                                <button
-                                                  onClick={() => {
-                                                    const p = activePendingPayout || sellerPayouts.find(p => p.status === 'Pending');
-                                                    if (p) {
-                                                      if (confirm(`আপনি কি ৳${p.amount.toLocaleString('bn-BD')} এর ক্যাশআউট আবেদনটি বাতিল করতে চান?`)) {
-                                                        setAvailableBalance(prev => prev + p.amount);
-                                                        setActivePendingPayout(null);
-                                                        setIsPendingMenuOpen(false);
-                                                        alert('আপনার ক্যাশআউট আবেদনটি সফলভাবে বাতিল করা হয়েছে।');
-                                                      }
-                                                    }
-                                                  }}
-                                                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-500/20 transition cursor-pointer"
-                                                >
-                                                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                                                  <span>🗑️ বাতিল করুন</span>
-                                                </button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                )}
+                                  <button onClick={() => setCashoutSuccessMsg('')} className="p-1 hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-white transition cursor-pointer">✕</button>
+                                </div>
                               </div>
                             )}
 
-                            {/* TAB 1: OVERVIEW */}
-                            {payoutSubTab === 'overview' && (
-                              <div className="space-y-6 animate-fadeIn">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-1 shadow-sm">
-                                    <span className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
-                                      <DollarSign className="w-4 h-4 text-[#1DB954]" /> সর্বমোট যৌথ ইনকাম
-                                    </span>
-                                    <span className="text-2xl font-black text-slate-900 dark:text-white block">
+                            {/* TAB 1: SUMMARY & BALANCE (SINGLE ROW 4 COMPACT CARDS) */}
+                            {(payoutSubTab === 'overview' || payoutSubTab === 'sources') && (
+                              <div className="space-y-6 animate-fadeIn font-bengali">
+                                {/* 4 Compact Stat Cards in 1 Single Row with Minimal Short Text */}
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                                  {/* Card 1: Total Earnings */}
+                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                                        <DollarSign className="w-3.5 h-3.5 text-[#1DB954] shrink-0" /> সর্বমোট আয়
+                                      </span>
+                                      <span className="text-[9px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-bold shrink-0">যৌথ</span>
+                                    </div>
+                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
                                       ৳{totalEarned.toLocaleString('bn-BD')}
-                                    </span>
-                                    <span className="text-[10px] text-slate-500 font-bold block">
-                                      মার্কেটপ্লেস + মেন্টর সার্ভিস আয়
-                                    </span>
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 font-bold truncate">মার্কেটপ্লেস ও মেন্টর</div>
                                   </div>
 
-                                  <div className="p-5 bg-emerald-50 dark:bg-emerald-950/40 border-2 border-[#1DB954] rounded-3xl space-y-1 shadow-md">
-                                    <span className="text-xs text-emerald-700 dark:text-[#1DB954] font-bold flex items-center gap-1.5">
-                                      <Wallet className="w-4 h-4 text-[#1DB954]" /> ক্যাশআউটযোগ্য ব্যালেন্স
-                                    </span>
-                                    <span className="text-2xl font-black text-[#1DB954] block">
+                                  {/* Card 2: Cashout Ready Balance */}
+                                  <div className="p-3.5 sm:p-4 bg-emerald-500/10 dark:bg-emerald-950/30 border-2 border-[#1DB954] rounded-2xl space-y-1 shadow-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-black text-emerald-800 dark:text-[#1DB954] flex items-center gap-1.5 truncate">
+                                        <Wallet className="w-3.5 h-3.5 text-[#1DB954] shrink-0" /> ক্যাশআউট ব্যালেন্স
+                                      </span>
+                                      <span className="text-[9px] text-[#1DB954] bg-[#1DB954]/20 px-1.5 py-0.5 rounded font-black shrink-0">উইথড্র রেডি</span>
+                                    </div>
+                                    <div className="text-lg sm:text-xl font-black text-[#1DB954] tracking-tight">
                                       ৳{availableBalance.toLocaleString('bn-BD')}
-                                    </span>
-                                    <span className="text-[10px] text-slate-600 dark:text-slate-300 font-bold block">
-                                      উইথড্রয়াল প্রস্তুত ফান্ড
-                                    </span>
+                                    </div>
+                                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold truncate">উইথড্র করার জন্য প্রস্তুত</div>
                                   </div>
 
-                                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-1 shadow-sm">
-                                    <span className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
-                                      <Clock className="w-4 h-4 text-amber-500" /> এস্ক্রো ও ক্লিয়ারেন্স
-                                    </span>
-                                    <span className="text-2xl font-black text-amber-500 block">
-                                      ৳{pendingEscrow.toLocaleString('bn-BD')}
-                                    </span>
-                                    <span className="text-[10px] text-amber-500/80 font-bold block">
-                                      প্রসেসিং ফান্ড
-                                    </span>
+                                  {/* Card 3: Marketplace Earnings */}
+                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                                        <ShoppingBag className="w-3.5 h-3.5 text-purple-400 shrink-0" /> ১. মার্কেটপ্লেস আয়
+                                      </span>
+                                      <span className="text-[9px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">গিগ</span>
+                                    </div>
+                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                      ৳{mktEarned.toLocaleString('bn-BD')}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 font-bold truncate">গিগ ও প্রজেক্ট</div>
+                                  </div>
+
+                                  {/* Card 4: Mentor & Courses Earnings */}
+                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                                        <GraduationCap className="w-3.5 h-3.5 text-teal-400 shrink-0" /> ২. মেন্টর ও কোর্স
+                                      </span>
+                                      <span className="text-[9px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">কোর্স ফি</span>
+                                    </div>
+                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                      ৳{mntEarned.toLocaleString('bn-BD')}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 font-bold truncate">কোর্স ও স্টুডেন্ট এনরোলমেন্ট</div>
                                   </div>
                                 </div>
 
-                                {/* Quick Action Banner */}
-                                <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-5 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-                                  <div className="space-y-1">
-                                    <h3 className="text-sm font-black text-white flex items-center gap-2">
-                                      <Sparkles className="w-4 h-4 text-[#1DB954]" />
-                                      <span>ইনস্ট্যান্ট ক্যাশআউট সার্ভিস</span>
-                                    </h3>
-                                    <p className="text-xs text-slate-400">
-                                      বিকাশ, নগদ, রকেট বা ব্যাংকে দ্রুত উইথড্রয়াল আবেদন করুন।
-                                    </p>
-                                  </div>
-                                  <div className="flex items-center gap-2 shrink-0">
-                                    <button
-                                      onClick={() => setPayoutSubTab('sources')}
-                                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition cursor-pointer"
-                                    >
-                                      ইনকাম সোর্স লিষ্ট দেখুন
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setPayoutSubTab('withdraw');
-                                        setIsCashoutFormOpen(true);
-                                      }}
-                                      className="px-4 py-2 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black text-xs rounded-xl shadow transition cursor-pointer flex items-center gap-1.5"
-                                    >
-                                      <CreditCard className="w-4 h-4" />
-                                      <span>ক্যাশআউট রিকোয়েস্ট</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* TAB 2: SOURCES (COURSE LIST & MARKETPLACE GIG LIST) */}
-                            {payoutSubTab === 'sources' && (
-                              <div className="space-y-6 animate-fadeIn">
-                                {/* Top Revenue Breakdown Cards */}
-                                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 text-white space-y-4 shadow-xl">
-                                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                                    <h3 className="text-sm font-black text-white flex items-center gap-2">
-                                      <Sparkles className="w-4 h-4 text-[#1DB954]" />
-                                      <span>যৌথ ইনকাম সোর্স সামারি</span>
-                                    </h3>
-                                    <span className="text-[10px] text-[#1DB954] bg-[#1DB954]/10 px-2.5 py-1 rounded-full border border-[#1DB954]/20 font-bold">
-                                      একক ওয়ালেটে সমন্বিত
-                                    </span>
-                                  </div>
-
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <div className="bg-slate-800/80 border border-slate-700/80 p-4 rounded-2xl space-y-1.5">
-                                      <span className="text-xs font-black text-purple-300 flex items-center gap-1.5">
-                                        <ShoppingBag className="w-3.5 h-3.5 text-purple-400" /> ১. মার্কেটপ্লেস ও প্রজেক্ট
-                                      </span>
-                                      <div className="text-xl font-black text-white">৳{mktEarned.toLocaleString('bn-BD')}</div>
-                                      <p className="text-[11px] text-slate-400">গিগ, কাস্টম অফার ও প্রজেক্ট থেকে অর্জিত আয়।</p>
-                                    </div>
-
-                                    <div className="bg-slate-800/80 border border-slate-700/80 p-4 rounded-2xl space-y-1.5">
-                                      <span className="text-xs font-black text-teal-300 flex items-center gap-1.5">
-                                        <GraduationCap className="w-3.5 h-3.5 text-teal-400" /> ২. মেন্টরশিপ ও কোর্স ফি
-                                      </span>
-                                      <div className="text-xl font-black text-white">৳{mntEarned.toLocaleString('bn-BD')}</div>
-                                      <p className="text-[11px] text-slate-400">কোর্স বিক্রয়, মেন্টরিং ও স্টুডেন্ট এনরোলমেন্ট ফি।</p>
-                                    </div>
-
-                                    <div className="bg-slate-800/80 border border-slate-700/80 p-4 rounded-2xl space-y-1.5">
-                                      <span className="text-xs font-black text-amber-300 flex items-center gap-1.5">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" /> ৩. নেট পেআউট ফান্ড
-                                      </span>
-                                      <div className="text-xl font-black text-[#1DB954]">৳{netEarned.toLocaleString('bn-BD')}</div>
-                                      <p className="text-[11px] text-slate-400">৬.৬% প্ল্যাটফর্ম চার্জ কর্তন পরবর্তী নীট ব্যালেন্স।</p>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* SECTION A: COURSE-BY-COURSE EARNINGS & LIVE PROGRESS LIST */}
-                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 space-y-4 shadow-sm">
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2">
+                                {/* UNIFIED SECTION: COMBINED COURSES & MARKETPLACE PROJECTS */}
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs font-bengali">
+                                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
                                     <div className="flex items-center gap-2">
-                                      <GraduationCap className="w-5 h-5 text-teal-500" />
-                                      <div>
-                                        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                                          🎓 কোর্স ভিত্তিক লাইভ আয় ও প্রোগ্রেস ট্র্যাকার ({courses.length}টি কোর্স)
-                                        </h3>
-                                        <p className="text-[11px] text-slate-400 font-bold">কোর্সের ক্লাস/কন্টেন্ট সম্পূর্ণ সম্পন্ন হলে তা ওয়ালেট আনিং এ যুক্ত হবে</p>
-                                      </div>
+                                      <Sparkles className="w-4 h-4 text-[#1DB954]" />
+                                      <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                                        লাইভ কাজ ও আয়ের তালিকা ({courses.length + (marketplaceOrders.length || sellerGigs.length)})
+                                      </h3>
                                     </div>
-                                    <span className="text-xs font-black text-teal-600 dark:text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full border border-teal-500/20 self-start sm:self-auto">
-                                      কোর্স হতে মোট লাইভ আর্নিং: ৳{mntEarned.toLocaleString('bn-BD')}
+                                    <span className="text-[11px] font-black text-[#1DB954]">
+                                      যৌথ মোট: ৳{totalEarned.toLocaleString('bn-BD')}
                                     </span>
                                   </div>
 
-                                  <div className="space-y-3">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {/* 1. COURSES */}
                                     {courses.map((course, idx) => {
-                                      const stCount = course.enrolledCount || (course as any).studentsCount || (18 - idx * 2);
-                                      const crsFee = course.price || 3500;
+                                      const stCount = course.enrolledCount || (course as any).studentsCount || (idx === 0 ? 343 : 210);
+                                      const crsFee = course.price || 1200;
                                       const crsTotal = stCount * crsFee;
-                                      
-                                      // Progress logic: course completion rate
                                       const progressPct = idx === 0 ? 100 : idx === 1 ? 85 : idx === 2 ? 60 : 40;
-                                      const remainingWork = 100 - progressPct;
                                       const isCompleted = progressPct === 100;
-                                      const potentialEarning = Math.round(crsTotal * 1.2); // Potential if more students enroll
 
                                       return (
-                                        <div key={course.id || idx} className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-2xl space-y-3 transition hover:border-teal-500/40">
-                                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                            <div className="flex items-start gap-3 flex-1">
-                                              <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-500 font-black flex items-center justify-center shrink-0 border border-teal-500/20 text-xs">
-                                                #{idx + 1}
-                                              </div>
-                                              <div className="space-y-1">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                  <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
-                                                    {course.title}
-                                                  </h4>
-                                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                                                    isCompleted 
-                                                      ? 'bg-emerald-500/20 text-emerald-600 dark:text-[#1DB954]' 
-                                                      : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                                                  }`}>
-                                                    {isCompleted ? '✅ ১০০% সম্পন্ন (আর্নিং এ যুক্ত)' : `⏳ চলমান (কাজ ${remainingWork}% বাকি)`}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-bold">
-                                                  <span>এনরোলমেন্ট: <strong className="text-slate-800 dark:text-slate-200">{stCount} জন</strong></span>
-                                                  <span>•</span>
-                                                  <span>কোর্স ফি: <strong className="text-slate-800 dark:text-slate-200">৳{crsFee.toLocaleString('bn-BD')}</strong></span>
-                                                </div>
-                                              </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 border-slate-200 dark:border-slate-700 pt-2 sm:pt-0 shrink-0">
-                                              <div className="text-left sm:text-right">
-                                                <span className="text-[10px] text-slate-400 font-bold block">লাইভ পেতে পারেন / প্রাপ্তি</span>
-                                                <span className="text-base font-black text-teal-600 dark:text-teal-400">
-                                                  ৳{crsTotal.toLocaleString('bn-BD')}
+                                        <div
+                                          key={`crs-${course.id || idx}`}
+                                          className={`p-3 sm:p-3.5 rounded-xl border transition flex flex-col justify-between gap-2.5 shadow-xs ${
+                                            isCompleted
+                                              ? 'border-l-4 border-l-[#1DB954] bg-emerald-500/5 dark:bg-emerald-950/20 border-slate-200 dark:border-slate-800'
+                                              : 'border-l-4 border-l-teal-500 bg-teal-500/5 dark:bg-teal-950/20 border-slate-200 dark:border-slate-800'
+                                          }`}
+                                        >
+                                          {/* Title, Badge & Tag */}
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                              <div className="flex items-center gap-1.5 mb-1">
+                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                                                  🎓 কোর্স
                                                 </span>
                                               </div>
-                                              <div className="text-right pl-3 border-l border-slate-200 dark:border-slate-700 hidden sm:block">
-                                                <span className="text-[10px] text-slate-400 font-bold block">সাম্ভাব্য ক্যাপ</span>
-                                                <span className="text-xs font-black text-slate-500 dark:text-slate-400">
-                                                  ৳{potentialEarning.toLocaleString('bn-BD')}
-                                                </span>
-                                              </div>
+                                              <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
+                                                {course.title}
+                                              </h4>
+                                              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+                                                {stCount} জন ছাত্র • ফি: ৳{crsFee.toLocaleString('bn-BD')}
+                                              </p>
                                             </div>
+                                            <span
+                                              className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
+                                                isCompleted
+                                                  ? 'bg-emerald-500/15 text-[#1DB954] border border-[#1DB954]/30'
+                                                  : 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30'
+                                              }`}
+                                            >
+                                              {isCompleted ? '✓ সম্পন্ন' : `${progressPct}% প্রোগ্রেস`}
+                                            </span>
                                           </div>
 
-                                          {/* Progress Bar & Remaining Work Indicator */}
-                                          <div className="space-y-1 bg-white dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/50">
-                                            <div className="flex items-center justify-between text-[11px] font-bold">
-                                              <span className="text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                                                <span>কাজ প্রোগ্রেস:</span>
-                                                <strong className={isCompleted ? "text-[#1DB954]" : "text-amber-500"}>
-                                                  {progressPct}% সম্পূর্ণ
-                                                </strong>
-                                              </span>
-                                              <span className="text-slate-400 text-[10px]">
-                                                {isCompleted ? 'কোর্স সিলেবাস ও লাইভ ক্লাস ফুল সম্পন্ন' : `বাকি কাজ: ${remainingWork}% (সম্পন্ন হলে ক্যাশআউট ব্যালেন্স বাড়বে)`}
-                                              </span>
+                                          {/* Progress bar & Amount */}
+                                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-20 bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                                <div
+                                                  className={`h-full rounded-full ${isCompleted ? 'bg-[#1DB954]' : 'bg-teal-500'}`}
+                                                  style={{ width: `${progressPct}%` }}
+                                                />
+                                              </div>
+                                              <span className="text-[10px] text-slate-400 font-bold">{progressPct}%</span>
                                             </div>
-                                            <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                                              <div 
-                                                className={`h-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-[#1DB954]' : 'bg-gradient-to-r from-amber-500 to-teal-500'}`} 
-                                                style={{ width: `${progressPct}%` }}
-                                              ></div>
-                                            </div>
+                                            <span className="text-xs sm:text-sm font-black text-[#1DB954]">
+                                              ৳{crsTotal.toLocaleString('bn-BD')}
+                                            </span>
                                           </div>
                                         </div>
                                       );
                                     })}
-                                  </div>
-                                </div>
 
-                                {/* SECTION B: MARKETPLACE GIG & PROJECT EARNINGS LIST */}
-                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 space-y-4 shadow-sm">
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2">
-                                    <div className="flex items-center gap-2">
-                                      <ShoppingBag className="w-5 h-5 text-purple-500" />
-                                      <div>
-                                        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                                          🛍️ প্রজেক্ট ও গিগ ভিত্তিক লাইভ কাজের তালিকা ({sellerGigs.length}টি প্রজেক্ট)
-                                        </h3>
-                                        <p className="text-[11px] text-slate-400 font-bold">প্রজেক্ট এর ডেলিভারি ও মাইলস্টোন সম্পন্ন হলে ইনকাম একাউন্টে জমা হবে</p>
-                                      </div>
-                                    </div>
-                                    <span className="text-xs font-black text-purple-600 dark:text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 self-start sm:self-auto">
-                                      প্রজেক্ট মোট আয়: ৳{mktEarned.toLocaleString('bn-BD')}
-                                    </span>
-                                  </div>
-
-                                  <div className="space-y-3">
-                                    {sellerGigs.map((gig, idx) => {
-                                      const ordersCount = gig.salesCount || (15 - idx * 3);
-                                      const gigPrice = gig.price || gig.packages?.basic?.price || 2500;
-                                      const gigTotal = ordersCount * gigPrice;
-
-                                      // Project Progress logic
-                                      const projProgress = idx === 0 ? 100 : idx === 1 ? 90 : 70;
-                                      const remainingProj = 100 - projProgress;
-                                      const isProjDone = projProgress === 100;
+                                    {/* 2. MARKETPLACE PROJECTS & GIGS */}
+                                    {(marketplaceOrders.length > 0 ? marketplaceOrders : sellerGigs).map((item: any, idx: number) => {
+                                      const title = item.gigTitle || item.title || 'ওয়েবসাইট ডিজাইন ও কাস্টম প্রজেক্ট';
+                                      const clientName = item.buyerName || 'Client';
+                                      const orderId = item.id || `ord-${idx + 1}`;
+                                      const amount = item.budget || item.price || 12000;
+                                      const isCompleted = item.status === 'completed' || item.status === 'delivered' || idx === 0;
+                                      const progressPct = isCompleted ? 100 : item.status === 'in_progress' ? 65 : 40;
 
                                       return (
-                                        <div key={gig.id || idx} className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-2xl space-y-3 transition hover:border-purple-500/40">
-                                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                            <div className="flex items-start gap-3 flex-1">
-                                              <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 font-black flex items-center justify-center shrink-0 border border-purple-500/20 text-xs">
-                                                #{idx + 1}
-                                              </div>
-                                              <div className="space-y-1">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                  <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
-                                                    {gig.title}
-                                                  </h4>
-                                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                                                    isProjDone 
-                                                      ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300' 
-                                                      : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                                                  }`}>
-                                                    {isProjDone ? '✅ প্রজেক্ট সম্পন্ন (আর্নিং যুক্ত)' : `⏳ প্রজেক্ট বাকি ${remainingProj}%`}
-                                                  </span>
-                                                </div>
-                                                <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-bold">
-                                                  <span>ক্যাটাগরি: <strong className="text-purple-500">{gig.category || 'Programming'}</strong></span>
-                                                  <span>•</span>
-                                                  <span>অর্ডার ডেলিভারি: <strong className="text-slate-800 dark:text-slate-200">{ordersCount}টি</strong></span>
-                                                </div>
-                                              </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 border-slate-200 dark:border-slate-700 pt-2 sm:pt-0 shrink-0">
-                                              <div>
-                                                <span className="text-[10px] text-slate-400 font-bold block text-left sm:text-right">মোট প্রজেক্ট ফি</span>
-                                                <span className="text-base font-black text-purple-600 dark:text-purple-400">
-                                                  ৳{gigTotal.toLocaleString('bn-BD')}
+                                        <div
+                                          key={`mkt-${orderId}`}
+                                          className={`p-3 sm:p-3.5 rounded-xl border transition flex flex-col justify-between gap-2.5 shadow-xs ${
+                                            isCompleted
+                                              ? 'border-l-4 border-l-[#1DB954] bg-emerald-500/5 dark:bg-emerald-950/20 border-slate-200 dark:border-slate-800'
+                                              : 'border-l-4 border-l-purple-500 bg-purple-500/5 dark:bg-purple-950/20 border-slate-200 dark:border-slate-800'
+                                          }`}
+                                        >
+                                          {/* Title, Badge & Tag */}
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                              <div className="flex items-center gap-1.5 mb-1">
+                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                                                  🛍️ মার্কেটপ্লেস
                                                 </span>
                                               </div>
+                                              <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
+                                                {title}
+                                              </h4>
+                                              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+                                                ক্লায়েন্ট: {clientName} • #{orderId}
+                                              </p>
                                             </div>
+                                            <span
+                                              className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
+                                                isCompleted
+                                                  ? 'bg-emerald-500/15 text-[#1DB954] border border-[#1DB954]/30'
+                                                  : 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                                              }`}
+                                            >
+                                              {isCompleted ? '✓ ডেলিভার্ড' : `${progressPct}% কাজ`}
+                                            </span>
                                           </div>
 
-                                          {/* Progress bar */}
-                                          <div className="space-y-1 bg-white dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/50">
-                                            <div className="flex items-center justify-between text-[11px] font-bold">
-                                              <span className="text-slate-600 dark:text-slate-300">
-                                                প্রজেক্ট মাইলস্টোন প্রোগ্রেস: <strong className="text-purple-500">{projProgress}%</strong>
-                                              </span>
-                                              <span className="text-slate-400 text-[10px]">
-                                                {isProjDone ? 'ডেলিভারি অনুমোদিত ও পেমেন্ট ওয়ালেটে যুক্ত' : `অবশিষ্ট কাজ ${remainingProj}% শেষ হলে মূলধনে যোগ হবে`}
-                                              </span>
+                                          {/* Progress bar & Amount */}
+                                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-20 bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                                <div
+                                                  className={`h-full rounded-full ${isCompleted ? 'bg-[#1DB954]' : 'bg-purple-500'}`}
+                                                  style={{ width: `${progressPct}%` }}
+                                                />
+                                              </div>
+                                              <span className="text-[10px] text-slate-400 font-bold">{progressPct}%</span>
                                             </div>
-                                            <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                                              <div className="bg-purple-500 h-full rounded-full transition-all duration-500" style={{ width: `${projProgress}%` }}></div>
-                                            </div>
+                                            <span className="text-xs sm:text-sm font-black text-purple-400">
+                                              ৳{amount.toLocaleString('bn-BD')}
+                                            </span>
                                           </div>
                                         </div>
                                       );
@@ -4341,56 +5204,85 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                               </div>
                             )}
 
-                            {/* TAB 4: HISTORY (WITH LAST CASHOUT SUMMARY AND FILTERS) */}
+                            {/* TAB 4: HISTORY (WITH 4 COMPACT COMBINED STAT CARDS AND FILTERS) */}
                             {payoutSubTab === 'history' && (
-                              <div className="space-y-5 animate-fadeIn">
-                                {/* LAST CASHOUT & SUMMARY STAT CARDS */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  {/* CARD 1: LAST CASHOUT SUMMARY */}
-                                  <div className="p-5 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-slate-900 border-2 border-[#1DB954]/40 rounded-3xl space-y-2 shadow-sm relative overflow-hidden">
+                              <div className="space-y-5 animate-fadeIn font-bengali">
+                                {/* 5 COMPACT COMBINED STAT CARDS */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                                  {/* CARD 1: MARKETPLACE EARNINGS */}
+                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
                                     <div className="flex items-center justify-between">
-                                      <span className="text-xs font-black text-[#1DB954] flex items-center gap-1.5">
-                                        <CheckCircle2 className="w-4 h-4 text-[#1DB954]" /> সর্বশেষ ক্যাশআউট
+                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                                        <ShoppingBag className="w-3.5 h-3.5 text-purple-400 shrink-0" /> মার্কেটপ্লেস আয়
                                       </span>
-                                      <span className="text-[10px] font-bold px-2 py-0.5 bg-[#1DB954]/20 text-[#1DB954] rounded-full">
-                                        {lastCashout ? lastCashout.paymentMethod : 'N/A'}
-                                      </span>
+                                      <span className="text-[9px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">গিগ</span>
                                     </div>
-                                    <div className="text-2xl font-black text-slate-900 dark:text-white">
-                                      {lastCashout ? `৳${lastCashout.amount.toLocaleString('bn-BD')}` : '৳০'}
+                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                      ৳{mktEarned.toLocaleString('bn-BD')}
                                     </div>
-                                    {lastCashout && (
-                                      <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold space-y-0.5">
-                                        <p>নম্বর: <span className="font-mono text-slate-700 dark:text-slate-200">{lastCashout.accountNumber}</span></p>
-                                        <p>তারিখ: {lastCashout.requestedAt}</p>
-                                      </div>
-                                    )}
+                                    <div className="text-[10px] text-slate-400 font-bold truncate">গিগ ও প্রজেক্ট আয়</div>
                                   </div>
 
-                                  {/* CARD 2: TOTAL APPROVED WITHDRAWALS */}
-                                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-2 shadow-sm">
-                                    <span className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
-                                      <Wallet className="w-4 h-4 text-emerald-500" /> সর্বমোট সফল পেআউট
-                                    </span>
-                                    <div className="text-2xl font-black text-slate-900 dark:text-white">
+                                  {/* CARD 2: MENTOR & COURSE EARNINGS */}
+                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                                        <GraduationCap className="w-3.5 h-3.5 text-teal-400 shrink-0" /> মেন্টর ও কোর্স
+                                      </span>
+                                      <span className="text-[9px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">কোর্স ফি</span>
+                                    </div>
+                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                      ৳{mntEarned.toLocaleString('bn-BD')}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 font-bold truncate">স্টুডেন্ট এনরোলমেন্ট</div>
+                                  </div>
+
+                                  {/* CARD 3: CASHOUT READY BALANCE */}
+                                  <div className="p-3.5 sm:p-4 bg-emerald-500/10 dark:bg-emerald-950/30 border-2 border-[#1DB954] rounded-2xl space-y-1 shadow-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-black text-emerald-800 dark:text-[#1DB954] flex items-center gap-1.5 truncate">
+                                        <Wallet className="w-3.5 h-3.5 text-[#1DB954] shrink-0" /> ক্যাশআউট ব্যালেন্স
+                                      </span>
+                                      <span className="text-[9px] text-[#1DB954] bg-[#1DB954]/20 px-1.5 py-0.5 rounded font-black shrink-0">রেডি</span>
+                                    </div>
+                                    <div className="text-lg sm:text-xl font-black text-[#1DB954] tracking-tight">
+                                      ৳{availableBalance.toLocaleString('bn-BD')}
+                                    </div>
+                                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold truncate">উইথড্র করার জন্য প্রস্তুত</div>
+                                  </div>
+
+                                  {/* CARD 4: SUCCESSFUL CASHOUTS (WITH LAST CASHOUT) */}
+                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-[#1DB954] shrink-0" /> সফল ক্যাশআউট
+                                      </span>
+                                      <span className="text-[9px] text-emerald-600 dark:text-[#1DB954] bg-emerald-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">
+                                        {approvedPayouts.length}টি সফল
+                                      </span>
+                                    </div>
+                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
                                       ৳{totalApprovedPaid.toLocaleString('bn-BD')}
                                     </div>
-                                    <span className="text-[10px] text-slate-500 font-bold block">
-                                      {approvedPayouts.length}টি সফল ক্যাশআউট সম্পন্ন
-                                    </span>
+                                    <div className="text-[10px] text-slate-400 font-bold truncate">
+                                      {lastCashout ? `সর্বশেষ: ৳${lastCashout.amount.toLocaleString('bn-BD')} (${lastCashout.paymentMethod})` : 'পরিশোধিত পেআউট'}
+                                    </div>
                                   </div>
 
-                                  {/* CARD 3: PENDING REQUESTS */}
-                                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-2 shadow-sm">
-                                    <span className="text-xs text-slate-400 font-bold flex items-center gap-1.5">
-                                      <Clock className="w-4 h-4 text-amber-500" /> প্রসেসিংয়ে থাকা আবেদন
-                                    </span>
-                                    <div className="text-2xl font-black text-amber-500">
-                                      {sellerPayouts.filter(p => p.status === 'Pending').length}টি রিকোয়েস্ট
+                                  {/* CARD 5: PENDING REQUESTS */}
+                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs col-span-2 sm:col-span-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                                        <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" /> প্রসেসিং রিকোয়েস্ট
+                                      </span>
+                                      <span className="text-[9px] text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">পেন্ডিং</span>
                                     </div>
-                                    <span className="text-[10px] text-amber-500/80 font-bold block">
-                                      ৳{sellerPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.amount, 0).toLocaleString('bn-BD')} পেন্ডিং
-                                    </span>
+                                    <div className="text-lg sm:text-xl font-black text-amber-500 tracking-tight">
+                                      ৳{sellerPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.amount, 0).toLocaleString('bn-BD')}
+                                    </div>
+                                    <div className="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-bold truncate">
+                                      {sellerPayouts.filter(p => p.status === 'Pending').length}টি আবেদন অপেক্ষমাণ
+                                    </div>
                                   </div>
                                 </div>
 
@@ -4472,35 +5364,136 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                                               <th className="pb-2.5">নোট/বিবরণ</th>
                                               <th className="pb-2.5 text-right">পরিমাণ</th>
                                               <th className="pb-2.5 text-center">স্ট্যাটাস</th>
+                                              <th className="pb-2.5 text-right">অ্যাকশন</th>
                                             </tr>
                                           </thead>
                                           <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-bold">
-                                            {filteredPayouts.map(p => (
-                                              <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                                <td className="py-3 font-mono text-slate-500">{p.id}</td>
-                                                <td className="py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">{p.requestedAt}</td>
-                                                <td className="py-3 text-slate-900 dark:text-white whitespace-nowrap">
-                                                  <span className="font-bold">{p.paymentMethod}</span> <span className="font-mono text-slate-500">({p.accountNumber})</span>
-                                                </td>
-                                                <td className="py-3 text-slate-500 dark:text-slate-400 line-clamp-1 max-w-[200px]">
-                                                  {p.note || 'ইনস্ট্যান্ট পেআউট'}
-                                                </td>
-                                                <td className="py-3 text-right text-[#1DB954] font-black text-sm whitespace-nowrap">
-                                                  ৳{p.amount.toLocaleString('bn-BD')}
-                                                </td>
-                                                <td className="py-3 text-center whitespace-nowrap">
-                                                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
-                                                    p.status === 'Approved' || p.status === 'Paid'
-                                                      ? 'bg-emerald-500/20 text-[#1DB954]'
-                                                      : p.status === 'Pending'
-                                                      ? 'bg-amber-500/20 text-amber-500'
-                                                      : 'bg-rose-500/20 text-rose-500'
-                                                  }`}>
-                                                    {p.status === 'Approved' || p.status === 'Paid' ? '✓ পরিশোধিত' : p.status === 'Pending' ? '⏳ পেন্ডিং' : p.status}
-                                                  </span>
-                                                </td>
-                                              </tr>
-                                            ))}
+                                            {filteredPayouts.map((p, idx) => {
+                                              const isPending = p.status === 'Pending';
+                                              const isPaid = p.status === 'Approved' || p.status === 'Paid';
+                                              const openUpward = idx >= filteredPayouts.length - 2 && filteredPayouts.length > 2;
+
+                                              return (
+                                                <tr
+                                                  key={p.id}
+                                                  className={`transition ${
+                                                    isPending
+                                                      ? 'bg-amber-500/5 hover:bg-amber-500/10 dark:bg-amber-950/20 dark:hover:bg-amber-950/30'
+                                                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                                  }`}
+                                                >
+                                                  <td className="py-3 font-mono text-slate-500">{p.id}</td>
+                                                  <td className="py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">{p.requestedAt}</td>
+                                                  <td className="py-3 text-slate-900 dark:text-white whitespace-nowrap">
+                                                    <span className="font-bold">{p.paymentMethod}</span> <span className="font-mono text-slate-500">({p.accountNumber})</span>
+                                                  </td>
+                                                  <td className="py-3 text-slate-500 dark:text-slate-400 line-clamp-1 max-w-[200px]">
+                                                    {p.note || 'ইনস্ট্যান্ট পেআউট'}
+                                                  </td>
+                                                  <td className="py-3 text-right text-[#1DB954] font-black text-sm whitespace-nowrap">
+                                                    ৳{p.amount.toLocaleString('bn-BD')}
+                                                  </td>
+                                                  <td className="py-3 text-center whitespace-nowrap">
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                                                      isPaid
+                                                        ? 'bg-emerald-500/20 text-[#1DB954]'
+                                                        : isPending
+                                                        ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
+                                                        : 'bg-rose-500/20 text-rose-500'
+                                                    }`}>
+                                                      {isPaid ? '✓ পরিশোধিত' : isPending ? '⏳ পেন্ডিং' : p.status}
+                                                    </span>
+                                                  </td>
+                                                  <td className="py-3 text-right whitespace-nowrap relative">
+                                                    <div className="relative inline-block text-left">
+                                                      <button
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          setOpenPayoutMenuId(openPayoutMenuId === p.id ? null : p.id);
+                                                        }}
+                                                        title="মেনু অপশন (এডিট / বাতিল)"
+                                                        className={`p-1.5 rounded-lg border transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 ${
+                                                          isPending
+                                                            ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                                            : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                                        }`}
+                                                      >
+                                                        <MoreVertical className="w-4 h-4" />
+                                                      </button>
+
+                                                      {openPayoutMenuId === p.id && (
+                                                        <div
+                                                          onClick={(e) => e.stopPropagation()}
+                                                          className={`absolute right-0 z-50 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 shadow-2xl backdrop-blur-xl animate-fadeIn space-y-1 text-left font-sans ${
+                                                            openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
+                                                          }`}
+                                                        >
+                                                          {isPending ? (
+                                                            <>
+                                                              <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-[10px] font-bold text-amber-500">
+                                                                <Clock className="w-3 h-3 animate-pulse" />
+                                                                <span>প্রক্রিয়াধীন আবেদন</span>
+                                                              </div>
+                                                              <button
+                                                                onClick={() => {
+                                                                  setOpenPayoutMenuId(null);
+                                                                  setEditPendingAmount(p.amount);
+                                                                  setEditPendingMethod((p.paymentMethod || 'bKash') as any);
+                                                                  setEditPendingAccount(p.accountNumber);
+                                                                  setIsEditPendingModalOpen(true);
+                                                                }}
+                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-500/15 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
+                                                              >
+                                                                <Pencil className="w-3.5 h-3.5 text-blue-500" />
+                                                                <span>এডিট করুন</span>
+                                                              </button>
+                                                              <button
+                                                                onClick={() => {
+                                                                  setOpenPayoutMenuId(null);
+                                                                  if (confirm(`আপনি কি ৳${p.amount.toLocaleString('bn-BD')} এর ক্যাশআউট আবেদনটি বাতিল করতে চান?`)) {
+                                                                    setAvailableBalance(prev => prev + p.amount);
+                                                                    setActivePendingPayout(null);
+                                                                    alert('আপনার ক্যাশআউট আবেদনটি সফলভাবে বাতিল করা হয়েছে।');
+                                                                  }
+                                                                }}
+                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition cursor-pointer"
+                                                              >
+                                                                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                                                <span>বাতিল করুন</span>
+                                                              </button>
+                                                            </>
+                                                          ) : (
+                                                            <>
+                                                              <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-[10px] font-bold text-emerald-500">
+                                                                <CheckCircle2 className="w-3 h-3" />
+                                                                <span>{isPaid ? 'পরিশোধিত' : 'স্ট্যাটাস চূড়ান্ত'}</span>
+                                                              </div>
+                                                              <div
+                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed select-none"
+                                                                title="পরিশোধিত হওয়ায় এডিট করা যাবে না"
+                                                              >
+                                                                <Lock className="w-3.5 h-3.5" />
+                                                                <span>এডিট (লকড)</span>
+                                                              </div>
+                                                              <div
+                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed select-none"
+                                                                title="পরিশোধিত হওয়ায় বাতিল করা যাবে না"
+                                                              >
+                                                                <Lock className="w-3.5 h-3.5" />
+                                                                <span>বাতিল (লকড)</span>
+                                                              </div>
+                                                              <p className="px-2 pb-0.5 text-[9px] text-slate-400 font-normal leading-tight">
+                                                                টাকা পরিশোধ সম্পন্ন হওয়ায় এটি পরিবর্তনযোগ্য নয়।
+                                                              </p>
+                                                            </>
+                                                          )}
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  </td>
+                                                </tr>
+                                              );
+                                            })}
                                           </tbody>
                                         </table>
                                       </div>
@@ -7919,20 +8912,34 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         alert('সর্বনিম্ন ক্যাশআউট অ্যামাউন্ট ৳৫০০ হতে হবে!');
                         return;
                       }
-                      if (numAmt > availableBalance) {
+                      if (availableBalance > 0 && numAmt > availableBalance) {
                         alert(`আপনার ক্যাশআউটযোগ্য ব্যালেন্স ৳${availableBalance.toLocaleString('bn-BD')} এর বেশি দেওয়া সম্ভব নয়!`);
                         return;
                       }
-                      setActivePendingPayout({
-                        id: `pay-${Math.floor(100 + Math.random() * 900)}`,
+                      const newId = `pay-${Math.floor(100 + Math.random() * 900)}`;
+                      const nowTime = new Date().toLocaleString('bn-BD');
+
+                      requestTeacherPayout({
+                        teacherId: currentUser?.id || 'usr-1',
+                        teacherName: currentUser?.name || 'MD S Kazi Sohag',
+                        teacherEmail: currentUser?.email || 'sohag@ptenit.com',
                         amount: numAmt,
                         paymentMethod: withdrawMethod,
                         accountNumber: withdrawAccount,
-                        requestedAt: new Date().toLocaleString('bn-BD'),
+                        note: `অনলাইন উইথড্রয়াল রিকোয়েস্ট (${withdrawMethod})`
+                      });
+
+                      setActivePendingPayout({
+                        id: newId,
+                        amount: numAmt,
+                        paymentMethod: withdrawMethod,
+                        accountNumber: withdrawAccount,
+                        requestedAt: nowTime,
                         status: 'Pending'
                       });
                       setWithdrawSuccess(true);
                       setAvailableBalance(prev => Math.max(0, prev - numAmt));
+                      setPayoutSubTab('history');
                     }}
                     className="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 font-black text-xs hover:opacity-95 transition cursor-pointer shadow-lg shadow-[#1DB954]/20"
                   >
@@ -7952,11 +8959,11 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <div className="p-2.5 rounded-2xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
                   <Pencil className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">✏️ ক্যাশআউট আবেদন এডিট</h3>
+                  <h3 className="text-base font-black text-white">ক্যাশআউট আবেদন এডিট</h3>
                   <p className="text-xs text-slate-400">আইডি: {activePendingPayout.id} (এডমিন রিভিউ পেন্ডিং)</p>
                 </div>
               </div>
@@ -8064,6 +9071,822 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1. CENTRAL UNIFIED NOTIFICATION & MESSAGE HUB MODAL (সেন্ট্রাল নোটিফিকেশন হাব) */}
+      {/* ========================================================================= */}
+      {isCentralNotificationOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white w-full max-w-2xl rounded-3xl p-5 sm:p-6 shadow-2xl relative space-y-4 overflow-hidden max-h-[90vh] flex flex-col">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-[#1DB954]/15 text-[#1DB954] border border-[#1DB954]/30">
+                  <Bell className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                      সেন্ট্রাল নোটিফিকেশন হাব
+                    </h3>
+                    {totalUnreadCount > 0 && (
+                      <span className="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-black rounded-full shadow-xs">
+                        {totalUnreadCount} টি অপঠিত
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    সেলার, মেন্টর ও ক্লায়েন্ট মেসেজের সমস্ত লাইভ আপডেট
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => markAllNotificationsRead()}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                  title="সকল নোটিফিকেশন পড়া হিসেবে চিহ্নিত করুন"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1DB954]" />
+                  <span className="hidden sm:inline">সবগুলো পড়া হয়েছে</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsCentralNotificationOpen(false)}
+                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Tabs & Search Bar */}
+            <div className="space-y-2.5 shrink-0">
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
+                {[
+                  { id: 'all', label: `সবগুলো (${notifications.length + directMessages.length})`, icon: Bell },
+                  { id: 'messages', label: `💬 মেসেজ ও ইনকোয়ারি (${directMessages.length})`, icon: Mail },
+                  { id: 'orders', label: `💼 অর্ডার ও ডেলিভারি (${notifications.filter(n => n.category === 'seller' || n.category === 'system').length})`, icon: Briefcase },
+                  { id: 'mentor', label: `🎓 মেন্টর ও কোর্স (${notifications.filter(n => n.category === 'mentor').length})`, icon: GraduationCap },
+                  { id: 'payouts', label: `💳 পেমেন্ট ও ক্যাশআউট (${notifications.filter(n => n.category === 'payout').length})`, icon: Wallet }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setCentralNotifFilter(tab.id as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer border ${
+                      centralNotifFilter === tab.id
+                        ? 'bg-[#1DB954] text-slate-950 border-[#1DB954] font-black shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-slate-300 dark:hover:border-slate-700'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={centralNotifSearch}
+                  onChange={(e) => setCentralNotifSearch(e.target.value)}
+                  placeholder="নোটিফিকেশন বা মেসেজ খুঁজুন..."
+                  className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
+                />
+              </div>
+            </div>
+
+            {/* Notification & Messages Combined Feed List */}
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar min-h-[260px]">
+              {(() => {
+                // Combine and format both feeds
+                const feedItems = [
+                  ...directMessages.map(msg => ({
+                    id: msg.id,
+                    type: 'message' as const,
+                    category: 'message',
+                    categoryLabel: '💬 ক্লায়েন্ট মেসেজ',
+                    categoryBadgeClass: 'bg-blue-500/15 text-blue-500 border-blue-500/30',
+                    senderName: msg.senderName,
+                    senderAvatar: msg.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+                    title: `${msg.senderName} (${msg.senderRole || 'Client'})`,
+                    text: msg.text,
+                    time: msg.time,
+                    read: msg.read,
+                    original: msg
+                  })),
+                  ...notifications.map(notif => {
+                    const cat = notif.category || 'system';
+                    let catLabel = '⚡ সিস্টেম নোটিশ';
+                    let catBadgeClass = 'bg-slate-500/15 text-slate-400 border-slate-500/30';
+                    if (cat === 'seller') {
+                      catLabel = '💼 বায়ার অর্ডার ও ডেলিভারি';
+                      catBadgeClass = 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30';
+                    } else if (cat === 'mentor') {
+                      catLabel = '🎓 মেন্টর ও ক্লাসরুম';
+                      catBadgeClass = 'bg-teal-500/15 text-teal-500 border-teal-500/30';
+                    } else if (cat === 'payout') {
+                      catLabel = '💳 ক্যাশআউট ও আর্নিং';
+                      catBadgeClass = 'bg-amber-500/15 text-amber-500 border-amber-500/30';
+                    }
+                    return {
+                      id: notif.id,
+                      type: 'notification' as const,
+                      category: cat,
+                      categoryLabel: catLabel,
+                      categoryBadgeClass: catBadgeClass,
+                      senderName: notif.senderName || 'PTEN IT System',
+                      senderAvatar: notif.senderAvatar || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80',
+                      title: notif.title,
+                      text: notif.message,
+                      time: notif.time,
+                      read: notif.read,
+                      original: notif
+                    };
+                  })
+                ];
+
+                // Filter by Tab
+                let filtered = feedItems;
+                if (centralNotifFilter === 'messages') {
+                  filtered = feedItems.filter(item => item.category === 'message');
+                } else if (centralNotifFilter === 'orders') {
+                  filtered = feedItems.filter(item => item.category === 'seller' || item.category === 'system');
+                } else if (centralNotifFilter === 'mentor') {
+                  filtered = feedItems.filter(item => item.category === 'mentor');
+                } else if (centralNotifFilter === 'payouts') {
+                  filtered = feedItems.filter(item => item.category === 'payout');
+                }
+
+                // Filter by Search Query
+                if (centralNotifSearch.trim()) {
+                  const q = centralNotifSearch.toLowerCase();
+                  filtered = filtered.filter(item => 
+                    item.title.toLowerCase().includes(q) || 
+                    item.text.toLowerCase().includes(q) ||
+                    item.senderName.toLowerCase().includes(q)
+                  );
+                }
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="py-12 text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                        <Bell className="w-6 h-6" />
+                      </div>
+                      <p className="text-xs text-slate-400">এই ক্যাটাগরিতে বর্তমানে কোনো নোটিফিকেশন নেই।</p>
+                    </div>
+                  );
+                }
+
+                return filtered.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-3.5 rounded-2xl border transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                      !item.read
+                        ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-[#1DB954]/40 shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="relative shrink-0">
+                        <img
+                          src={item.senderAvatar}
+                          alt={item.senderName}
+                          className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700"
+                        />
+                        {!item.read && (
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] absolute -top-1 -right-1 ring-2 ring-white dark:ring-slate-900" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${item.categoryBadgeClass}`}>
+                            {item.categoryLabel}
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {getTimeAgoBengali(item.time)}
+                          </span>
+                        </div>
+
+                        <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                          {item.text}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Button: Opens the relevant work/view */}
+                    <div className="shrink-0 flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
+                      {item.type === 'message' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            markDirectMessageRead(item.id);
+                            setIsCentralNotificationOpen(false);
+                            openChatWindow({
+                              senderName: item.senderName,
+                              senderRole: (item.original as any).senderRole || 'Client',
+                              senderAvatar: item.senderAvatar,
+                              initialMessage: item.text
+                            });
+                          }}
+                          className="w-full sm:w-auto px-3.5 py-1.5 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          <span>উত্তর দিন ও চ্যাট</span>
+                        </button>
+                      ) : item.category === 'seller' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            markNotificationRead(item.id);
+                            setIsCentralNotificationOpen(false);
+                            setSpecialistMainTab('marketplace');
+                            setSellerSubTab('orders');
+                          }}
+                          className="w-full sm:w-auto px-3.5 py-1.5 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                        >
+                          <Briefcase className="w-3.5 h-3.5" />
+                          <span>অর্ডার বিস্তারিত</span>
+                        </button>
+                      ) : item.category === 'mentor' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            markNotificationRead(item.id);
+                            setIsCentralNotificationOpen(false);
+                            if (isMentor) {
+                              setSpecialistMainTab('mentor');
+                              setSellerSubTab('courses');
+                            } else if (isMentorPending) {
+                              setIsMentorStatusModalOpen(true);
+                            } else {
+                              setIsMentorAppModalOpen(true);
+                            }
+                          }}
+                          className="w-full sm:w-auto px-3.5 py-1.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                        >
+                          <GraduationCap className="w-3.5 h-3.5" />
+                          <span>{isMentor ? 'মেন্টর হাব ওপেন' : 'আবেদন স্ট্যাটাস'}</span>
+                        </button>
+                      ) : item.category === 'payout' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            markNotificationRead(item.id);
+                            setIsCentralNotificationOpen(false);
+                            setSpecialistMainTab('payments');
+                            setPayoutSubTab('history');
+                          }}
+                          className="w-full sm:w-auto px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                        >
+                          <Wallet className="w-3.5 h-3.5" />
+                          <span>ক্যাশআউট হিস্টোরি</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            markNotificationRead(item.id);
+                            setIsCentralNotificationOpen(false);
+                          }}
+                          className="w-full sm:w-auto px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs transition cursor-pointer"
+                        >
+                          পড়া হয়েছে
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Footer with Quick Simulation / Real-time Test Helper */}
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400 shrink-0">
+              <span className="text-[11px] text-slate-400">
+                🔔 রিয়েল-টাইম সেন্ট্রাল নোটিফিকেশন ইঞ্জিন সক্রিয়
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  sendCentralNotification({
+                    title: '⚡ নতুন ক্লায়েন্ট ইনকোয়ারি ও লাইভ অফার',
+                    message: 'মার্কেটপ্লেসে আপনার স্কিল অনুযায়ী একটি নতুন কাস্টম প্রজেক্ট রিকোয়েস্ট এসেছে।',
+                    type: 'info',
+                    category: 'seller',
+                    senderName: 'সিস্টেম অ্যালার্ট'
+                  });
+                }}
+                className="text-[11px] text-[#1DB954] hover:underline font-bold cursor-pointer"
+              >
+                + টেস্ট নোটিফিকেশন যুক্ত করুন
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1.5. DEDICATED MESSENGER / INBOX MODAL (ক্লায়েন্ট মেসেঞ্জার ও চ্যাট হাব) */}
+      {/* ========================================================================= */}
+      {isInboxModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white w-full max-w-2xl rounded-3xl p-5 sm:p-6 shadow-2xl relative space-y-4 overflow-hidden max-h-[90vh] flex flex-col">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-[#1DB954]/15 text-[#1DB954] border border-[#1DB954]/30">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                      💬 ক্লায়েন্ট মেসেঞ্জার ও চ্যাট ইনবক্স
+                    </h3>
+                    {directMessages.filter(m => !m.read).length > 0 && (
+                      <span className="px-2 py-0.5 bg-[#1DB954] text-slate-950 text-[10px] font-black rounded-full shadow-xs">
+                        {directMessages.filter(m => !m.read).length} টি নতুন মেসেজ
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    মার্কেটপ্লেস ও মেন্টরশিপ ক্লায়েন্টদের সাথে সরাসরি মেসেজ ও লাইভ মিটিং
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    directMessages.forEach(m => markDirectMessageRead(m.id));
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                  title="সকল মেসেজ পড়া হিসেবে চিহ্নিত করুন"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1DB954]" />
+                  <span className="hidden sm:inline">সবগুলো পড়া হয়েছে</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsInboxModalOpen(false)}
+                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Filter / Search */}
+            <div className="relative shrink-0">
+              <input
+                type="text"
+                placeholder="ক্লায়েন্টের নাম বা মেসেজের বিষয় খুঁজুন..."
+                value={centralNotifSearch}
+                onChange={(e) => setCentralNotifSearch(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
+              />
+              {centralNotifSearch && (
+                <button
+                  onClick={() => setCentralNotifSearch('')}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-white text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Message List */}
+            <div className="overflow-y-auto space-y-2.5 flex-1 pr-1">
+              {(() => {
+                let filtered = directMessages;
+                if (centralNotifSearch.trim()) {
+                  const q = centralNotifSearch.toLowerCase();
+                  filtered = filtered.filter(m => 
+                    m.senderName.toLowerCase().includes(q) || 
+                    m.text.toLowerCase().includes(q)
+                  );
+                }
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="py-12 text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                        <Mail className="w-6 h-6" />
+                      </div>
+                      <p className="text-xs text-slate-400">বর্তমানে কোনো মেসেজ পাওয়া যায়নি।</p>
+                    </div>
+                  );
+                }
+
+                return filtered.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`p-3.5 rounded-2xl border transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                      !msg.read
+                        ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-[#1DB954]/40 shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <div className="relative shrink-0">
+                        <img
+                          src={msg.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                          alt={msg.senderName}
+                          className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700"
+                        />
+                        {!msg.read ? (
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] absolute -top-1 -right-1 ring-2 ring-white dark:ring-slate-900" />
+                        ) : (
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute -bottom-1 -right-1 ring-2 ring-white dark:ring-slate-900" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-black text-slate-900 dark:text-white">
+                            {msg.senderName}
+                          </span>
+                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-500 border border-blue-500/30">
+                            {msg.senderRole || 'Client'}
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {getTimeAgoBengali(msg.time)}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                          {msg.text}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Controls */}
+                    <div className="shrink-0 flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          markDirectMessageRead(msg.id);
+                          setIsInboxModalOpen(false);
+                          openChatWindow({
+                            senderName: msg.senderName,
+                            senderRole: msg.senderRole || 'Client',
+                            senderAvatar: msg.senderAvatar,
+                            initialMessage: msg.text
+                          });
+                        }}
+                        className="w-full sm:w-auto px-4 py-2 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>লাইভ চ্যাট ওপেন</span>
+                      </button>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
+            {/* Footer with Quick Messenger Launcher */}
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400 shrink-0">
+              <span className="text-[11px] text-slate-400">
+                💬 ইনস্ট্যান্ট ক্লায়েন্ট কানেক্ট ও মেসেঞ্জার সক্রিয়
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInboxModalOpen(false);
+                  openChatWindow({
+                    senderName: 'হাসান মাহমুদ (নতুন ক্লায়েন্ট)',
+                    senderRole: 'Buyer & Project Manager',
+                    senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+                    initialMessage: 'আসসালামু আলাইকুম, আপনার সার্ভিস প্যাকেজটি নিয়ে কিছু প্রশ্ন ছিল।'
+                  });
+                }}
+                className="text-[11px] text-[#1DB954] hover:underline font-bold cursor-pointer"
+              >
+                + নতুন চ্যাট উইন্ডো খুলুন
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. MENTORSHIP APPLICATION FORM MODAL (মেন্টরশিপ আবেদন ফর্ম) */}
+      {/* ========================================================================= */}
+      {isMentorAppModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white w-full max-w-xl rounded-3xl p-6 shadow-2xl relative space-y-4 overflow-hidden max-h-[90vh] overflow-y-auto">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-teal-500/15 text-teal-400 border border-teal-500/30">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                    🎓 PTEN IT মেন্টরশিপ আবেদন ফর্ম
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    কোর্স ও লাইভ ক্লাস মেন্টর হিসেবে যোগদানের অফিসিয়াল আবেদন
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMentorAppModalOpen(false)}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Success Message */}
+            {mentorAppSubmittedSuccess ? (
+              <div className="p-6 bg-teal-500/15 border border-teal-500/40 rounded-2xl text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm sm:text-base font-black text-teal-400">
+                  আপনার মেন্টরশিপ আবেদনটি সফলভাবে গৃহীত হয়েছে!
+                </h4>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  পিটেন আইটি এডমিন প্যানেল আপনার প্রোফাইল ও প্রস্তাবিত কোর্স টপিক পর্যালোচনা করছে। এডমিন অনুমোদন দিলে সাথে সাথে মেন্টর সার্ভিস অপশনটি আনলক হয়ে যাবে।
+                </p>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  applyForMentorship({
+                    expertise: mentorAppExpertise,
+                    experienceYears: mentorAppExperience,
+                    bio: mentorAppBio,
+                    portfolioUrl: mentorAppPortfolio,
+                    proposedCourseTopic: mentorAppProposedTopic,
+                    phone: mentorAppPhone,
+                  });
+                  setMentorAppSubmittedSuccess(true);
+                  setTimeout(() => {
+                    setMentorAppSubmittedSuccess(false);
+                    setIsMentorAppModalOpen(false);
+                  }, 1800);
+                }}
+                className="space-y-4 text-xs"
+              >
+                {/* 1. Skill Categories */}
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
+                    ১. আপনার প্রধান মেন্টরিং এক্সপার্টাইজ (Expertise Categories):
+                  </label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {['Web Development', 'UI/UX Design', 'Digital Marketing', 'Python & AI', 'Video Editing', 'Cyber Security'].map((cat) => {
+                      const isSelected = mentorAppExpertise.includes(cat);
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setMentorAppExpertise(mentorAppExpertise.filter(c => c !== cat));
+                            } else {
+                              setMentorAppExpertise([...mentorAppExpertise, cat]);
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-xl font-black text-xs transition border cursor-pointer ${
+                            isSelected
+                              ? 'bg-teal-500 text-slate-950 border-teal-500 shadow-xs'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {isSelected ? '✓ ' : '+ '}{cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 2. Years of Experience */}
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
+                    ২. প্রফেশনাল ও মেন্টরিং অভিজ্ঞতা:
+                  </label>
+                  <select
+                    value={mentorAppExperience}
+                    onChange={(e) => setMentorAppExperience(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+                  >
+                    <option value="1-2 Years">১ - ২ বছর প্রফেশনাল অভিজ্ঞতা</option>
+                    <option value="3-5 Years">৩ - ৫ বছর প্রফেশনাল অভিজ্ঞতা (প্রস্তাবিত)</option>
+                    <option value="5+ Years">৫+ বছর সিনিয়র / লিড এক্সপার্ট অভিজ্ঞতা</option>
+                  </select>
+                </div>
+
+                {/* 3. Proposed Course / Workshop Topic */}
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
+                    ৩. প্রস্তাবিত কোর্স বা ওয়ার্কশপের বিষয় (Course Topic):
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={mentorAppProposedTopic}
+                    onChange={(e) => setMentorAppProposedTopic(e.target.value)}
+                    placeholder="যেমন: Full-Stack Web Development Mastery (Next.js & Node)"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                {/* 4. Portfolio / GitHub URL */}
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
+                    ৪. পোর্টফোলিও বা প্রোফাইল লিংক (GitHub / Behance / LinkedIn):
+                  </label>
+                  <input
+                    type="url"
+                    value={mentorAppPortfolio}
+                    onChange={(e) => setMentorAppPortfolio(e.target.value)}
+                    placeholder="https://github.com/yourprofile"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                {/* 5. Bio / Teaching Philosophy */}
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
+                    ৫. আপনার সংক্ষিপ্ত বায়ো ও শিক্ষণ দর্শন (Bio):
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={mentorAppBio}
+                    onChange={(e) => setMentorAppBio(e.target.value)}
+                    placeholder="আপনার কাজের অভিজ্ঞতা এবং শিক্ষার্থীদের কীভাবে গাইড করবেন সে সম্পর্কে লিখুন..."
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-medium text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 resize-none"
+                  />
+                </div>
+
+                {/* 6. Phone / WhatsApp */}
+                <div>
+                  <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">
+                    ৬. যোগাযোগ / হোয়াটসঅ্যাপ নম্বর:
+                  </label>
+                  <input
+                    type="text"
+                    value={mentorAppPhone}
+                    onChange={(e) => setMentorAppPhone(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      approveMentorApplication(currentUser?.id);
+                      setIsMentorAppModalOpen(false);
+                      setSpecialistMainTab('mentor');
+                      setSellerSubTab('courses');
+                      alert('⚡ অ্যাডমিন টেস্ট মোড: মেন্টরশিপ আবেদন সাথে সাথে অনুমোদিত (Approved) হয়েছে এবং মেন্টর সার্ভিস আনলক করা হয়েছে!');
+                    }}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-500/15 text-purple-400 hover:bg-purple-500/25 border border-purple-500/30 font-black text-xs transition cursor-pointer"
+                  >
+                    ⚡ অ্যাডমিন টেস্ট ইনস্ট্যান্ট অ্যাপ্রুভ
+                  </button>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setIsMentorAppModalOpen(false)}
+                      className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs transition cursor-pointer"
+                    >
+                      বাতিল
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-950 font-black text-xs shadow-lg hover:opacity-95 transition cursor-pointer"
+                    >
+                      আবেদন জমা দিন (Submit) 🚀
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. MENTORSHIP STATUS & ADMIN SIMULATION MODAL (আবেদনের অবস্থা ও অ্যাডমিন অ্যাকশন) */}
+      {/* ========================================================================= */}
+      {isMentorStatusModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white w-full max-w-lg rounded-3xl p-6 shadow-2xl relative space-y-4 overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    মেন্টরশিপ আবেদনের বর্তমান অবস্থা
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    স্ট্যাটাস: {isMentor ? 'অনুমোদিত (Approved)' : isMentorPending ? 'এডমিন রিভিউ পেন্ডিং (Pending)' : 'আবেদন করা হয়নি'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMentorStatusModalOpen(false)}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Status Card */}
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-500">আবেদন স্ট্যাটাস</span>
+                <span className="px-2.5 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black rounded-full">
+                  পেন্ডিং রিভিউ ⏳
+                </span>
+              </div>
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                আপনার মেন্টরশিপ আবেদনটি পিটেন আইটি অ্যাডমিন টিম রিভিউ করছে। সাধারণত ১-১২ ঘণ্টার মধ্যে যাচাই শেষে মেন্টর একাউন্ট আনলক করা হয়।
+              </p>
+            </div>
+
+            {/* Application Data Summary */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2 text-xs">
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                <span>আবেদনকারী:</span>
+                <strong className="text-slate-900 dark:text-white">{currentUser?.name}</strong>
+              </div>
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                <span>অভিজ্ঞতা:</span>
+                <strong className="text-slate-900 dark:text-white">{mentorAppExperience}</strong>
+              </div>
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                <span>প্রস্তাবিত কোর্স:</span>
+                <strong className="text-teal-500">{mentorAppProposedTopic}</strong>
+              </div>
+            </div>
+
+            {/* Admin Simulation Buttons */}
+            <div className="pt-2 space-y-2">
+              <span className="text-[11px] font-black uppercase text-slate-400 block text-center">
+                অ্যাডমিন সিমুলেশন অ্যাকশন (টেস্টিং এর জন্য)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    rejectMentorApplication(currentUser?.id, 'অভিজ্ঞতার প্রমাণপত্র প্রয়োজন');
+                    setIsMentorStatusModalOpen(false);
+                    alert('আবেদনটি বাতিল/রিজেক্ট করা হয়েছে। ইউজার পুনরায় আবেদন করতে পারবেন।');
+                  }}
+                  className="w-1/2 py-2.5 rounded-xl bg-rose-500/15 text-rose-500 hover:bg-rose-500/25 border border-rose-500/30 font-black text-xs transition cursor-pointer"
+                >
+                  ✕ আবেদন বাতিল করুন
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    approveMentorApplication(currentUser?.id);
+                    setIsMentorStatusModalOpen(false);
+                    setSpecialistMainTab('mentor');
+                    setSellerSubTab('courses');
+                    alert('✓ আবেদনটি সফলভাবে অনুমোদন (Approved) করা হয়েছে! মেন্টর সার্ভিস সম্পূর্ণ আনলক হয়েছে।');
+                  }}
+                  className="w-1/2 py-2.5 rounded-xl bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black text-xs transition cursor-pointer shadow-md"
+                >
+                  ✓ এডমিন অনুমোদন (Approve)
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       )}

@@ -1,34 +1,58 @@
 import React, { useState } from 'react';
-import { UserCheck, GraduationCap, Briefcase, ShieldAlert, ChevronUp, ChevronDown, Sparkles, Check } from 'lucide-react';
+import { Briefcase, ShieldAlert, ChevronUp, ChevronDown, Sparkles, Check, Zap } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { UserRole } from '../types';
 
 interface QuickRoleSwitcherProps {
+  activeTab?: string;
   setActiveTab: (tab: string) => void;
 }
 
-export const QuickRoleSwitcher: React.FC<QuickRoleSwitcherProps> = ({ setActiveTab }) => {
+export const QuickRoleSwitcher: React.FC<QuickRoleSwitcherProps> = ({ activeTab, setActiveTab }) => {
   const { currentUser, demoLogin } = useData();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleRoleSwitch = (role: UserRole) => {
+  const handleRoleSwitch = (role: UserRole, targetTab: string) => {
     demoLogin(role);
-    if (role === 'admin') {
-      setActiveTab('admin');
-    } else if (role === 'instructor') {
-      setActiveTab('teacher-dashboard');
-    } else if (role === 'customer') {
-      setActiveTab('customer-dashboard');
-    } else {
-      setActiveTab('customer-dashboard');
-    }
+    setActiveTab(targetTab);
   };
 
-  const roleConfigs: { role: UserRole; label: string; icon: React.FC<{ className?: string }>; color: string }[] = [
-    { role: 'admin', label: 'এডমিন প্যানেল', icon: ShieldAlert, color: 'text-amber-400 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20' },
-    { role: 'customer', label: 'গ্রাহক ড্যাশবোর্ড (বায়ার & স্টুডেন্ট)', icon: Briefcase, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20' },
-    { role: 'student', label: 'গ্রাহক ড্যাশবোর্ড (স্টুডেন্ট ভিউ)', icon: UserCheck, color: 'text-blue-400 bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20' },
-    { role: 'instructor', label: 'সেলার / ইন্সট্রাক্টর ড্যাশবোর্ড', icon: GraduationCap, color: 'text-teal-400 bg-teal-500/10 border-teal-500/30 hover:bg-teal-500/20' },
+  const roleConfigs: {
+    role: UserRole;
+    targetTab: string;
+    label: string;
+    subtitle: string;
+    icon: React.FC<{ className?: string }>;
+    color: string;
+    activeBorder: string;
+  }[] = [
+    {
+      role: 'admin',
+      targetTab: 'admin',
+      label: 'এডমিন প্যানেল',
+      subtitle: 'প্ল্যাটফর্ম ও সিস্টেম কন্ট্রোল',
+      icon: ShieldAlert,
+      color: 'text-amber-300 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20',
+      activeBorder: 'border-amber-400 ring-2 ring-amber-400/50 bg-amber-500/20'
+    },
+    {
+      role: 'customer',
+      targetTab: 'customer-dashboard',
+      label: 'গ্রাহক ড্যাশবোর্ড',
+      subtitle: 'ক্লায়েন্ট ও বায়ার পোর্টাল',
+      icon: Briefcase,
+      color: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20',
+      activeBorder: 'border-[#1DB954] ring-2 ring-[#1DB954]/50 bg-emerald-500/20'
+    },
+    {
+      role: 'instructor',
+      targetTab: 'teacher-dashboard',
+      label: 'স্পেশালিস্ট ড্যাশবোর্ড',
+      subtitle: 'এক্সপার্ট ও ট্রেইনার পোর্টাল',
+      icon: Zap,
+      color: 'text-teal-300 bg-teal-500/10 border-teal-500/30 hover:bg-teal-500/20',
+      activeBorder: 'border-teal-400 ring-2 ring-teal-400/50 bg-teal-500/20'
+    },
   ];
 
   return (
@@ -38,7 +62,7 @@ export const QuickRoleSwitcher: React.FC<QuickRoleSwitcherProps> = ({ setActiveT
           <div className="flex items-center justify-between border-b border-slate-700 pb-2">
             <div className="flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-[#1DB954] animate-pulse" />
-              <span className="text-xs font-bold text-slate-200">ড্যাশবোর্ড & এডমিন কুইক এক্সেস</span>
+              <span className="text-xs font-bold text-slate-200">ড্যাশবোর্ড সুইচ</span>
             </div>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-[#1DB954] font-bold">
               Full Access
@@ -46,26 +70,34 @@ export const QuickRoleSwitcher: React.FC<QuickRoleSwitcherProps> = ({ setActiveT
           </div>
 
           <p className="text-[11px] text-slate-400 leading-tight">
-            এডমিন ড্যাশবোর্ড বা যেকোনো রোলে ঢুকতে ক্লিক করুন:
+            যেকোনো ড্যাশবোর্ডে প্রবেশ করতে ক্লিক করুন:
           </p>
 
           <div className="space-y-2">
-            {roleConfigs.map(({ role, label, icon: Icon, color }) => {
-              const isActive = currentUser?.role === role;
+            {roleConfigs.map(({ role, targetTab, label, subtitle, icon: Icon, color, activeBorder }) => {
+              const isCurrentTab = activeTab === targetTab;
+              const isCurrentRole = currentUser?.role === role;
+              const isActive = isCurrentTab || (isCurrentRole && !['admin', 'customer-dashboard', 'teacher-dashboard'].includes(activeTab || ''));
+
               return (
                 <button
                   key={role}
-                  onClick={() => handleRoleSwitch(role)}
-                  className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-between transition-all cursor-pointer ${color} ${
-                    isActive ? 'ring-2 ring-[#1DB954] shadow-md' : ''
+                  onClick={() => handleRoleSwitch(role, targetTab)}
+                  className={`w-full py-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-between transition-all cursor-pointer ${
+                    isActive ? activeBorder : color
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4" />
-                    <span>{label}</span>
+                  <div className="flex items-center gap-2.5 text-left">
+                    <div className="p-1.5 rounded-lg bg-black/20 shrink-0">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-white text-xs leading-tight">{label}</div>
+                      <div className="text-[10px] text-slate-300 font-normal leading-tight mt-0.5">{subtitle}</div>
+                    </div>
                   </div>
                   {isActive && (
-                    <span className="flex items-center gap-1 text-[10px] bg-[#1DB954] text-white px-2 py-0.5 rounded-full font-black">
+                    <span className="flex items-center gap-1 text-[10px] bg-[#1DB954] text-slate-950 px-2 py-0.5 rounded-full font-black shadow-sm shrink-0">
                       <Check className="w-3 h-3" /> এক্টিভ
                     </span>
                   )}

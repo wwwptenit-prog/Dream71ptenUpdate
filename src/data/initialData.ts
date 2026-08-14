@@ -2240,7 +2240,7 @@ export const initialMarketplaceOrders: MarketplaceOrder[] = [
     sellerPayout: 13500,
     paymentMethod: "bKash Escrow",
     transactionId: "TRX-BK-774411",
-    status: "pending",
+    status: "pending_approval",
     createdAt: "2026-02-16",
     deadlineDate: "2026-02-22"
   },
@@ -2262,7 +2262,7 @@ export const initialMarketplaceOrders: MarketplaceOrder[] = [
     sellerPayout: 4500,
     paymentMethod: "Nagad Escrow",
     transactionId: "TRX-NG-221100",
-    status: "pending",
+    status: "in_progress",
     createdAt: "2026-02-16",
     deadlineDate: "2026-02-20"
   },

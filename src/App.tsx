@@ -36,11 +36,6 @@ const MainAppContent: React.FC = () => {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
   const handleSetActiveTab = (tab: string, category?: string) => {
-    if (tab === 'customer-dashboard') {
-      setMarketplaceCategory('my-orders');
-      setActiveTab('marketplace');
-      return;
-    }
     if (tab === 'marketplace') {
       setMarketplaceCategory(category || 'All');
     }
@@ -155,28 +150,47 @@ const MainAppContent: React.FC = () => {
         )}
 
         {/* VIEW 7: ROLE-SPECIFIC DASHBOARDS */}
-        {(activeTab === 'student-dashboard' || activeTab === 'teacher-dashboard' || activeTab === 'customer-dashboard' || activeTab === 'dashboard') && (
+        {activeTab === 'teacher-dashboard' && (
+          <TeacherDashboard
+            onViewCourse={(cId) => setSelectedCourseId(cId)}
+            setActiveTab={handleSetActiveTab}
+          />
+        )}
+
+        {activeTab === 'customer-dashboard' && (
+          <CustomerDashboard
+            setActiveTab={handleSetActiveTab}
+          />
+        )}
+
+        {activeTab === 'student-dashboard' && (
+          <StudentDashboard
+            onStartLearning={handleStartLearning}
+            onViewCourse={(cId) => setSelectedCourseId(cId)}
+            onVerifyCert={(code) => setActiveCertificateCode(code)}
+            setActiveTab={handleSetActiveTab}
+          />
+        )}
+
+        {activeTab === 'dashboard' && (
           <>
-            {activeTab === 'teacher-dashboard' || (currentUser?.role === 'instructor' && (activeTab === 'dashboard' || activeTab === 'student-dashboard')) ? (
+            {currentUser?.role === 'admin' ? (
+              <AdminPanel setActiveTab={handleSetActiveTab} />
+            ) : currentUser?.role === 'instructor' ? (
               <TeacherDashboard
                 onViewCourse={(cId) => setSelectedCourseId(cId)}
-                setActiveTab={setActiveTab}
-              />
-            ) : activeTab === 'customer-dashboard' || activeTab === 'student-dashboard' || (currentUser?.role === 'customer' && activeTab === 'dashboard') ? (
-              <MarketplaceSection
                 setActiveTab={handleSetActiveTab}
-                openAuthModal={() => setAuthModalOpen(true)}
-                initialCategory="overview"
-                onStartLearning={handleStartLearning}
               />
-            ) : (currentUser?.role === 'admin' && (activeTab === 'dashboard' || activeTab === 'admin')) ? (
-              <AdminPanel setActiveTab={setActiveTab} />
+            ) : currentUser?.role === 'customer' ? (
+              <CustomerDashboard
+                setActiveTab={handleSetActiveTab}
+              />
             ) : (
-              <MarketplaceSection
-                setActiveTab={handleSetActiveTab}
-                openAuthModal={() => setAuthModalOpen(true)}
-                initialCategory="overview"
+              <StudentDashboard
                 onStartLearning={handleStartLearning}
+                onViewCourse={(cId) => setSelectedCourseId(cId)}
+                onVerifyCert={(code) => setActiveCertificateCode(code)}
+                setActiveTab={handleSetActiveTab}
               />
             )}
           </>
@@ -184,7 +198,7 @@ const MainAppContent: React.FC = () => {
 
         {/* VIEW 8: ADMIN CONTROL PANEL */}
         {activeTab === 'admin' && (
-          <AdminPanel setActiveTab={setActiveTab} />
+          <AdminPanel setActiveTab={handleSetActiveTab} />
         )}
 
         {/* VIEW 9: CONTACT PAGE */}
@@ -225,7 +239,7 @@ const MainAppContent: React.FC = () => {
       />
 
       {/* Temporary Floating Quick Role Tester for Dashboards */}
-      <QuickRoleSwitcher setActiveTab={setActiveTab} />
+      <QuickRoleSwitcher activeTab={activeTab} setActiveTab={handleSetActiveTab} />
 
       {/* Facebook-style Messenger Floating Chat Windows */}
       <FloatingMessengerWindows />
