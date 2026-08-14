@@ -1,6 +1,6 @@
 {
-  "name": "Order Boss",
-  "description": "Order Boss – Freelancing Marketplace Website & Professional IT Services in Bangladesh",
+  "name": "PTENit",
+  "description": "PTENit & Marketplace - Professional IT Services, Skills Training & Freelance Projects Platform",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
