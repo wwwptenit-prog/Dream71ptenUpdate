@@ -28,7 +28,7 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
   onOrderCompleted,
   setActiveTab
 }) => {
-  const { createDirectGigOrder, openChatWindow } = useData();
+  const { createDirectGigOrder, openChatWindow, openMessengerInbox } = useData();
 
   // Step State: 1 = Package & Note, 2 = Contact Info, 3 = Payment Mode, 4 = Digital Receipt
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -158,13 +158,17 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
 
   const handleOpenMarketplaceChat = () => {
     if (!completedOrder) return;
-    openChatWindow({
-      id: `chat-seller-${completedOrder.sellerName.replace(/\s+/g, '-').toLowerCase()}`,
-      senderName: completedOrder.sellerName,
-      senderRole: 'instructor',
-      senderAvatar: gig?.sellerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
-      initialMessage: `সালাম! আমি PTENit মার্কেটপ্লেস থেকে আপনার "${completedOrder.title}" প্রজেক্টটি সফলভাবে অর্ডার করেছি।\n\n📌 **অর্ডার বিবরণ:**\n• অর্ডার আইডি: #${completedOrder.id}\n• প্যাকেজ: ${completedOrder.packageName}\n• বাজেট: ৳${completedOrder.amount.toLocaleString('bn-BD')}\n• ডেলভারি সময়: ${completedOrder.deliveryDays} দিন\n• ক্লায়েন্ট নাম: ${clientName}\n\nকাজ শুরু সম্পর্কিত নির্দেশনা শেয়ার করুন। ধন্যবাদ!`
-    });
+    const conversationId = `chat-seller-${completedOrder.sellerName.replace(/\s+/g, '-').toLowerCase()}`;
+    if (openChatWindow) {
+      openChatWindow({
+        id: conversationId,
+        orderId: completedOrder.id,
+        senderName: completedOrder.sellerName,
+        senderRole: 'instructor',
+        senderAvatar: gig?.sellerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+        initialMessage: `সালাম! আমি PTENit মার্কেটপ্লেস থেকে আপনার "${completedOrder.title}" প্রজেক্টটি সফলভাবে অর্ডার করেছি।\n\n📌 **অর্ডার বিবরণ:**\n• অর্ডার আইডি: #${completedOrder.id}\n• প্যাকেজ: ${completedOrder.packageName}\n• বাজেট: ৳${completedOrder.amount.toLocaleString('bn-BD')}\n• ডেলভারি সময়: ${completedOrder.deliveryDays} দিন\n• ক্লায়েন্ট নাম: ${clientName}\n\nকাজ শুরু সম্পর্কিত নির্দেশনা শেয়ার করুন। ধন্যবাদ!`
+      });
+    }
     onClose();
   };
 

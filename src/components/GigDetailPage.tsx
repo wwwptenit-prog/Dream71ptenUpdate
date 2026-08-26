@@ -63,7 +63,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
   setActiveTab: setGlobalActiveTab,
   onOrderSuccess
 }) => {
-  const { siteSettings, deleteGig, updateGig, openChatWindow, marketplaceOrders } = useData();
+  const { siteSettings, deleteGig, updateGig, openChatWindow, openMessengerInbox, marketplaceOrders } = useData();
 
   // Active order for this gig placed by current user
   const userActiveOrder = marketplaceOrders?.find(o => {
@@ -81,7 +81,10 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
   const handleOpenSellerChat = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     if (openChatWindow) {
+      const sellerId = `chat-seller-${(gig.sellerName || 'seller').replace(/\s+/g, '-').toLowerCase()}`;
       openChatWindow({
+        id: sellerId,
+        orderId: userActiveOrder?.id,
         senderName: gig.sellerName || 'গিগ প্রোভাইডার (PTENit Pro)',
         senderRole: 'seller',
         senderAvatar: gig.sellerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
@@ -384,7 +387,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
               <div>
                 <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                   <span>{gig.sellerName}</span>
-                  <BadgeCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#1DB954]" title="Verified Seller" />
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#0084FF] fill-[#0084FF] text-white shrink-0" title="ভেরিফাইড প্রোফাইল" />
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold">
                   {gig.sellerTitle || 'Top Rated Service Provider'}
@@ -751,9 +754,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                       <div>
                         <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                           <span>{gig.sellerName}</span>
-                          <span className="px-2.5 py-0.5 bg-[#1DB954]/20 text-[#1DB954] text-xs font-bold rounded-full">
-                            Verified Pro Seller
-                          </span>
+                          <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#0084FF] fill-[#0084FF] text-white shrink-0" title="ভেরিফাইড প্রোফাইল" />
                         </h4>
                         <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1">
                           {gig.sellerTitle || 'Senior Developer & Tech Specialist'}
@@ -823,10 +824,9 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                   <button
                     type="button"
                     onClick={onBack}
-                    className="px-3 py-1.5 rounded-xl bg-[#1DB954]/10 hover:bg-[#1DB954] text-[#1DB954] hover:text-slate-950 text-xs font-black transition cursor-pointer flex items-center gap-1 shrink-0"
+                    className="text-[#1DB954] hover:text-emerald-400 text-xs font-bold hover:underline transition cursor-pointer flex items-center gap-1 shrink-0"
                   >
-                    <span>সবগুলো দেখুন (See All)</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <span>সবগুলো দেখুন →</span>
                   </button>
                 </div>
 

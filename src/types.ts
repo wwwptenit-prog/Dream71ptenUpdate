@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'instructor' | 'customer' | 'admin';
+export type UserRole = 'student' | 'instructor' | 'specialist' | 'customer' | 'admin' | 'both';
 
 export interface User {
   id: string;
@@ -6,6 +6,8 @@ export interface User {
   email: string;
   mobile: string;
   role: UserRole;
+  roles?: ('customer' | 'specialist' | 'instructor' | 'admin' | 'student')[];
+  activeRole?: 'customer' | 'specialist' | 'instructor' | 'admin' | 'student';
   avatar?: string;
   bio?: string;
   title?: string;
@@ -13,6 +15,19 @@ export interface User {
   institution?: string;
   createdAt: string;
   blocked?: boolean;
+  isSpecialist?: boolean;
+  specialistStatus?: 'not_applied' | 'pending' | 'approved' | 'rejected';
+  specialistApplication?: {
+    expertise: string[];
+    experienceYears: string;
+    bio: string;
+    portfolioUrl?: string;
+    phone?: string;
+    nidOrIdNumber?: string;
+    appliedAt: string;
+    status: 'pending' | 'approved' | 'rejected';
+    rejectionReason?: string;
+  };
   isMentor?: boolean;
   mentorStatus?: 'not_applied' | 'pending' | 'approved' | 'rejected';
   mentorApplication?: {
@@ -138,6 +153,8 @@ export interface Course {
   acceptedAt?: string;
   level?: 'basic' | 'advanced' | 'professional' | 'live_batch';
   isPublicOffer?: boolean;
+  liveSchedule?: string;
+  batch?: string;
 }
 
 export interface Service {
@@ -242,6 +259,25 @@ export interface PaymentOrder {
   createdAt: string;
 }
 
+export interface SubAdminMember {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'Sub-Admin' | 'Support Specialist' | 'Order Manager' | 'Course Admin';
+  permissions: string[]; // e.g., ['orders', 'support', 'courses', 'students']
+  status: 'active' | 'suspended';
+  assignedAt: string;
+}
+
+export interface PaymentMethodItem {
+  id: string;
+  name: string;
+  logoUrl: string;
+  type?: 'mobile' | 'bank' | 'card' | 'other';
+  isActive?: boolean;
+}
+
 export interface SiteSettings {
   heroHeading: string;
   heroSubtext: string;
@@ -266,9 +302,56 @@ export interface SiteSettings {
   bankAccountName?: string;
   bankAccountNumber?: string;
   bankBranch?: string;
+  paymentLogos?: PaymentMethodItem[];
   enableMoneyBackGuarantee?: boolean;
   moneyBackGuaranteeDays?: number;
   moneyBackGuaranteeText?: string;
+  // Meta Pixel & Analytics Setup
+  metaPixelId?: string;
+  googleAnalyticsId?: string;
+  tiktokPixelId?: string;
+  googleTagManagerId?: string;
+  conversionApiToken?: string;
+  // Taxes & VAT Setup
+  platformTaxPercent?: number;
+  courseVatPercent?: number;
+  serviceTaxPercent?: number;
+  freelancerTaxDeductionPercent?: number;
+  taxRegistrationNumber?: string;
+  invoiceTaxNote?: string;
+  // Platform Commission & Fee Defaults
+  defaultCommissionRate?: number;
+  defaultTrainerRevShare?: number;
+  defaultClientFee?: number;
+  defaultWithdrawalFee?: number;
+  // Sub-Admins & Support Team Access
+  subAdminMembers?: SubAdminMember[];
+  // Written Content Configuration
+  announcementNoticeText?: string;
+  aboutUsText?: string;
+  termsAndConditionsText?: string;
+  privacyPolicyText?: string;
+  refundPolicyText?: string;
+  footerCopyrightText?: string;
+  // Responsive 100% Layout & Scaling Setup
+  enableFullWidth100Percent?: boolean;
+  containerMaxWidth?: string; // '100%', '1536px', '1280px'
+  customScalePercent?: number; // 100, 95, 90, 105
+  mobileResponsiveMode?: 'fluid_100' | 'adaptive' | 'compact';
+  // SEO & Search Engine Optimization Setup
+  seoTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageUrl?: string;
+  ogType?: string;
+  twitterCard?: string;
+  twitterHandle?: string;
+  canonicalUrl?: string;
+  robotsTxt?: string;
+  structuredDataJson?: string;
+  googleSiteVerification?: string;
 }
 
 export interface NotificationItem {
@@ -304,7 +387,9 @@ export interface DirectMessageItem {
   text: string;
   time: string;
   read: boolean;
+  unreadCount?: number;
   orderId?: string;
+  orderTitle?: string;
   targetTab?: string;
 }
 
@@ -320,6 +405,7 @@ export interface ChatMessage {
 
 export interface ActiveChatWindow {
   id: string;
+  orderId?: string;
   senderName: string;
   senderRole?: string;
   senderAvatar?: string;
@@ -368,6 +454,7 @@ export interface MarketplaceGig {
   sellerName: string;
   sellerAvatar?: string;
   sellerTitle?: string;
+  sellerLevel?: string;
   sellerRating?: number;
   isAgencyStaff?: boolean; // internal PTENit office staff/instructor
   title: string;
@@ -395,7 +482,8 @@ export interface MarketplaceGig {
   salesCount: number;
   status: 'active' | 'paused';
   offerBadge?: 'cashback' | 'work_first' | string;
-  createdAt: string;
+  tags?: string[];
+  createdAt?: string;
 }
 
 export interface MarketplaceJob {
@@ -437,7 +525,10 @@ export interface MarketplaceProposal {
 
 export interface MarketplaceOrder {
   id: string;
-  type: 'gig_order' | 'job_order' | 'custom_agency_order';
+  type: 'gig_order' | 'job_order' | 'custom_agency_order' | 'digital_product_order';
+  digitalProductId?: string;
+  downloadUrl?: string;
+  licenseKey?: string;
   gigId?: string;
   jobId?: string;
   title: string;
@@ -467,11 +558,42 @@ export interface MarketplaceOrder {
   reviewComment?: string;
   createdAt: string;
   deadlineDate: string;
+  unreadMessageCount?: number;
   isPublicOffer?: boolean;
   assignedExpert?: string;
   reachCount?: number;
   likesCount?: number;
   isLikedByBuyer?: boolean;
   budgetRange?: string;
+  isOutsourcedToPublic?: boolean;
+  outsourcedFreelancerId?: string;
+  outsourcedFreelancerName?: string;
+  referralCommissionPercent?: number;
+  officeReferralCommission?: number;
+  freelancerNetPayout?: number;
+  outsourceOfferNote?: string;
+  outsourceStatus?: 'offered' | 'accepted' | 'in_progress' | 'delivered' | 'completed';
+}
+
+export interface DigitalProduct {
+  id: string;
+  title: string;
+  category: string;
+  price: number;
+  originalPrice?: number;
+  thumbnail: string;
+  shortDescription: string;
+  fullDescription?: string;
+  deliveryType: 'auto' | 'manual';
+  fileFormat: string;
+  fileSize: string;
+  rating: number;
+  reviewsCount: number;
+  salesCount: number;
+  features: string[];
+  downloadUrl: string;
+  licenseKey?: string;
+  demoUrl?: string;
+  createdAt?: string;
 }
 

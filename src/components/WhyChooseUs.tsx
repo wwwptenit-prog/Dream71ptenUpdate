@@ -66,21 +66,21 @@ export const WhyChooseUs: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6 lg:gap-8">
           {features.map((feat, idx) => {
             const Icon = feat.icon;
             return (
               <div
                 key={idx}
-                className="bg-slate-50 dark:bg-slate-800/60 p-6 sm:p-8 rounded-3xl border border-slate-200/90 dark:border-slate-700/80 shadow-sm hover:shadow-xl hover:border-[#1DB954] transition-all duration-300 space-y-4"
+                className="bg-slate-50 dark:bg-slate-800/60 p-3.5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:shadow-xl hover:border-[#1DB954] transition-all duration-300 space-y-2 sm:space-y-4 flex flex-col justify-start"
               >
-                <div className={`p-4 rounded-2xl ${feat.bgColor} ${feat.color} w-fit`}>
-                  <Icon className="w-7 h-7" />
+                <div className={`p-2.5 sm:p-4 rounded-xl sm:rounded-2xl ${feat.bgColor} ${feat.color} w-fit`}>
+                  <Icon className="w-5 h-5 sm:w-7 sm:h-7" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold font-heading text-slate-900 dark:text-white">
+                <h3 className="text-xs sm:text-lg lg:text-xl font-bold font-heading text-slate-900 dark:text-white leading-tight">
                   {feat.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-bengali leading-relaxed">
+                <p className="text-[10px] sm:text-xs lg:text-sm text-slate-600 dark:text-slate-300 font-bengali leading-relaxed line-clamp-4 sm:line-clamp-none">
                   {feat.desc}
                 </p>
               </div>

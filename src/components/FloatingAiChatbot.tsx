@@ -149,7 +149,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
     support: {
       id: 'support',
       name: 'আরিফ হোসেন',
-      role: 'Order Boss Support Manager',
+      role: 'PTENit Support Manager',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       isOnline: true,
     },
@@ -159,14 +159,14 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
   const [suggestions, setSuggestions] = useState<string[]>([
     'অনলাইন প্রিমিয়াম কোর্সসমূহ',
     'PTENit সার্ভিস ও প্যাকেজ',
-    'Order Boss মার্কেটপ্লেস গিগ',
+    'PTENit মার্কেটপ্লেস প্রজেক্ট',
   ]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       sender: 'bot',
-      text: 'আসসালামু আলাইকুম! আমি AI Assistant ✨\n\nPTENit এর প্রিমিয়াম কোর্স, আইটি সার্ভিস কিংবা Order Boss এর ফ্রিল্যান্স গিগ ও প্রজেক্ট অর্ডার সংক্রান্ত যেকোনো তথ্যের জন্য আপনাকে সাহায্য করতে আমি প্রস্তুত।',
+      text: 'আসসালামু আলাইকুম! আমি AI Assistant ✨\n\nPTENit এর প্রিমিয়াম কোর্স, আইটি সার্ভিস কিংবা মার্কেটপ্লেস এর ফ্রিল্যান্স প্রজেক্ট অর্ডার সংক্রান্ত যেকোনো তথ্যের জন্য আপনাকে সাহায্য করতে আমি প্রস্তুত।',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isStreaming: false,
     },
@@ -228,8 +228,8 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
       });
     }
 
-    // Check if query is about Order Boss marketplace gigs
-    if (combined.includes('গিগ') || combined.includes('gig') || combined.includes('ফ্রিল্যান্স') || combined.includes('অর্ডার বস')) {
+    // Check if query is about PTENit marketplace projects
+    if (combined.includes('প্রজেক্ট') || combined.includes('project') || combined.includes('গিগ') || combined.includes('gig') || combined.includes('ফ্রিল্যান্স')) {
       (gigs || []).slice(0, 3).forEach((g) => {
         cards.push({
           id: g.id,
@@ -357,7 +357,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
           setSuggestions([
             'অনলাইন প্রিমিয়াম কোর্সসমূহ',
             'PTENit সার্ভিস ও প্যাকেজ',
-            'Order Boss মার্কেটপ্লেস গিগ',
+            'PTENit মার্কেটপ্লেস প্রজেক্ট',
           ]);
         }
       } catch (err) {
@@ -441,37 +441,45 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
   };
 
   return (
-    <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 font-sans">
-      {/* FLOATING TRIGGER BUTTON - COMPACT & UNIQUE */}
+    <div className={`fixed ${isOpen ? 'bottom-2 right-2 sm:bottom-6 sm:right-6' : 'bottom-24 right-3.5 sm:bottom-6 sm:right-6'} z-50 font-sans`}>
+      {/* FLOATING TRIGGER BUTTON - SLEEK BLACK CIRCLE WITH VIBRANT COLORFUL AI AURA */}
       {!isOpen && (
         <div className="relative group">
-          {/* Subtle Glowing Backlight */}
-          <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-[#1DB954] via-teal-400 to-[#38bdf8] opacity-80 blur-sm group-hover:opacity-100 transition duration-300 animate-pulse"></div>
+          {/* Vibrant Animated Multi-Color AI Glowing Halo */}
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#1DB954] via-fuchsia-500 via-sky-400 to-amber-300 opacity-85 blur-[3px] group-hover:opacity-100 group-hover:blur-sm transition duration-300 animate-pulse"></div>
 
-          <button
-            onClick={() => {
-              setIsOpen(true);
-              playNotificationTone();
-            }}
-            className="relative flex items-center gap-2.5 px-3.5 py-2.5 sm:px-4 sm:py-2.5 bg-[#091124] text-white rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border border-[#1DB954]/80"
-          >
-            {/* Sleek Bot Icon with Online Dot */}
-            <div className="relative flex items-center justify-center">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1DB954] to-emerald-400 flex items-center justify-center text-slate-950 shadow-inner">
-                <Bot className="w-4 h-4 text-slate-950" />
+          {/* Gradient Border Frame around Sleek Black Core */}
+          <div className="relative p-[2px] rounded-full bg-gradient-to-tr from-[#1DB954] via-violet-500 via-pink-500 to-cyan-400 shadow-xl shadow-emerald-500/25">
+            <button
+              onClick={() => {
+                setIsOpen(true);
+                playNotificationTone();
+              }}
+              className="relative flex items-center justify-center w-11 h-11 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 bg-black sm:bg-[#091124] text-white rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer border border-slate-700/50"
+              aria-label="AI Assistant"
+              title="AI Assistant"
+            >
+              {/* Bot Icon with AI Colorful Sparkles */}
+              <div className="relative flex items-center justify-center">
+                {/* Bot Icon on Dark Circle - White Color & Prominent Size */}
+                <div className="w-8 h-8 rounded-full bg-black sm:bg-gradient-to-tr sm:from-[#1DB954] sm:to-emerald-400 flex items-center justify-center text-white sm:text-slate-950 shadow-inner">
+                  <Bot className="w-5.5 h-5.5 sm:w-4 sm:h-4 text-white sm:text-slate-950 stroke-[2.2]" />
+                </div>
+                
+                {/* Pulsing Colorful AI Active Beacon - Placed on the side at 50% */}
+                <span className="absolute top-1/2 -translate-y-1/2 -right-1 sm:-top-0.5 sm:translate-y-0 sm:-right-0.5 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1DB954] opacity-85"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-[#1DB954] to-cyan-400 border border-black"></span>
+                </span>
               </div>
-              <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1DB954] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1DB954] border border-slate-950"></span>
-              </span>
-            </div>
 
-            {/* Minimal Title */}
-            <span className="font-extrabold text-xs tracking-wide font-heading text-white flex items-center gap-1.5 pr-1">
-              AI Assistant
-              <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
-            </span>
-          </button>
+              {/* Minimal Title & Sparkles (Hidden on mobile, visible on desktop) */}
+              <span className="hidden sm:inline-flex font-extrabold text-xs tracking-wide font-heading text-white items-center gap-1.5 pl-2 pr-1">
+                AI Assistant
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+              </span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -499,7 +507,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                   </span>
                 </h3>
                 <p className="text-[10px] text-emerald-400 font-medium">
-                  PTENit & Order Boss Helper
+                  PTENit & Marketplace Helper
                 </p>
               </div>
             </div>

@@ -27,7 +27,9 @@ import {
   Settings,
   Lock,
   Sun,
-  Moon
+  Moon,
+  Search,
+  Video
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Assignment } from '../types';
@@ -125,6 +127,13 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const [subFileName, setSubFileName] = useState('');
   const [subFileUrl, setSubFileUrl] = useState('');
   const [subSuccess, setSubSuccess] = useState(false);
+
+  // Enrolled Courses PC View Interactive Modals State
+  const [activeResourceModal, setActiveResourceModal] = useState<any>(null);
+  const [activeLiveClassModal, setActiveLiveClassModal] = useState<any>(null);
+  const [activeCurriculumModal, setActiveCurriculumModal] = useState<any>(null);
+  const [courseSearchQuery, setCourseSearchQuery] = useState('');
+  const [courseStatusFilter, setCourseStatusFilter] = useState<'all' | 'in_progress' | 'completed' | 'live'>('all');
 
   // Profile Edit state
   const [profName, setProfName] = useState(currentUser?.name || '');
@@ -782,89 +791,257 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         {/* SUB TAB: MY COURSES */}
         {activeSubTab === 'my-courses' && (
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              আমার এনরোলকৃত কোর্সসমূহ ({myEnrollments.length})
-            </h2>
+            {/* Header, Search & Filter Bar for PC View */}
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-[#1DB954]" />
+                    <span>আমার এনরোলকৃত কোর্সসমূহ ({myEnrollments.length})</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    পিসি ভিউতে সকল ক্লাসের ড্রাইভ রিসোর্স, লাইভ মিট লিংক, অ্যাসাইনমেন্ট ও ইনস্ট্রাক্টর সাপোর্ট একনজরে
+                  </p>
+                </div>
 
-            {myEnrollments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                {myEnrollments.map(enr => {
-                  const course = courses.find(c => c.id === enr.courseId);
-                  if (!course) return null;
-
-                  return (
-                    <div
-                      key={enr.id}
-                      className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
+                {/* Quick Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="কোর্স বা ইনস্ট্রাক্টর খুঁজুন..."
+                    value={courseSearchQuery}
+                    onChange={e => setCourseSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:outline-none focus:border-[#1DB954] text-slate-900 dark:text-white"
+                  />
+                  {courseSearchQuery && (
+                    <button
+                      onClick={() => setCourseSearchQuery('')}
+                      className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
                     >
-                      <div>
-                        <div className="flex items-start gap-4 mb-3">
-                          <img
-                            src={course.thumbnail}
-                            alt={course.title}
-                            className="w-20 h-20 rounded-2xl object-cover shrink-0"
-                          />
-                          <div className="space-y-1">
-                            <span className="px-2 py-0.5 bg-[#1DB954]/20 text-[#1DB954] text-[10px] font-bold rounded">
-                              {course.category}
-                            </span>
-                            <h3 className="font-bold text-slate-900 dark:text-white text-base line-clamp-2">
-                              {course.title}
-                            </h3>
-                            <p className="text-xs text-slate-500">
-                              ইনস্ট্রাক্টর: {course.instructor}
-                            </p>
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Status Filter Pills */}
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1 border-t border-slate-100 dark:border-slate-800/80 text-xs font-bold">
+                <span className="text-slate-400 shrink-0 text-[11px]">ফিল্টার:</span>
+                {[
+                  { id: 'all', label: `সব কোর্স (${myEnrollments.length})` },
+                  { id: 'in_progress', label: `চলমান (${myEnrollments.filter(e => e.status !== 'completed').length})` },
+                  { id: 'completed', label: `সম্পন্ন (${myEnrollments.filter(e => e.status === 'completed').length})` },
+                  { id: 'live', label: '🔴 লাইভ ক্লাস ব্যাচ' },
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setCourseStatusFilter(f.id as any)}
+                    className={`px-3 py-1 rounded-xl transition cursor-pointer shrink-0 text-xs font-bold border ${
+                      courseStatusFilter === f.id
+                        ? 'bg-[#1DB954] text-white border-[#1DB954] shadow-sm font-black'
+                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#1DB954]'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Enrolled Courses List */}
+            {myEnrollments.filter(enr => {
+              const course = courses.find(c => c.id === enr.courseId);
+              if (!course) return false;
+
+              if (courseSearchQuery.trim()) {
+                const q = courseSearchQuery.toLowerCase();
+                const matchTitle = course.title.toLowerCase().includes(q);
+                const matchInstructor = course.instructor.toLowerCase().includes(q);
+                const matchCategory = course.category.toLowerCase().includes(q);
+                if (!matchTitle && !matchInstructor && !matchCategory) return false;
+              }
+
+              if (courseStatusFilter === 'in_progress') {
+                if (enr.status === 'completed') return false;
+              } else if (courseStatusFilter === 'completed') {
+                if (enr.status !== 'completed') return false;
+              }
+
+              return true;
+            }).length > 0 ? (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 sm:gap-6">
+                {myEnrollments
+                  .filter(enr => {
+                    const course = courses.find(c => c.id === enr.courseId);
+                    if (!course) return false;
+
+                    if (courseSearchQuery.trim()) {
+                      const q = courseSearchQuery.toLowerCase();
+                      const matchTitle = course.title.toLowerCase().includes(q);
+                      const matchInstructor = course.instructor.toLowerCase().includes(q);
+                      const matchCategory = course.category.toLowerCase().includes(q);
+                      if (!matchTitle && !matchInstructor && !matchCategory) return false;
+                    }
+
+                    if (courseStatusFilter === 'in_progress') {
+                      if (enr.status === 'completed') return false;
+                    } else if (courseStatusFilter === 'completed') {
+                      if (enr.status !== 'completed') return false;
+                    }
+
+                    return true;
+                  })
+                  .map(enr => {
+                    const course = courses.find(c => c.id === enr.courseId);
+                    if (!course) return null;
+
+                    return (
+                      <div
+                        key={enr.id}
+                        className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-4 font-bengali"
+                      >
+                        {/* Course Main Top Card */}
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-4">
+                            <div className="relative shrink-0">
+                              <img
+                                src={course.thumbnail}
+                                alt={course.title}
+                                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover shadow-md border border-slate-100 dark:border-slate-800"
+                              />
+                              <span className="absolute -top-1.5 -left-1.5 bg-emerald-600 text-white font-black text-[9px] px-1.5 py-0.5 rounded-full shadow border border-slate-900">
+                                🔴 ব্যাচ-০৪
+                              </span>
+                            </div>
+
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="px-2 py-0.5 bg-[#1DB954]/15 text-[#1DB954] text-[10px] font-bold rounded-lg border border-[#1DB954]/30">
+                                  {course.category}
+                                </span>
+                                {enr.status === 'completed' ? (
+                                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-lg border border-emerald-500/30 flex items-center gap-1">
+                                    <CheckCircle className="w-3 h-3" /> কোর্স সম্পন্ন
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 bg-amber-500/20 text-amber-500 text-[10px] font-bold rounded-lg border border-amber-500/30 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> লাইভ ব্যাচ চলমান
+                                  </span>
+                                )}
+                              </div>
+
+                              <h3 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg line-clamp-2 leading-snug">
+                                {course.title}
+                              </h3>
+
+                              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                  👨‍🏫 {course.instructor}
+                                </span>
+                                <span>•</span>
+                                <span className="text-emerald-500 font-bold">আজীবন এক্সেস</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Visual Progress Bar & Lessons Stats */}
+                          <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-2">
+                            <div className="flex justify-between items-center text-xs font-bold">
+                              <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <BookOpen className="w-3.5 h-3.5 text-[#1DB954]" />
+                                <span>অগ্রগতি</span>
+                              </span>
+                              <span className="text-[#1DB954] font-black text-xs">
+                                {enr.progress}% সম্পন্ন
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-gradient-to-r from-[#1DB954] via-emerald-400 to-sky-400 h-full rounded-full transition-all duration-500"
+                                style={{ width: `${enr.progress}%` }}
+                              />
+                            </div>
                           </div>
                         </div>
 
-                        {/* Visual Progress Bar */}
-                        <div className="space-y-1.5 pt-2">
-                          <div className="flex justify-between text-xs font-bold">
-                            <span className="text-slate-600 dark:text-slate-300">কোর্স অগ্রগতি (Progress)</span>
-                            <span className="text-[#1DB954] font-mono">{enr.progress}%</span>
+                        {/* PC Feature Action Suite Grid */}
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+                          {/* Main Action Buttons */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => onStartLearning(course.id)}
+                              className="flex-1 py-2.5 px-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                            >
+                              <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
+                              <span>ক্লাসে যান</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setActiveCurriculumModal(course)}
+                              className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700 transition cursor-pointer active:scale-98"
+                            >
+                              <span>বিস্তারিত</span>
+                            </button>
                           </div>
-                          <div className="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                            <div
-                              className="bg-gradient-to-r from-[#1DB954] to-emerald-500 h-full rounded-full transition-all duration-500"
-                              style={{ width: `${enr.progress}%` }}
-                            />
+
+                          {/* Desktop Interactive Tools Suite */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[11px] font-bold">
+                            <button
+                              onClick={() => setActiveResourceModal(course)}
+                              className="py-2 px-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-sky-500/20 hover:text-sky-400 hover:border-sky-500/50 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 text-center"
+                              title="ক্লাস নোটস, প্রজেক্ট কোড ও রিসোর্স ডাউনলোড করুন"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                              <span className="truncate">ড্রাইভ রিসোর্স</span>
+                            </button>
+
+                            <button
+                              onClick={() => setActiveLiveClassModal(course)}
+                              className="py-2 px-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 hover:border-rose-500/50 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 text-center"
+                              title="লাইভ জুম/মিট ক্লাস লিংক ও সময়সূচী"
+                            >
+                              <Video className="w-3.5 h-3.5 text-rose-400 shrink-0 animate-pulse" />
+                              <span className="truncate">লাইভ ক্লাস লিংক</span>
+                            </button>
+
+                            <button
+                              onClick={() => setActiveCurriculumModal(course)}
+                              className="py-2 px-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/50 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 text-center"
+                              title="কোর্সের সিলেবাস ও লেসন তালিকা দেখুন"
+                            >
+                              <BookOpen className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span className="truncate">সিলেবাস</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setMsgOpen(true);
+                                setActiveSupportSender('কোর্স ইনস্ট্রাক্টর');
+                              }}
+                              className="py-2 px-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-amber-500/20 hover:text-amber-400 hover:border-amber-500/50 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 text-center"
+                              title="সরাসরি কোর্স ইনস্ট্রাক্টরকে মেসেজ পাঠাত"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                              <span className="truncate">ইনস্ট্রাক্টর চ্যাট</span>
+                            </button>
                           </div>
                         </div>
+
                       </div>
-
-                      <div className="pt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
-                        {enr.status === 'completed' ? (
-                          <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">
-                            <CheckCircle className="w-4 h-4" /> সম্পন্ন হয়েছে
-                          </span>
-                        ) : (
-                          <span className="text-xs font-bold text-amber-500 flex items-center gap-1">
-                            <Clock className="w-4 h-4" /> চলমান রয়েছে
-                          </span>
-                        )}
-
-                        <button
-                          onClick={() => onStartLearning(course.id)}
-                          className="px-4 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <PlayCircle className="w-4 h-4" />
-                          লার্নিং শুরু করুন
-                        </button>
-                      </div>
-
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             ) : (
               <div className="p-8 sm:p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 space-y-3">
                 <BookOpen className="w-12 h-12 text-slate-400 mx-auto" />
                 <p className="text-slate-600 dark:text-slate-300 text-sm font-semibold">
-                  আপনি এখনও কোনো কোর্সে এনরোল করেননি।
+                  {courseSearchQuery ? 'আপনার সার্চ অনুযায়ী কোনো কোর্স পাওয়া যায়নি।' : 'আপনি এখনও কোনো কোর্সে এনরোল করেননি।'}
                 </p>
                 <button
-                  onClick={() => setActiveTab('courses')}
-                  className="px-5 py-2.5 bg-[#1DB954] text-white font-bold text-xs rounded-xl"
+                  onClick={() => { setCourseSearchQuery(''); setActiveTab?.('courses'); }}
+                  className="px-5 py-2.5 bg-[#1DB954] text-white font-bold text-xs rounded-xl shadow cursor-pointer"
                 >
                   কোর্স ক্যাটালগ দেখুন
                 </button>
@@ -1344,6 +1521,231 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* 1. CLASS DRIVE & RESOURCES MODAL */}
+        {activeResourceModal && (
+          <div className="fixed inset-[#000000] z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in font-bengali">
+            <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-xl w-full text-white space-y-6 shadow-2xl relative">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-sky-500/20 text-sky-400 rounded-2xl">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold">{activeResourceModal.title}</h3>
+                    <p className="text-xs text-sky-400 font-medium">ক্লাস রিসোর্স, সোর্স কোড ও ড্রাইভ ফাইলস</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveResourceModal(null)}
+                  className="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="p-3.5 bg-slate-800/80 rounded-2xl border border-slate-700 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <div>
+                      <p className="font-bold text-white text-xs">১. লেকচার নোটস ও ক্লাস গাইডলাইন PDF</p>
+                      <p className="text-[11px] text-slate-400">সাইজ: ৪.২ MB • ফরম্যাট: PDF Document</p>
+                    </div>
+                  </div>
+                  <a
+                    href="#download"
+                    onClick={(e) => { e.preventDefault(); alert('লেকচার নোটস PDF ডাউনলোড শুরু হয়েছে!'); }}
+                    className="px-3 py-1.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center gap-1 shrink-0"
+                  >
+                    <Download className="w-3.5 h-3.5" /> ডাউনলোড
+                  </a>
+                </div>
+
+                <div className="p-3.5 bg-slate-800/80 rounded-2xl border border-slate-700 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="w-5 h-5 text-sky-400 shrink-0" />
+                    <div>
+                      <p className="font-bold text-white text-xs">২. প্র্যাকটিস প্রজেক্ট সোর্স কোড (ZIP)</p>
+                      <p className="text-[11px] text-slate-400">সাইজ: ১৮.৫ MB • ফরম্যাট: ZIP Archive</p>
+                    </div>
+                  </div>
+                  <a
+                    href="#download"
+                    onClick={(e) => { e.preventDefault(); alert('সোর্স কোড ZIP ফাইল ডাউনলোড শুরু হয়েছে!'); }}
+                    className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl flex items-center gap-1 shrink-0"
+                  >
+                    <Download className="w-3.5 h-3.5" /> ডাউনলোড
+                  </a>
+                </div>
+
+                <div className="p-3.5 bg-slate-800/80 rounded-2xl border border-slate-700 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <BookOpen className="w-5 h-5 text-amber-400 shrink-0" />
+                    <div>
+                      <p className="font-bold text-white text-xs">৩. অফিশিয়াল গুগল ড্রাইভ ফোল্ডার</p>
+                      <p className="text-[11px] text-slate-400">সকল ক্লাসের ভিডিও ব্যাকআপ ও রিসোর্স লিংক</p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://drive.google.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl flex items-center gap-1 shrink-0"
+                  >
+                    ড্রাইভ খুলুন
+                  </a>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setActiveResourceModal(null)}
+                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-2xl transition cursor-pointer"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 2. LIVE CLASS LINK & ROUTINE MODAL */}
+        {activeLiveClassModal && (
+          <div className="fixed inset-[#000000] z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in font-bengali">
+            <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-white space-y-6 shadow-2xl relative">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-rose-500/20 text-rose-400 rounded-2xl">
+                    <Video className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold">{activeLiveClassModal.title}</h3>
+                    <p className="text-xs text-rose-400 font-medium">গুগল মিট / জুম লাইভ ক্লাস রুম</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveLiveClassModal(null)}
+                  className="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="bg-gradient-to-r from-rose-950/60 to-slate-800 p-4 rounded-2xl border border-rose-500/30 text-xs space-y-2 text-center">
+                <p className="text-rose-400 font-bold flex items-center justify-center gap-1.5 text-sm">
+                  <Clock className="w-4 h-4" /> আগামী লাইভ ক্লাস: আজ রাত ৯:০০ টা
+                </p>
+                <p className="text-slate-300">সাপ্তাহিক দিনসমূহ: শনি, সোম ও বুধবার রাত ৯:০০ PM - ১০:৩০ PM</p>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="p-4 bg-slate-800 rounded-2xl border border-slate-700 space-y-3">
+                  <p className="font-bold text-slate-300">গুগল মিট জয়েন লিংক:</p>
+                  <div className="flex items-center gap-2 bg-slate-900 p-2.5 rounded-xl border border-slate-700 font-mono text-emerald-400 text-xs overflow-x-auto">
+                    <span>https://meet.google.com/ptenit-live-class</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText('https://meet.google.com/ptenit-live-class');
+                        alert('লাইভ ক্লাস লিংক কপি করা হয়েছে!');
+                      }}
+                      className="w-1/2 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl transition cursor-pointer text-xs"
+                    >
+                      লিংক কপি করুন
+                    </button>
+                    <a
+                      href="https://meet.google.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-1/2 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black rounded-xl transition text-center text-xs flex items-center justify-center gap-1 shadow-md"
+                    >
+                      <Video className="w-4 h-4" /> ক্লাসে প্রবেশ করুন
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setActiveLiveClassModal(null)}
+                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-2xl transition cursor-pointer"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 3. CURRICULUM SYLLABUS MODAL */}
+        {activeCurriculumModal && (
+          <div className="fixed inset-[#000000] z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in font-bengali">
+            <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-xl w-full text-white space-y-6 shadow-2xl relative">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-emerald-500/20 text-[#1DB954] rounded-2xl">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold">{activeCurriculumModal.title}</h3>
+                    <p className="text-xs text-emerald-400 font-medium">কোর্স সিলেবাস ও মডিউল অগ্রগতি breakdown</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveCurriculumModal(null)}
+                  className="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs max-h-96 overflow-y-auto pr-1">
+                {[
+                  { module: 'মডিউল ০১: পরিচিতি, এনভায়রনমেন্ট সেটআপ ও ক্লাউড টুলস', duration: '৪৫ মিনিট', status: 'completed' },
+                  { module: 'মডিউল ০২: ফান্ডামেন্টালস, কোর কনসেপ্ট ও বেসিক ডিজাইন', duration: '১ ঘণ্টা ২০ মিনিট', status: 'completed' },
+                  { module: 'মডিউল ০৩: প্র্যাকটিক্যাল কেস স্টাডি ও রিয়েল প্রজেক্ট বিল্ডিং', duration: '২ ঘণ্টা ১০ মিনিট', status: 'in_progress' },
+                  { module: 'মডিউল ০৪: অ্যাডভান্সড ফিচারস, পারফরম্যান্স ও সিকিউরিটি', duration: '১ ঘণ্টা ৪৫ মিনিট', status: 'upcoming' },
+                  { module: 'মডিউল ০৫: ক্লায়েন্ট হ্যান্ডলিং, মার্কেটপ্লেস ও পোর্টফোলিও', duration: '২ ঘণ্টা ৫০ মিনিট', status: 'upcoming' },
+                ].map((mod, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 bg-slate-800/90 rounded-2xl border border-slate-700 flex items-center justify-between gap-3"
+                  >
+                    <div className="space-y-0.5">
+                      <p className="font-bold text-white text-xs">{mod.module}</p>
+                      <p className="text-[11px] text-slate-400">সময়সীমা: {mod.duration}</p>
+                    </div>
+                    {mod.status === 'completed' && (
+                      <span className="px-2.5 py-1 bg-emerald-500/20 text-[#1DB954] border border-emerald-500/30 font-bold text-[10px] rounded-lg shrink-0 flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5" /> সম্পন্ন
+                      </span>
+                    )}
+                    {mod.status === 'in_progress' && (
+                      <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold text-[10px] rounded-lg shrink-0 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" /> চলমান
+                      </span>
+                    )}
+                    {mod.status === 'upcoming' && (
+                      <span className="px-2.5 py-1 bg-slate-700 text-slate-400 font-bold text-[10px] rounded-lg shrink-0">
+                        সামনে আসবে
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setActiveCurriculumModal(null);
+                    onStartLearning(activeCurriculumModal.id);
+                  }}
+                  className="w-full py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-2xl transition cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <PlayCircle className="w-4 h-4" /> লার্নিং প্লেয়ার খুলুন
+                </button>
+              </div>
             </div>
           </div>
         )}

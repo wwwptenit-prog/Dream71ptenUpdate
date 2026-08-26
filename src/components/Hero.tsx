@@ -25,28 +25,28 @@ export const Hero: React.FC<HeroProps> = ({ setActiveTab }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1DB954]/15 border border-[#1DB954]/40 text-[#1DB954] text-xs font-bold uppercase tracking-wider"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1DB954]/15 border border-[#1DB954]/40 text-[#1DB954] text-xs font-extrabold uppercase tracking-wider"
             >
-              <Sparkles className="w-4 h-4" />
-              {t('১০০% প্রফেশনাল আইটি ও এলএমএস প্ল্যাটফর্ম', '100% Professional IT & LMS Platform')}
+              <Sparkles className="w-3.5 h-3.5" />
+              {t('প্রফেশনাল IT ও LMS প্ল্যাটফর্ম', 'Professional IT & LMS Platform')}
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black font-bengali leading-tight lg:leading-tight text-white tracking-tight"
+              className="text-2xl sm:text-4xl lg:text-5xl font-black font-bengali leading-snug lg:leading-tight text-white tracking-tight"
             >
-              {siteSettings.heroHeading || t("আপনার ডিজিটাল প্ল্যাটফর্ম এখানে তৈরি করুন", "Build Your Digital Career & Business")}
+              {siteSettings.heroHeading || t("ডিজিটাল ক্যারিয়ার ও বিজনেস গড়ুন", "Build Your Career & Business")}
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-base sm:text-lg text-slate-300 font-bengali max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+              className="text-sm sm:text-base text-slate-300 font-bengali max-w-xl mx-auto lg:mx-0 leading-relaxed"
             >
-              {siteSettings.heroSubtext || t("PTENit আপনার ব্যবসা ও ক্যারিয়ারের জন্য আধুনিক IT Services, Digital Marketing, Web Development এবং Professional Training Solutions প্রদান করে।", "PTENit provides modern IT Services, Digital Marketing, Web Development, and Professional Training Solutions for your business and career.")}
+              {siteSettings.heroSubtext || t("আধুনিক IT সেবাসমূহ, কাস্টম সফটওয়্যার, ডিজিটাল মার্কেটিং ও প্রফেশনাল ট্রেনিং।", "Modern IT services, software, digital marketing and professional training.")}
             </motion.p>
 
             {/* Action Buttons */}
@@ -54,22 +54,22 @@ export const Hero: React.FC<HeroProps> = ({ setActiveTab }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-4"
+              className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3"
             >
               <button
                 onClick={() => setActiveTab('services')}
-                className="px-7 py-3.5 rounded-xl font-bold text-white bg-[#1DB954] hover:bg-emerald-500 shadow-xl shadow-[#1DB954]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2 group text-base"
+                className="px-6 py-3 rounded-xl font-bold text-white bg-[#1DB954] hover:bg-emerald-500 shadow-lg shadow-[#1DB954]/25 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 group text-sm sm:text-base"
               >
-                {t('সার্ভিসসমূহ দেখুন', 'Explore Services')}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                {t('সার্ভিস দেখুন', 'Services')}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
                 onClick={() => setActiveTab('courses')}
-                className="px-7 py-3.5 rounded-xl font-bold text-slate-100 bg-slate-800/90 hover:bg-slate-700 border border-slate-600 hover:border-[#1DB954] transition-all cursor-pointer text-base flex items-center gap-2"
+                className="px-6 py-3 rounded-xl font-bold text-slate-100 bg-slate-800/90 hover:bg-slate-700 border border-slate-600 hover:border-[#1DB954] transition-all cursor-pointer text-sm sm:text-base flex items-center gap-1.5"
               >
-                {t('কোর্সসমূহ দেখুন', 'Explore Courses')}
-                <Play className="w-4 h-4 text-[#1DB954] fill-[#1DB954]" />
+                {t('কোর্স দেখুন', 'Courses')}
+                <Play className="w-3.5 h-3.5 text-[#1DB954] fill-[#1DB954]" />
               </button>
             </motion.div>
 
@@ -78,23 +78,25 @@ export const Hero: React.FC<HeroProps> = ({ setActiveTab }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-slate-800 max-w-xl mx-auto lg:mx-0 text-left"
+              className="pt-4 border-t border-slate-800/80 max-w-md lg:max-w-xl mx-auto lg:mx-0"
             >
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#1DB954]" />
-                <span className="text-xs font-semibold text-slate-300 font-bengali">AI Powered Support</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-[#1DB954]" />
-                <span className="text-xs font-semibold text-slate-300 font-bengali">{t('বিশ্বস্ত ট্রেনিং', 'Trusted Training')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-[#1DB954]" />
-                <span className="text-xs font-semibold text-slate-300 font-bengali">{t('সনদপত্র প্রদান', 'Certificates Provided')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#1DB954]" />
-                <span className="text-xs font-semibold text-slate-300 font-bengali">{t('লাইফটাইম সাপোর্ট', 'Lifetime Support')}</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 justify-start pl-2 sm:pl-0">
+                  <Sparkles className="w-5 h-5 text-[#1DB954] shrink-0 stroke-[2.2]" />
+                  <span className="text-xs sm:text-sm font-bold text-slate-200 font-bengali truncate">AI সাপোর্ট</span>
+                </div>
+                <div className="flex items-center gap-2 justify-start pl-2 sm:pl-0">
+                  <Award className="w-5 h-5 text-[#1DB954] shrink-0 stroke-[2.2]" />
+                  <span className="text-xs sm:text-sm font-bold text-slate-200 font-bengali truncate">{t('সার্টিফিকেট', 'Certificate')}</span>
+                </div>
+                <div className="flex items-center gap-2 justify-start pl-2 sm:pl-0">
+                  <ShieldCheck className="w-5 h-5 text-[#1DB954] shrink-0 stroke-[2.2]" />
+                  <span className="text-xs sm:text-sm font-bold text-slate-200 font-bengali truncate">{t('বিশ্বস্ত ট্রেনিং', 'Trusted')}</span>
+                </div>
+                <div className="flex items-center gap-2 justify-start pl-2 sm:pl-0">
+                  <Users className="w-5 h-5 text-[#1DB954] shrink-0 stroke-[2.2]" />
+                  <span className="text-xs sm:text-sm font-bold text-slate-200 font-bengali truncate">{t('লাইফটাইম সাপোর্ট', 'Support')}</span>
+                </div>
               </div>
             </motion.div>
           </div>

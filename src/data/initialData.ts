@@ -11,12 +11,13 @@ import {
   MarketplaceGig,
   MarketplaceJob,
   MarketplaceProposal,
-  MarketplaceOrder
+  MarketplaceOrder,
+  DigitalProduct
 } from '../types';
 
 export const initialSiteSettings: SiteSettings = {
-  heroHeading: "আপনার ডিজিটাল প্ল্যাটফর্ম এখানে তৈরি করুন",
-  heroSubtext: "PTENit আপনার ব্যবসা ও ক্যারিয়ারের জন্য আধুনিক IT Services, Digital Marketing, Web Development এবং Professional Training Solutions প্রদান করে।",
+  heroHeading: "ডিজিটাল ক্যারিয়ার ও বিজনেস গড়ুন",
+  heroSubtext: "আধুনিক IT সেবাসমূহ, কাস্টম সফটওয়্যার, ডিজিটাল মার্কেটিং ও প্রফেশনাল ট্রেনিং।",
   statsStudents: "500+",
   statsProjects: "100+",
   statsCourses: "50+",
@@ -36,19 +37,154 @@ export const initialSiteSettings: SiteSettings = {
   bankAccountName: "PTENIT IT SOLUTIONS",
   bankAccountNumber: "2181100098765",
   bankBranch: "Uttara Branch, Dhaka",
+  paymentLogos: [
+    {
+      id: "pay-bkash",
+      name: "bKash",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/7/77/BKash_logo.png",
+      type: "mobile",
+      isActive: true
+    },
+    {
+      id: "pay-nagad",
+      name: "Nagad",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Nagad_Logo.png/800px-Nagad_Logo.png",
+      type: "mobile",
+      isActive: true
+    },
+    {
+      id: "pay-rocket",
+      name: "DBBL Rocket",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Rocket_mobile_banking_logo.svg/640px-Rocket_mobile_banking_logo.svg.png",
+      type: "mobile",
+      isActive: true
+    },
+    {
+      id: "pay-upay",
+      name: "Upay",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Upay_logo.png/640px-Upay_logo.png",
+      type: "mobile",
+      isActive: true
+    },
+    {
+      id: "pay-visa",
+      name: "Visa",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/640px-Visa_Inc._logo.svg.png",
+      type: "card",
+      isActive: true
+    },
+    {
+      id: "pay-mastercard",
+      name: "MasterCard",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/640px-Mastercard-logo.svg.png",
+      type: "card",
+      isActive: true
+    },
+    {
+      id: "pay-dbbl",
+      name: "Dutch-Bangla Bank / Nexus",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Dutch-Bangla_Bank_Logo.svg/640px-Dutch-Bangla_Bank_Logo.svg.png",
+      type: "bank",
+      isActive: true
+    },
+    {
+      id: "pay-ibbl",
+      name: "Islami Bank Bangladesh",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/0/09/Islami_Bank_Bangladesh_Limited_Logo.svg/640px-Islami_Bank_Bangladesh_Limited_Logo.svg.png",
+      type: "bank",
+      isActive: true
+    }
+  ],
   enableMoneyBackGuarantee: true,
   moneyBackGuaranteeDays: 10,
-  moneyBackGuaranteeText: "১০-দিনের মানি ব্যাক ও এস্ক্রো গ্যারান্টি"
+  moneyBackGuaranteeText: "১০-দিনের মানি ব্যাক ও এস্ক্রো গ্যারান্টি",
+  metaPixelId: "7891234567890",
+  googleAnalyticsId: "G-PTENIT8890",
+  tiktokPixelId: "C1234567890TIK",
+  googleTagManagerId: "GTM-PTENIT1",
+  conversionApiToken: "EAAG...CONVERSION_API_TOKEN",
+  platformTaxPercent: 5,
+  courseVatPercent: 15,
+  serviceTaxPercent: 10,
+  freelancerTaxDeductionPercent: 5,
+  taxRegistrationNumber: "BIN-1928374651029",
+  invoiceTaxNote: "সকল মূল্যের সাথে সরকারি ভ্যাট ও ট্যাক্স প্রযোজ্য।",
+  defaultCommissionRate: 10,
+  defaultTrainerRevShare: 90,
+  defaultClientFee: 0,
+  defaultWithdrawalFee: 1.5,
+  subAdminMembers: [
+    {
+      id: "sub-1",
+      name: "তানভীর আহমেদ (সাপোর্ট হেড)",
+      email: "tanvir.support@ptenit.com",
+      phone: "01711223344",
+      role: "Support Specialist",
+      permissions: ["support_chat", "client_tickets", "live_queries"],
+      status: "active",
+      assignedAt: "2026-01-10"
+    },
+    {
+      id: "sub-2",
+      name: "রাফসান জামি (অর্ডার এক্সিকিউটিভ)",
+      email: "rafsan.orders@ptenit.com",
+      phone: "01822334455",
+      role: "Order Manager",
+      permissions: ["orders_manage", "client_deliveries", "billing_verify"],
+      status: "active",
+      assignedAt: "2026-02-01"
+    }
+  ],
+  announcementNoticeText: "📢 ঈদ মেগা ধামাকা অফার! প্রিমিয়াম সার্ভিস ও ডিজিটাল প্রোডাক্ট কোর্সে বিশেষ ছাড় চলছে!",
+  aboutUsText: "PTEN IT Solutions হলো বাংলাদেশের শীর্ষস্থানীয় ডিজিটাল সার্ভিস ও আইটি স্কিল ডেভেলপমেন্ট প্ল্যাটফর্ম। আমরা ক্লায়েন্টদের বিশ্বমানের সফটওয়্যার, ওয়েব ডেভেলপমেন্ট, ডিজিটাল মার্কেটিং সার্ভিস এবং তরুণদের প্রফেশনাল স্কিল ট্রেনিং প্রদান করি।",
+  termsAndConditionsText: "১. আমাদের সকল ডিজিটাল সার্ভিস এবং কোর্স ব্যবহারের ক্ষেত্রে প্রফেশনাল পলিসি প্রযোজ্য। ২. পেমেন্ট সম্পন্ন করার পর অর্ডার স্ট্যাটাস ট্র্যাকিং প্যানেলে দেখা যাবে। ৩. অনৈতিক বা কপিরাইট লঙ্ঘনে সার্ভিস সাময়িক স্থগিত হতে পারে।",
+  privacyPolicyText: "আপনার ব্যক্তিগত তথ্য যেমন নাম, ইমেইল, ফোন নম্বর এবং পেমেন্ট ট্রানজ্যাকশন আইডি সম্পূর্ণ সুরক্ষিত রাখা হয়। আমরা কোনো তৃতীয় পক্ষের কাছে আপনার গোপনীয় তথ্য শেয়ার করি না।",
+  refundPolicyText: "১০ দিনের মানি ব্যাক গ্যারান্টি শর্ত সাপেক্ষে প্রযোজ্য। যদি সার্ভিস বা কোর্স আপনার প্রত্যাশা অনুযায়ী না হয়, তবে আমাদের সাপোর্ট টিমে যোগাযোগ করে রিফান্ড রিকোয়েস্ট দিতে পারবেন।",
+  footerCopyrightText: "© ২০২৬ PTEN IT Solutions. সর্বস্বত্ব সংরক্ষিত।",
+  enableFullWidth100Percent: true,
+  containerMaxWidth: "100%",
+  customScalePercent: 100,
+  mobileResponsiveMode: "fluid_100",
+  seoTitle: "PTENit – IT Services, Web Development, Digital Marketing & IT Training Academy",
+  metaDescription: "PTENit offers professional web design, software development, digital marketing, graphic design, and IT courses with lifetime support in Bangladesh.",
+  metaKeywords: "PTENit, IT Services Bangladesh, Web Development, Digital Marketing, SEO Course, Graphic Design, Freelancing, IT Training Uttara",
+  ogTitle: "PTENit – Complete IT Solutions & Skill Development Platform",
+  ogDescription: "Grow your career & business with PTENit's expert software development, digital marketing services, and IT courses.",
+  ogImageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+  ogType: "website",
+  twitterCard: "summary_large_image",
+  twitterHandle: "@ptenit_bd",
+  canonicalUrl: "https://ptenit.com",
+  googleSiteVerification: "google-site-verification-ptenit-12345",
+  robotsTxt: "User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: https://ptenit.com/sitemap.xml",
+  structuredDataJson: JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PTENit Solutions",
+    "url": "https://ptenit.com",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+8801700000000",
+      "contactType": "customer service",
+      "areaServed": "BD",
+      "availableLanguage": ["en", "bn"]
+    },
+    "sameAs": [
+      "https://facebook.com/ptenit",
+      "https://youtube.com/ptenit",
+      "https://linkedin.com/company/ptenit"
+    ]
+  }, null, 2)
 };
 
 export const initialOffers: Offer[] = [
   {
     id: "offer-1",
-    title: "ঈদ উল ফিতর মেগা ডিসকাউন্ট অফার!",
-    subtitle: "সকল প্রিমিয়াম কোর্সে পাচ্ছেন ৫০% পর্যন্ত বিশেষ ক্যাশব্যাক ছাড়",
+    title: "ঈদ মেগা অফার!",
+    subtitle: "সকল প্রিমিয়াম কোর্সে ৫০% পর্যন্ত বিশেষ ক্যাশব্যাক ছাড়",
     discountBadge: "৫০% ছাড়",
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    ctaText: "অফারটি উপভোগ করুন",
+    ctaText: "অফারটি গ্রহণ করুন",
     ctaLink: "/courses",
     active: true,
   }
@@ -313,12 +449,12 @@ export const initialTestimonials: Testimonial[] = [
 export const initialUsers: User[] = [
   {
     id: "admin-1",
-    name: "PTENit Admin",
-    email: "admin@ptenit.com",
+    name: "Mds Kazi Sohag (Admin)",
+    email: "mdskazisohag@gmail.com",
     mobile: "01700000000",
     role: "admin",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-    title: "Chief Executive Officer & Admin",
+    title: "Founder, CEO & Lead Admin",
     createdAt: "2026-01-01"
   },
   {
@@ -381,11 +517,21 @@ export const initialEnrollments: Enrollment[] = [
     userId: "student-1",
     courseId: "course-canva",
     progress: 100,
-    completedLessons: ["l-canva-1"],
+    completedLessons: ["l-canva-1", "l-canva-2", "l-canva-3"],
     enrolledAt: "2026-01-12",
     status: "completed",
     certificateIssued: true,
     certificateId: "cert-1"
+  },
+  {
+    id: "enr-2",
+    userId: "student-1",
+    courseId: "course-yt-seo",
+    progress: 72,
+    completedLessons: ["l-yt-1", "l-yt-2", "l-yt-3"],
+    enrolledAt: "2026-02-12",
+    status: "active",
+    certificateIssued: false
   }
 ];
 
@@ -1930,8 +2076,8 @@ export const initialGigs: MarketplaceGig[] = [
 export const initialUsers: User[] = [
   {
     id: "admin-1",
-    name: "PTENit Admin",
-    email: "admin@ptenit.com",
+    name: "Mds Kazi Sohag (Admin)",
+    email: "mdskazisohag@gmail.com",
     mobile: "01700000000",
     role: "admin",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
@@ -1966,45 +2112,199 @@ export const initialUsers: User[] = [
   }
 ];
 
-export const initialEnrollments: Enrollment[] = [
+export const initialGigs: MarketplaceGig[] = [
   {
-    id: "enr-1",
-    userId: "student-1",
-    courseId: "course-canva",
-    progress: 100,
-    completedLessons: ["l1", "l2", "l3"],
-    enrolledAt: "2026-02-05",
-    status: "completed",
-    certificateIssued: true,
-    certificateId: "CERT-PTEN-2026-0891"
+    id: "web-dev",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 5.0,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল ওয়েভ ডিজাইন ও ডায়নামিক কাস্টম ডেভেলপমেন্ট সার্ভিস",
+    category: "Development",
+    description: "আমরা আধুনিক React, Next.js, WordPress এবং E-Commerce ফ্রেমওয়ার্ক ব্যবহার করে হাই-স্পিড ও রেসপন্সিভ ওয়েবসাইট তৈরি করি। আপনার ব্র্যান্ডের জন্য উপযোগী কাস্টম UI/UX ডিজাইন এবং সিকিউর ব্যাকএন্ড সাপোর্ট অন্তর্ভুক্ত।",
+    thumbnail: "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Landing Page / Single Page", price: 15000, deliveryDays: 4, revisions: 3, features: ["Mobile Responsive Layout", "Speed Optimization", "Free Hosting Setup"] },
+      standard: { name: "Dynamic Business Website", price: 35000, deliveryDays: 7, revisions: 5, features: ["Up to 10 Pages", "Admin CMS Panel", "SEO Structure", "bKash/SSL Integration"] },
+      premium: { name: "Custom E-Commerce & Web App", price: 75000, deliveryDays: 15, revisions: "Unlimited", features: ["Full Custom Tech Stack", "Payment Gateways", "1 Year Support", "Source Code Included"] }
+    },
+    rating: 5.0,
+    reviewsCount: 48,
+    salesCount: 152,
+    status: "active",
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
   },
   {
-    id: "enr-2",
-    userId: "student-1",
-    courseId: "course-yt-seo",
-    progress: 72,
-    completedLessons: ["l-yt-1"],
-    enrolledAt: "2026-02-12",
+    id: "digital-marketing",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 4.9,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল টার্গেটেড ডিজিটাল মার্কেটিং ও ফেসবুক-গুগল এডস প্যাকেজ",
+    category: "Marketing",
+    description: "আপনার ব্যবসার সেলস ও ব্র্যান্ড ভ্যালু বহুগুণ বাড়াতে টার্গেটেড ডিজিটাল মার্কেটিং সেবা। ফেসবুক এডস ক্যাম্পেইন, গুগল পিসি এডস, ডিসপ্লে এডস এবং লিড জেনারেশনের মাধ্যমে সর্বোচ্চ ROI নিশ্চিত করা হয়।",
+    thumbnail: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Starter Ad Campaign", price: 8000, deliveryDays: 7, revisions: 2, features: ["Audience Targeting", "Pixel & Event Setup", "Ad Copywriting"] },
+      standard: { name: "Growth Sales Funnel", price: 18000, deliveryDays: 15, revisions: 4, features: ["Facebook + Google Ads", "Custom Visual Creatives", "Weekly Performance Report"] },
+      premium: { name: "Enterprise Brand Growth", price: 40000, deliveryDays: 30, revisions: "Unlimited", features: ["Full Funnel Strategy", "Lead Gen & Remarketing", "Dedicated Account Manager"] }
+    },
+    rating: 4.9,
+    reviewsCount: 37,
+    salesCount: 110,
     status: "active",
-    certificateIssued: false
-  }
-];
-
-export const initialCertificates: Certificate[] = [
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
+  },
   {
-    id: "cert-1",
-    certificateCode: "CERT-PTEN-2026-0891",
-    studentId: "student-1",
-    studentName: "সাব্বির রহমান",
-    courseId: "course-canva",
-    courseName: "Canva Design & Freelancing Masterclass",
-    issueDate: "2026-02-28",
-    instructorName: "তানভীর আহমেদ",
-    qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=CERT-PTEN-2026-0891"
-  }
-];
-
-export const initialGigs: MarketplaceGig[] = [
+    id: "graphics-design",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 5.0,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল গ্রাফিক্স ডিজাইন, লোগো ও ইউআই/ইউএক্স ব্র্যান্ডিং",
+    category: "Graphics & Design",
+    description: "প্রফেশনাল লোগো ডিজাইন, ব্র্যান্ড আইডেন্টিটি, সোশ্যাল মিডিয়া ব্যানার এবং মোবাইল/ওয়েব অ্যাপ ইউআই ইউএক্স ডিজাইন সেবা।",
+    thumbnail: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Logo & Brand Essentials", price: 5000, deliveryDays: 3, revisions: 3, features: ["Vector Logo", "Business Card", "Source Files"] },
+      standard: { name: "Full Social Brand Kit", price: 12000, deliveryDays: 5, revisions: 5, features: ["Logo + Brand Book", "10 Social Posts", "Vector Source"] },
+      premium: { name: "Complete Product UI/UX", price: 30000, deliveryDays: 10, revisions: "Unlimited", features: ["Figma Design System", "Full App UI/UX", "Interactive Prototype"] }
+    },
+    rating: 5.0,
+    reviewsCount: 29,
+    salesCount: 88,
+    status: "active",
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
+  },
+  {
+    id: "app-development",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 5.0,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল এন্ড্রয়েড ও আইওএস মোবাইল অ্যাপ ডেভেলপমেন্ট",
+    category: "Development",
+    description: "রিয়েক্ট নেটিভ ও ফ্লটার ফ্রেমওয়ার্কে এন্ড্রয়েড ও আইওএস দুটি প্লাটফর্মের জন্য দৃষ্টিনন্দন মোবাইল অ্যাপ্লিকেশন ডেভেলপমেন্ট।",
+    thumbnail: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Basic Android App", price: 25000, deliveryDays: 7, revisions: 3, features: ["Android APK", "UI Screens", "Firebase Backend"] },
+      standard: { name: "Cross-Platform App (Android & iOS)", price: 55000, deliveryDays: 14, revisions: 5, features: ["Android & iOS Builds", "Push Notifications", "Admin Panel"] },
+      premium: { name: "Enterprise SaaS App", price: 120000, deliveryDays: 30, revisions: "Unlimited", features: ["Play Store & App Store Publish", "Full API Engine", "1 Year Warranty"] }
+    },
+    rating: 5.0,
+    reviewsCount: 31,
+    salesCount: 65,
+    status: "active",
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
+  },
+  {
+    id: "seo-optimization",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 4.9,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল এডভান্সড এসইও ও ওয়েবসাইট র‍্যাংকিং সার্ভিস",
+    category: "Marketing",
+    description: "গুগলের প্রথম পেজে ওয়েবসাইট টেকনিক্যাল এসইও, অন-পেজ ও হাই অথরিটি অফ-পেজ ব্যাকলিংক এর মাধ্যমে র‍্যাংক করান।",
+    thumbnail: "https://images.unsplash.com/photo-1571721795195-a2ca2d3370a9?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Technical Audit & On-Page", price: 10000, deliveryDays: 5, revisions: 3, features: ["Audit Report", "Meta Tags Fix", "Speed Optimization"] },
+      standard: { name: "Monthly SEO Boost", price: 22000, deliveryDays: 30, revisions: 5, features: ["Keyword Rank Track", "20 High DA Backlinks", "Content Strategy"] },
+      premium: { name: "Complete Google Rank Guarantee", price: 45000, deliveryDays: 60, revisions: "Unlimited", features: ["First Page Goal", "Premium Guest Posts", "Technical & Local SEO"] }
+    },
+    rating: 4.9,
+    reviewsCount: 22,
+    salesCount: 54,
+    status: "active",
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
+  },
+  {
+    id: "video-editing",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 5.0,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল প্রফেশনাল ভিডিও এডিটিং ও মোশন গ্রাফিক্স",
+    category: "Graphics & Design",
+    description: "ইউটিউব ভিডিও, ফেসবুক রিলস, কমার্শিয়াল এড ভিডিও এবং প্রমোশনাল এনিমেশন এডিটিং সেবা।",
+    thumbnail: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Short Reel / TikTok", price: 3000, deliveryDays: 2, revisions: 2, features: ["Up to 60s", "Subtitles", "Sound Effects"] },
+      standard: { name: "YouTube / Corporate Video", price: 9000, deliveryDays: 4, revisions: 4, features: ["Up to 10 mins", "Color Grading", "Intro/Outro"] },
+      premium: { name: "Full Motion Graphic Commercial", price: 25000, deliveryDays: 7, revisions: "Unlimited", features: ["2D Animation", "Professional Voiceover", "4K Render"] }
+    },
+    rating: 5.0,
+    reviewsCount: 19,
+    salesCount: 42,
+    status: "active",
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
+  },
+  {
+    id: "cyber-security",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 5.0,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল সাইবার সিকিউরিটি ও ওয়েবসাইট হ্যাকিং প্রোটেকশন",
+    category: "Development",
+    description: "সার্ভার সিকিউরিটি অডিট, পেনাল্টি রিমুভাল, মালওয়্যার ক্লিনআপ এবং ফায়ারওয়াল প্রটেকশন সেটআপ।",
+    thumbnail: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Malware Cleanup", price: 7000, deliveryDays: 2, revisions: 2, features: ["Virus Scan", "Blacklist Removal", "Basic Firewall"] },
+      standard: { name: "Full Server Audit", price: 18000, deliveryDays: 5, revisions: 4, features: ["Vulnerability Assessment", "SSL Hardening", "Database Shield"] },
+      premium: { name: "Enterprise Cyber Shield", price: 40000, deliveryDays: 14, revisions: "Unlimited", features: ["24/7 Monitoring", "DDoS Defense", "Penetration Testing Report"] }
+    },
+    rating: 5.0,
+    reviewsCount: 15,
+    salesCount: 38,
+    status: "active",
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
+  },
+  {
+    id: "software-dev",
+    sellerId: "ptenit-agency",
+    sellerName: "PTENit Official Agency",
+    sellerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    sellerTitle: "Official IT & Software Agency",
+    sellerRating: 5.0,
+    isAgencyStaff: true,
+    title: "PTENit অফিশিয়াল কাস্টম সফটওয়্যার, ইআরপি ও পজ ম্যানেজমেন্ট সিস্টেম",
+    category: "Development",
+    description: "আপনার প্রতিষ্ঠান, শোরুম বা হাসপাতালের জন্য কাস্টম ইআরপি, ইনভেন্টরি, একাউন্টিং ও পজ সফটওয়্যার ডেভেলপমেন্ট।",
+    thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+    packages: {
+      basic: { name: "Starter POS / Inventory", price: 20000, deliveryDays: 7, revisions: 3, features: ["Billing System", "Stock Management", "Invoice Print"] },
+      standard: { name: "Complete ERP System", price: 60000, deliveryDays: 20, revisions: 5, features: ["Multi-Branch Support", "Accounting & Payroll", "Staff Permissions"] },
+      premium: { name: "Custom Enterprise Software", price: 150000, deliveryDays: 45, revisions: "Unlimited", features: ["Cloud & Desktop Synced", "Custom Workflow Engine", "Lifetime Source Code"] }
+    },
+    rating: 5.0,
+    reviewsCount: 26,
+    salesCount: 49,
+    status: "active",
+    offerBadge: "অফিশিয়াল গ্যারান্টি",
+    createdAt: "2026-01-01"
+  },
   {
     id: "gig-1",
     sellerId: "teacher-1",
@@ -2219,6 +2519,7 @@ export const initialMarketplaceOrders: MarketplaceOrder[] = [
     paymentMethod: "bKash Escrow",
     transactionId: "TRX-MKT-998877",
     status: "in_progress",
+    unreadMessageCount: 3,
     createdAt: "2026-02-14",
     deadlineDate: "2026-03-01"
   },
@@ -2241,6 +2542,7 @@ export const initialMarketplaceOrders: MarketplaceOrder[] = [
     paymentMethod: "bKash Escrow",
     transactionId: "TRX-BK-774411",
     status: "pending_approval",
+    unreadMessageCount: 4,
     createdAt: "2026-02-16",
     deadlineDate: "2026-02-22"
   },
@@ -2263,6 +2565,7 @@ export const initialMarketplaceOrders: MarketplaceOrder[] = [
     paymentMethod: "Nagad Escrow",
     transactionId: "TRX-NG-221100",
     status: "in_progress",
+    unreadMessageCount: 2,
     createdAt: "2026-02-16",
     deadlineDate: "2026-02-20"
   },
@@ -2285,6 +2588,7 @@ export const initialMarketplaceOrders: MarketplaceOrder[] = [
     paymentMethod: "bKash Escrow",
     transactionId: "TRX-BK-991201",
     status: "in_review",
+    unreadMessageCount: 1,
     deliveryNote: "প্রিয় ভাইয়া, আপনার ওয়েবসাইটের সোর্স কোড ও সি প্যানেল সেটআপ সম্পূর্ণ করে ফাইল আপলোড করা হলো। ফাইলটি ডাউনলোড করে চেক করুন।",
     deliveryFileUrl: "https://github.com/example/ecommerce-release.zip",
     deliveryFileName: "ecommerce-laravel-react-v1.0.zip",
@@ -2317,4 +2621,103 @@ export const initialMarketplaceOrders: MarketplaceOrder[] = [
     deadlineDate: "2026-02-05"
   }
 ];
+
+export const initialDigitalProducts: DigitalProduct[] = [
+  {
+    id: "dp-1",
+    title: "ফুল স্ট্যাক লারাভেল ও রিঅ্যাক্ট মাল্টি-ভেন্ডার ই-কমার্স সোর্স কোড",
+    category: "Source Code Script",
+    price: 3500,
+    originalPrice: 7000,
+    thumbnail: "https://images.unsplash.com/photo-1556742049-0a670f4a4591?auto=format&fit=crop&w=800&q=80",
+    shortDescription: "বিকাশ/নগদ পেমেন্ট গেটওয়ে, অ্যাডমিন প্যানেল ও ইনভেন্টরি সহ সম্পূর্ণ প্রস্তুত ই-কমার্স পোর্টাল সোর্স কোড।",
+    fullDescription: "এই ডিজিটাল সোর্স কোডটিতে রয়েছে সম্পূর্ণ প্রস্তুত লারাভেল ১০ ব্যাকএন্ড এবং রিঅ্যাক্ট ১৮ ফ্রন্টএন্ড। সাথে মোবাইল ফ্রেন্ডলি রেসপন্সিভ ডিজাইন, অটো বিকাশ ও নগদ পেমেন্ট গেটওয়ে, ইনভয়েস জেনারেটর এবং মাল্টি-ভেন্ডার ড্যাশবোর্ড। ক্রয় করার সাথে সাথেই আপনার রেজিস্টার্ড ইমেইলে ডাউনলোড ফাইল ও টিউটোরিয়াল গাইড চলে যাবে।",
+    deliveryType: "auto",
+    fileFormat: "ZIP Script",
+    fileSize: "85 MB",
+    rating: 5.0,
+    reviewsCount: 64,
+    salesCount: 182,
+    features: ["বিকাশ ও নগদ ইনটিগ্রেশন", "ইনভেন্টরি ও স্টক ম্যানেজমেন্ট", "ইমেইল ইনভয়েস জেনারেটর", "লাইফটাইম আপডেট ও সাপোর্ট"],
+    downloadUrl: "https://drive.google.com/file/d/ptenit-ecommerce-source-v2/view?usp=sharing",
+    licenseKey: "PTENIT-ECOM-2026-LNK98"
+  },
+  {
+    id: "dp-2",
+    title: "SaaS এআই চ্যাটবট ও অ্যাসিস্ট্যান্ট ওয়েব অ্যাপ (Next.js & Gemini API)",
+    category: "AI SaaS Script",
+    price: 4900,
+    originalPrice: 9500,
+    thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+    shortDescription: "গুগল জেমিনাই এআই দ্বারা চালিত অটোমেটেড এআই রাইটিং, চ্যাটবট ও ইমেজ জেনারেটর SaaS স্কিপ্ট।",
+    fullDescription: "Next.js 14 এবং Tailwind CSS দিয়ে তৈরি আল্ট্রা-ফাস্ট এআই চ্যাটবট ও কনটেন্ট রাইটার SaaS ওয়েব অ্যাপ। সাবস্ক্রিপশন প্ল্যান (বিকাশ/স্ট্রাইপ) এবং লাইভ এআই চ্যাট সাপোর্ট ইনক্লুডেড। পেমেন্ট কনফার্মেশনের সাথে সাথে অটোমেটিক আপনার ইমেইলে সোর্স কোড ফাইল ইনবক্স হবে।",
+    deliveryType: "auto",
+    fileFormat: "ZIP Source",
+    fileSize: "32 MB",
+    rating: 4.9,
+    reviewsCount: 42,
+    salesCount: 124,
+    features: ["Gemini 1.5 & Flash API", "সাবস্ক্রিপশন ও ক্রেডিট সিস্টেম", "রেসপন্সিভ রিঅ্যাক্ট ইউআই", "অটো ইমেইল কনফার্মেশন"],
+    downloadUrl: "https://drive.google.com/file/d/ptenit-ai-chatbot-saas/view?usp=sharing",
+    licenseKey: "PTENIT-AICHAT-9982-KEY"
+  },
+  {
+    id: "dp-3",
+    title: "স্কুল, কলেজ ও হসপিটাল ইআরপি ম্যানেজমেন্ট সফটওয়্যার সোর্স কোড",
+    category: "ERP Software",
+    price: 7500,
+    originalPrice: 15000,
+    thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
+    shortDescription: "স্টুডেন্ট/পেশেন্ট ফি, অনলাইন টিচার ড্যাশবোর্ড, রসিদ ও অটো এসএমএস অ্যালার্ট সহ ফুল সফটওয়্যার।",
+    fullDescription: "স্কুল, কলেজ বা হসপিটাল অটোমেশনের জন্য অল-ইন-ওয়ান ক্লাউড ইআরপি সিস্টেম। পেমেন্ট শেষে অ্যাডমিন ম্যানুয়ালি আপনার ইমেইল ও অ্যাকাউন্ট ড্যাশবোর্ডে ফাইল ও ডেটাবেস সেটআপ লিঙ্ক ডেলিভারি দেবে।",
+    deliveryType: "manual",
+    fileFormat: "ZIP & MySQL",
+    fileSize: "140 MB",
+    rating: 5.0,
+    reviewsCount: 29,
+    salesCount: 88,
+    features: ["স্টুডেন্ট ও পেশেন্ট রেকর্ড", "বিকাশ অ্যাকাউন্ট ফি পেমেন্ট", "এসএমএস নোটিফিকেশন গেটওয়ে", "অ্যাডমিন ম্যানুয়াল ডেলিভারি"],
+    downloadUrl: "https://drive.google.com/file/d/ptenit-erp-school-hospital/view?usp=sharing",
+    licenseKey: "PTENIT-ERP-OFFICIAL-LICENSE"
+  },
+  {
+    id: "dp-4",
+    title: "ডিজিটাল মার্কেটিং বাল্ক এসএমএস ও ইমেইল অটোমেশন টুল (লাইফটাইম)",
+    category: "Marketing Automation",
+    price: 0,
+    originalPrice: 4000,
+    thumbnail: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80",
+    shortDescription: "এক ক্লিকে হাজার হাজার বাল্ক এসএমএস ও টার্গেটেড ইমেইল পাঠানোর সিকিউর ডেস্কটপ ও ওয়েব টুল।",
+    fullDescription: "ফেসবুক, গুগোল ও কাস্টমার লিড গ্রুপে বাল্ক মেসেজিং অটোমেশন টুল। ১০০% ডেলিভারি রেট, প্রক্সি ফিল্টার এবং লাইফটাইম অফিসিয়াল লাইসেন্স কি ইন্সট্যান্ট বিনামূল্যে দেওয়া হচ্ছে।",
+    deliveryType: "auto",
+    fileFormat: "EXE Setup & Key",
+    fileSize: "18 MB",
+    rating: 4.9,
+    reviewsCount: 88,
+    salesCount: 310,
+    features: ["১ ক্লিকে বাল্ক এসএমএস সেন্ডিং", "ইমেইল টেমপ্লেট মেকার", "লাইফটাইম অফিশিয়াল কি", "বিনামূল্যে ইনস্ট্যান্ট ড্রাইভ ফাইল"],
+    downloadUrl: "https://drive.google.com/file/d/ptenit-marketing-automation/view?usp=sharing",
+    licenseKey: "PTENIT-FREE-AUTO-MARKETING-KEY"
+  },
+  {
+    id: "dp-5",
+    title: "১০০+ প্রিমিয়াম অ্যান্ড্রয়েড অ্যাপ ও ওয়েবসাইট UI/UX ডিজাইন বান্ডেল (Figma)",
+    category: "UI/UX Assets",
+    price: 0,
+    originalPrice: 2500,
+    thumbnail: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=800&q=80",
+    shortDescription: "ই-কমার্স, রাইড শেয়ারিং, কোর্স পোর্টাল ও সোশ্যাল অ্যাপের ১০০+ ফিগমা সোর্স ফাইল ও ভেক্টর কিট।",
+    fullDescription: "ডিজাইনার ও ডেভেলপারদের জন্য মেগা ইউআই বান্ডেল। ১০০+ প্রিমিয়াম স্ক্রিন, কাস্টম ইল্যাস্ট্রেশন, ভেক্টর আইকন ও ফিগমা এক্সেস সম্পূর্ণ বিনামূল্যে ডাউনলোডের সুযোগ।",
+    deliveryType: "auto",
+    fileFormat: "Figma Cloud & Assets",
+    fileSize: "120 MB",
+    rating: 5.0,
+    reviewsCount: 112,
+    salesCount: 450,
+    features: ["১০০+ কমপ্লিট ইউআই স্ক্রিন", "১০০% কাস্টমাইজেবল ফিগমা", "ভেক্টর ইল্যাস্ট্রেশন ফাইল", "১-ক্লিকে ফ্রি ডাউনলোড"],
+    downloadUrl: "https://drive.google.com/file/d/ptenit-figma-uiux-bundle/view?usp=sharing",
+    licenseKey: "PTENIT-FREE-FIGMA-UIKIT-ACCESS"
+  }
+];
+
 

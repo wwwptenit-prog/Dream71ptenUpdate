@@ -48,10 +48,11 @@ export const OfficeLocation: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Main Grid: 2 Columns on PC (Form Left, Office Info & Map Right), Single Form on Mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-6xl mx-auto">
           
-          {/* Left Contact Form (Self-contained, tight layout with no empty space) */}
-          <div className="lg:col-span-6 bg-white dark:bg-slate-800/95 p-6 sm:p-7 rounded-3xl border border-slate-200/90 dark:border-slate-700/80 shadow-xl space-y-5">
+          {/* Inquiry / Contact Form (Visible on all screens) */}
+          <div className="lg:col-span-6 bg-white dark:bg-slate-800/95 p-6 sm:p-8 rounded-3xl border border-slate-200/90 dark:border-slate-700/80 shadow-xl space-y-5">
             <div className="border-b border-slate-100 dark:border-slate-700/70 pb-3">
               <h3 className="text-xl sm:text-2xl font-black font-bengali text-slate-900 dark:text-white flex items-center gap-2">
                 <Send className="w-5 h-5 text-[#1DB954]" />
@@ -165,87 +166,64 @@ export const OfficeLocation: React.FC = () => {
             )}
           </div>
 
-          {/* Right Office Address & Modern Google Map */}
-          <div className="lg:col-span-6 space-y-5">
-            <div className="bg-[#142B4D] text-white p-6 sm:p-7 rounded-3xl space-y-5 shadow-xl border border-slate-700/80">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1DB954]/20 text-[#1DB954] text-xs font-extrabold rounded-full border border-[#1DB954]/30">
-                <Building className="w-4 h-4" />
-                <span>Visit Our Main Office</span>
-              </div>
+          {/* Right Column: Office Address & Google Map (Visible on PC / lg screens) */}
+          <div className="hidden lg:flex lg:col-span-6 flex-col space-y-5 bg-white dark:bg-slate-800/95 p-6 sm:p-8 rounded-3xl border border-slate-200/90 dark:border-slate-700/80 shadow-xl">
+            <div className="border-b border-slate-100 dark:border-slate-700/70 pb-3">
+              <span className="text-[10px] font-bold text-[#1DB954] uppercase tracking-wider block">
+                {t('অফিস ঠিকানা', 'Office Address')}
+              </span>
+              <h3 className="text-xl font-black font-bengali text-slate-900 dark:text-white flex items-center gap-2 mt-0.5">
+                <Building className="w-5 h-5 text-[#1DB954]" />
+                {t('আমাদের প্রধান কার্যালয়', 'Visit Our Main Office')}
+              </h3>
+            </div>
 
-              <div className="space-y-3.5">
-                <div className="flex items-start gap-3.5">
-                  <MapPin className="w-5 h-5 text-[#1DB954] shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-bold text-sm sm:text-base font-bengali">অফিস ঠিকানা:</h4>
-                    <p className="text-xs text-slate-300 font-bengali leading-relaxed">{siteSettings.officeAddress}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
-                    <Phone className="w-4 h-4 text-[#1DB954] shrink-0" />
-                    <div>
-                      <h4 className="font-bold text-[11px] font-bengali text-slate-300">ফোন নম্বর:</h4>
-                      <p className="text-xs text-white font-mono font-bold">{siteSettings.phone}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60">
-                    <Clock className="w-4 h-4 text-[#1DB954] shrink-0" />
-                    <div>
-                      <h4 className="font-bold text-[11px] font-bengali text-slate-300">অফিস সময়:</h4>
-                      <p className="text-xs text-white font-bengali">সকাল ১০:০০ - রাত ৮:০০</p>
-                    </div>
-                  </div>
+            <div className="space-y-3 text-xs sm:text-sm font-bengali text-slate-700 dark:text-slate-300">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-[#1DB954] shrink-0 mt-0.5" />
+                <div>
+                  <strong className="text-slate-900 dark:text-white block font-bold">ঠিকানা:</strong>
+                  <span>{siteSettings.officeAddress || 'হাউজ #১২, রোড #০৫, ব্লক-সি, বনানী, ঢাকা-১২১৩, বাংলাদেশ'}</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-700/80">
-                <a
-                  href={`https://wa.me/${siteSettings.whatsapp}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>WhatsApp-এ সরাসরি চ্যাট করুন</span>
-                </a>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-[#1DB954] shrink-0" />
+                <div>
+                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">ফোন:</strong>
+                  <span>{siteSettings.phone || '+880 1700-000000'}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-[#1DB954] shrink-0" />
+                <div>
+                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">ইমেইল:</strong>
+                  <span>{siteSettings.email || 'support@ptenit.com'}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-[#1DB954] shrink-0" />
+                <div>
+                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">অফিস সময়:</strong>
+                  <span>{siteSettings.officeHours || 'সকাল ১০:০০ - রাত ০৮:০০ (শনিবার - বৃহস্পতিবার)'}</span>
+                </div>
               </div>
             </div>
 
-            {/* Enhanced Modern Google Map Container */}
-            <div className="bg-slate-900 rounded-3xl overflow-hidden border-2 border-slate-700/80 shadow-xl space-y-0">
-              {/* Custom Map Top Bar */}
-              <div className="bg-slate-800 px-4 py-2.5 flex items-center justify-between border-b border-slate-700 text-xs">
-                <div className="flex items-center gap-2 text-slate-200 font-bold">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] animate-ping" />
-                  <MapPin className="w-4 h-4 text-[#1DB954]" />
-                  <span>PTENit GPS Map Location</span>
-                </div>
-                <a
-                  href="https://maps.google.com/?q=Uttara+Dhaka+Bangladesh"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-1 bg-[#1DB954]/20 hover:bg-[#1DB954] text-[#1DB954] hover:text-white font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 border border-[#1DB954]/40"
-                >
-                  <span>গুগল ম্যাপে বড় করে দেখুন ↗</span>
-                </a>
-              </div>
-
-              {/* Map Iframe */}
-              <div className="w-full h-56 sm:h-64 relative bg-slate-950">
-                <iframe
-                  title="PTENit Office Map Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3648.423087289569!2d90.3956!3d23.8759!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDUyJzMzLjIiTiA5MMKwMjMnNDQuMiJF!5e0!3m2!1sen!2sbd!4v1620000000000!5m2!1sen!2sbd"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  className="opacity-95 hover:opacity-100 transition-opacity"
-                />
-              </div>
+            {/* Embedded Interactive Map for PC */}
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 h-52 sm:h-60 mt-auto shadow-inner">
+              <iframe
+                title="PTENit Office Map PC"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.085442751509!2d90.4028053!3d23.7911762!2m3!1f0!2f0!3f0!2m3!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c70c2e39e24b%3A0xb214739eb38c92a2!2sBanani%2C%20Dhaka!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={false}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
 

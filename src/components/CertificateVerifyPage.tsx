@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Search, ShieldCheck, Award, X, AlertCircle } from 'lucide-react';
+import { Search, ShieldCheck, Award, X, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
-export const CertificateVerifyPage: React.FC = () => {
+interface CertificateVerifyPageProps {
+  onBack?: () => void;
+}
+
+export const CertificateVerifyPage: React.FC<CertificateVerifyPageProps> = ({ onBack }) => {
   const { getCertificateByCode, t } = useData();
   const [code, setCode] = useState('');
   const [searched, setSearched] = useState(false);
@@ -20,6 +24,19 @@ export const CertificateVerifyPage: React.FC = () => {
     <div className="py-12 sm:py-20 bg-slate-50 dark:bg-slate-900 min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
+        {onBack && (
+          <div className="flex items-center justify-start">
+            <button
+              type="button"
+              onClick={onBack}
+              className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>পূর্ববর্তী পেজে ফিরে যান</span>
+            </button>
+          </div>
+        )}
+
         <div className="text-center space-y-3">
           <span className="px-3 py-1 bg-[#1DB954]/20 text-[#1DB954] text-xs font-bold rounded-full uppercase tracking-wider">
             {t('অফিসিয়াল ভেরিফিকেশন পোর্টাল', 'Official Verification Portal')}

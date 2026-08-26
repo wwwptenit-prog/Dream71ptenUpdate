@@ -1,0 +1,22 @@
+{
+  "short_name": "PTENit",
+  "name": "PTENit & Marketplace App",
+  "description": "PTENit & Marketplace - IT Services, Skills Training & Freelance Projects Platform",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=192&q=80",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=512&q=80",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#091124",
+  "theme_color": "#1DB954",
+  "display": "standalone",
+  "orientation": "portrait"
+}

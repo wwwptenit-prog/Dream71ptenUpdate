@@ -23,7 +23,8 @@ import {
   MarketplaceGig,
   MarketplaceJob,
   MarketplaceProposal,
-  MarketplaceOrder
+  MarketplaceOrder,
+  DigitalProduct
 } from '../types';
 import {
   initialSiteSettings,
@@ -38,7 +39,8 @@ import {
   initialGigs,
   initialJobs,
   initialProposals,
-  initialMarketplaceOrders
+  initialMarketplaceOrders,
+  initialDigitalProducts
 } from '../data/initialData';
 
 interface DataContextType {
@@ -71,6 +73,15 @@ interface DataContextType {
   notifications: NotificationItem[];
   directMessages: DirectMessageItem[];
   activeChatWindows: ActiveChatWindow[];
+  activeMessengerConversationId: string | null;
+  setActiveMessengerConversationId: (id: string | null) => void;
+  activeMessengerOrderId: string | null;
+  setActiveMessengerOrderId: (id: string | null) => void;
+  isMessengerInboxOpen: boolean;
+  setIsMessengerInboxOpen: (open: boolean) => void;
+  initialMessengerTab: 'messages' | 'notifications' | 'courses';
+  openMessengerInbox: (conversationId?: string, initialTab?: 'messages' | 'notifications' | 'courses', orderId?: string) => void;
+  closeMessengerInbox: () => void;
   assignments: Assignment[];
   submissions: AssignmentSubmission[];
   customerProjects: CustomerProject[];
@@ -82,6 +93,12 @@ interface DataContextType {
   jobs: MarketplaceJob[];
   proposals: MarketplaceProposal[];
   marketplaceOrders: MarketplaceOrder[];
+  digitalProducts: DigitalProduct[];
+  
+  // Digital Products Actions
+  addDigitalProduct: (product: Omit<DigitalProduct, 'id' | 'createdAt' | 'salesCount'>) => void;
+  updateDigitalProduct: (id: string, product: Partial<DigitalProduct>) => void;
+  deleteDigitalProduct: (id: string) => void;
   
   // Marketplace & Agency Dispatch Actions
   createGig: (gig: Omit<MarketplaceGig, 'id' | 'createdAt' | 'rating' | 'reviewsCount' | 'salesCount'>) => void;
@@ -113,6 +130,7 @@ interface DataContextType {
   signup: (userData: Omit<User, 'id' | 'createdAt'>, pass: string) => boolean;
   logout: () => void;
   demoLogin: (role: 'student' | 'instructor' | 'customer' | 'admin') => void;
+  switchRole: (newRole: 'customer' | 'specialist' | 'instructor' | 'admin' | 'student') => void;
   updateProfile: (data: Partial<User>) => void;
   addUser: (userData: Omit<User, 'id' | 'createdAt'>) => void;
   
@@ -171,10 +189,19 @@ interface DataContextType {
   markMessageRead: (id: string) => void;
   
   // Notifications
+  isNotificationCenterOpen: boolean;
+  setIsNotificationCenterOpen: (open: boolean) => void;
+  openNotificationCenter: () => void;
+  closeNotificationCenter: () => void;
+  clearAllNotifications: () => void;
+  deleteNotification: (id: string) => void;
   markNotificationRead: (id: string) => void;
   markAllNotificationsRead: () => void;
   sendCentralNotification: (notif: Omit<NotificationItem, 'id' | 'time' | 'read'>) => void;
   
+  // Shared Audio Synthesizer for Distinct Alerts
+  playAppSound: (type?: 'notification' | 'message' | 'order' | 'success') => void;
+
   // Mentorship Application & Role Actions
   applyForMentorship: (data: { expertise: string[]; experienceYears: string; bio: string; portfolioUrl?: string; proposedCourseTopic?: string; phone?: string }) => void;
   approveMentorApplication: (userId?: string) => void;
@@ -237,6 +264,101 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const toggleDarkMode = () => {
     setDarkModeState(prev => !prev);
+  };
+
+  // Shared Global Web Audio API Synthesizer for Distinct Alerts & Chimes
+  const playAppSound = (type: 'notification' | 'message' | 'order' | 'success' = 'notification') => {
+    try {
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtxClass) return;
+      const ctx = new AudioCtxClass();
+
+      const playNotes = () => {
+        const now = ctx.currentTime;
+
+        if (type === 'notification') {
+          // Distinct crisp double bell chime (587.33 Hz [D5] -> 880 Hz [A5])
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          const gain2 = ctx.createGain();
+
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(587.33, now);
+          gain1.gain.setValueAtTime(0.25, now);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc1.connect(gain1);
+          gain1.connect(ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.22);
+
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(880, now + 0.09);
+          gain2.gain.setValueAtTime(0.22, now + 0.09);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          osc2.start(now + 0.09);
+          osc2.stop(now + 0.38);
+
+        } else if (type === 'message') {
+          // Distinct warm bubble/pop chime (440Hz -> 659Hz -> 554Hz)
+          const freqs = [440, 659.25, 554.37];
+          freqs.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const noteStart = now + idx * 0.07;
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, noteStart);
+            gain.gain.setValueAtTime(0.18, noteStart);
+            gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.18);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(noteStart);
+            osc.stop(noteStart + 0.18);
+          });
+
+        } else if (type === 'order') {
+          // Joyful triumphant cash register & success chime (523Hz -> 659Hz -> 784Hz -> 1046.5Hz)
+          const freqs = [523.25, 659.25, 783.99, 1046.5];
+          freqs.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const noteStart = now + idx * 0.06;
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, noteStart);
+            gain.gain.setValueAtTime(0.24, noteStart);
+            gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(noteStart);
+            osc.stop(noteStart + 0.25);
+          });
+
+        } else {
+          // General smooth success ping
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        }
+      };
+
+      if (ctx.state === 'suspended') {
+        ctx.resume().then(() => playNotes()).catch(() => {});
+      } else {
+        playNotes();
+      }
+    } catch (e) {
+      // Audio autoplay restriction fallback
+    }
   };
 
   // Load state from localStorage or initialData
@@ -303,7 +425,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [enrollments, setEnrollments] = useState<Enrollment[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_enrollments`);
-    return saved ? JSON.parse(saved) : initialEnrollments;
+    if (saved) {
+      try {
+        const parsed: Enrollment[] = JSON.parse(saved);
+        const map = new Map<string, Enrollment>();
+        initialEnrollments.forEach(e => map.set(e.courseId, e));
+        parsed.forEach(e => map.set(e.courseId, e));
+        return Array.from(map.values());
+      } catch {}
+    }
+    return initialEnrollments;
   });
 
   const [certificates, setCertificates] = useState<Certificate[]>(() => {
@@ -473,6 +604,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [activeChatWindows, setActiveChatWindows] = useState<ActiveChatWindow[]>([]);
+  const [activeMessengerConversationId, setActiveMessengerConversationId] = useState<string | null>(null);
+  const [activeMessengerOrderId, setActiveMessengerOrderId] = useState<string | null>(null);
+  const [isMessengerInboxOpen, setIsMessengerInboxOpen] = useState(false);
+  const [initialMessengerTab, setInitialMessengerTab] = useState<'messages' | 'notifications' | 'courses'>('messages');
 
   const [assignments, setAssignments] = useState<Assignment[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_assignments`);
@@ -608,6 +743,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
+          const officialIds = ['web-dev', 'digital-marketing', 'graphics-design', 'app-development', 'seo-optimization', 'video-editing', 'cyber-security', 'software-dev'];
+          const missingOfficial = initialGigs.filter(g => officialIds.includes(g.id) && !parsed.some(p => p.id === g.id));
+          if (missingOfficial.length > 0) {
+            return [...missingOfficial, ...parsed];
+          }
           return parsed;
         }
       } catch {}
@@ -629,6 +769,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try { return JSON.parse(saved); } catch {}
     }
     return initialProposals;
+  });
+
+  const [digitalProducts, setDigitalProducts] = useState<DigitalProduct[]>(() => {
+    const saved = localStorage.getItem(`${STORAGE_KEY}_digital_products`);
+    if (saved) {
+      try {
+        const parsed: DigitalProduct[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // If dp-4 or dp-5 exist, ensure updated free price if not custom modified
+          return parsed.map(p => {
+            const initial = initialDigitalProducts.find(init => init.id === p.id);
+            if (initial && (p.id === 'dp-4' || p.id === 'dp-5') && p.price > 0) {
+              return { ...p, price: 0, originalPrice: initial.originalPrice };
+            }
+            return p;
+          });
+        }
+      } catch {}
+    }
+    return initialDigitalProducts;
   });
 
   const [marketplaceOrders, setMarketplaceOrders] = useState<MarketplaceOrder[]>(() => {
@@ -664,6 +824,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_proposals`, JSON.stringify(proposals));
   }, [proposals]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY}_digital_products`, JSON.stringify(digitalProducts));
+  }, [digitalProducts]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_marketplace_orders`, JSON.stringify(marketplaceOrders));
@@ -777,7 +941,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user = users.find(u => u.role === 'customer') || initialUsers[2];
     }
 
-    if (!user && cleanInput.includes("admin")) {
+    // If typing admin credentials
+    if (!user && (cleanInput === 'mdskazisohag@gmail.com' || cleanInput === 'admin@ptenit.com' || cleanInput.includes("admin") || cleanInput.includes("sohag"))) {
       user = users.find(u => u.role === 'admin') || initialUsers[0];
     }
 
@@ -907,6 +1072,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const switchRole = (newRole: 'customer' | 'specialist' | 'instructor' | 'admin' | 'student') => {
+    const activeUser = currentUser || marketplaceUser;
+    if (!activeUser) return;
+
+    const targetRole = (newRole === 'specialist' ? 'instructor' : newRole) as any;
+    const updatedUser: User = {
+      ...activeUser,
+      role: targetRole,
+      activeRole: newRole as any
+    };
+
+    setPtenitUser(updatedUser);
+    setMarketplaceUser(updatedUser);
+    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+  };
+
   // Course Management
   const addCourse = (courseData: Omit<Course, 'id' | 'createdAt' | 'enrolledCount' | 'rating'>) => {
     const newCourse: Course = {
@@ -928,31 +1109,87 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const acceptCourseOffer = (courseId: string, teacherId?: string, teacherName?: string) => {
-    setCourses(prev => prev.map(c => {
-      if (c.id === courseId) {
-        return {
-          ...c,
+    let exists = false;
+    setCourses(prev => {
+      const isFound = prev.some(c => c.id === courseId);
+      if (isFound) {
+        exists = true;
+        return prev.map(c => {
+          if (c.id === courseId) {
+            return {
+              ...c,
+              offerStatus: 'accepted',
+              assignedInstructorId: teacherId || c.assignedInstructorId || currentUser?.id,
+              instructor: teacherName || (currentUser ? currentUser.name : c.instructor),
+              isPublicOffer: false,
+              acceptedAt: new Date().toISOString().split('T')[0]
+            };
+          }
+          return c;
+        });
+      } else {
+        // Create new course if not found
+        const newCourse: Course = {
+          id: courseId.startsWith('course') ? courseId : `course-${Date.now()}`,
+          title: 'প্রফেশনাল লাইভ কোর্স এনরোলমেন্ট (অফিশিয়াল অফার)',
+          category: 'Full-Stack Development',
+          instructor: teacherName || currentUser?.name || 'তানভীর আহমেদ',
+          assignedInstructorId: teacherId || currentUser?.id || 'teacher-1',
+          level: 'professional',
+          duration: '4 Weeks',
+          lessonsCount: 16,
+          isFree: false,
+          price: 8500,
+          thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
+          description: 'PTENit একাডেমি কর্তৃক নির্ধারিত লাইভ প্রফেশনাল কোর্স ও মেন্টরিং ব্যাচ।',
+          whatYouWillLearn: ['২৪টি প্রফেশনাল লাইভ ক্লাস লেকচার', '৪টি রিয়েল-টাইম অ্যাসাইনমেন্ট ও কোড রিভিউ', 'প্রজেক্ট ফিডব্যাক ও সার্টিফিকেট প্রদান'],
+          requirements: ['কম্পিউটার বা ইন্টারনেট সংযোগ'],
+          tags: ['#PTENit', '#LiveCourse'],
+          modules: [],
+          published: true,
+          targetModules: 4,
+          targetLessons: 16,
+          teacherCommissionRate: 35,
           offerStatus: 'accepted',
-          assignedInstructorId: teacherId || c.assignedInstructorId || currentUser?.id,
-          instructor: teacherName || (currentUser ? currentUser.name : c.instructor),
           isPublicOffer: false,
-          acceptedAt: new Date().toISOString().split('T')[0]
+          enrolledCount: 1,
+          rating: 5.0,
+          createdAt: new Date().toISOString().split('T')[0]
         };
+        return [newCourse, ...prev];
       }
-      return c;
-    }));
+    });
 
     const targetCourse = courses.find(c => c.id === courseId);
-    if (targetCourse) {
-      const notif: NotificationItem = {
-        id: `notif-${Date.now()}`,
-        title: 'কোর্সের দায়িত্ব গৃহীত!',
-        message: `আপনি সফলভাবে "${targetCourse.title}" কোর্সের অফার ও দায়িত্ব গ্রহণ করেছেন।`,
-        time: 'এইমাত্র',
-        read: false,
-        type: 'success'
+    const notif: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      title: '🎉 কোর্স রিসিভড & মেন্টর সার্ভিস অ্যাক্টিভ!',
+      message: `আপনি সফলভাবে "${targetCourse?.title || 'লাইভ কোর্স'}" কোর্সটি রিসিভ করেছেন। মেন্টর সার্ভিস (Mentor Service) অটোমেটিক্যালি অ্যাক্টিভ করা হয়েছে।`,
+      time: 'এইমাত্র',
+      read: false,
+      type: 'success'
+    };
+    setNotifications(prev => [notif, ...prev]);
+
+    // Automatically enable & approve Mentor Status for currentUser when receiving a course offer
+    if (currentUser) {
+      const updatedUser: User = {
+        ...currentUser,
+        isMentor: true,
+        mentorStatus: 'approved',
+        mentorApplication: currentUser.mentorApplication ? {
+          ...currentUser.mentorApplication,
+          status: 'approved'
+        } : {
+          expertise: ['কোর্স ইন্সট্রাক্টর & মেন্টর'],
+          experienceYears: '৩+ বছর',
+          bio: 'পিটেন আইটি অনুমোদিত ভেরিফায়েড কোর্স মেন্টর',
+          appliedAt: new Date().toISOString().split('T')[0],
+          status: 'approved'
+        }
       };
-      setNotifications(prev => [notif, ...prev]);
+      setCurrentUser(updatedUser);
+      setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
     }
   };
 
@@ -1172,6 +1409,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       read: false
     };
     setNotifications(prev => [newNotif, ...prev]);
+    playAppSound('notification');
   };
 
   const applyForMentorship = (data: {
@@ -1316,19 +1554,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       read: false
     };
     setDirectMessages(prev => [newMsg, ...prev]);
+    playAppSound('message');
   };
 
-  const openChatWindow = (contact: { id?: string; senderName: string; senderRole?: string; senderAvatar?: string; initialMessage?: string }) => {
+  const openChatWindow = (contact: { id?: string; orderId?: string; senderName: string; senderRole?: string; senderAvatar?: string; initialMessage?: string }) => {
     const windowId = contact.id || `chat-${contact.senderName.replace(/\s+/g, '-').toLowerCase()}`;
+    setActiveMessengerConversationId(windowId);
     
     setActiveChatWindows(prev => {
       const existing = prev.find(w => w.id === windowId || w.senderName === contact.senderName);
       if (existing) {
-        return prev.map(w => (w.id === existing.id) ? { ...w, minimized: false } : w);
+        return [...prev.filter(w => w.id !== existing.id), { ...existing, minimized: false, orderId: contact.orderId || existing.orderId }];
       }
       
       const newWin: ActiveChatWindow = {
         id: windowId,
+        orderId: contact.orderId,
         senderName: contact.senderName,
         senderRole: contact.senderRole || 'customer',
         senderAvatar: contact.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
@@ -1355,10 +1596,64 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       return [...prev, newWin];
     });
+
+    // Floating mini chat popup window opens on screen directly over the current view
+    // (User can view their orders and close popup with 'X' button)
   };
 
   const closeChatWindow = (id: string) => {
     setActiveChatWindows(prev => prev.filter(w => w.id !== id));
+  };
+
+  const openMessengerInbox = (conversationId?: string, initialTab: 'messages' | 'notifications' | 'courses' = 'messages', orderId?: string) => {
+    setInitialMessengerTab(initialTab);
+    if (conversationId) {
+      setActiveMessengerConversationId(conversationId);
+      setActiveMessengerOrderId(orderId || null);
+      // If an orderId or active chat needs to be registered, sync it
+      if (orderId) {
+        setActiveChatWindows(prev => {
+          const existing = prev.find(w => w.id === conversationId);
+          if (existing) {
+            return prev.map(w => w.id === conversationId ? { ...w, orderId, minimized: false } : w);
+          }
+          return prev;
+        });
+      }
+    } else {
+      setActiveMessengerConversationId(null);
+      setActiveMessengerOrderId(null);
+    }
+    // Clear floating popup windows so full messenger is focused
+    setActiveChatWindows([]);
+    setIsNotificationCenterOpen(false);
+    setIsMessengerInboxOpen(true);
+  };
+
+  const closeMessengerInbox = () => {
+    setActiveMessengerConversationId(null);
+    setActiveMessengerOrderId(null);
+    setIsMessengerInboxOpen(false);
+    setIsNotificationCenterOpen(false);
+  };
+
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+
+  const openNotificationCenter = () => {
+    openMessengerInbox(undefined, 'notifications');
+  };
+
+  const closeNotificationCenter = () => {
+    setIsNotificationCenterOpen(false);
+    setIsMessengerInboxOpen(false);
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  const deleteNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
   const toggleMinimizeChatWindow = (id: string) => {
@@ -1376,6 +1671,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       meetLink
     };
 
+    // Find the target chat window to associate with order and decrement unread counter on reply
+    const currentWindows = activeChatWindows;
+    const targetWin = currentWindows.find(w => w.id === windowId);
+    const targetOrderId = targetWin?.orderId;
+    const targetSenderName = targetWin?.senderName;
+
+    // Decrement unread message count for this order upon sending a reply
+    setMarketplaceOrders(prev => prev.map(o => {
+      const isMatched = (targetOrderId && o.id === targetOrderId) ||
+        (targetSenderName && (o.buyerName === targetSenderName || o.sellerName === targetSenderName));
+      if (isMatched) {
+        const currentCount = o.unreadMessageCount ?? 0;
+        return {
+          ...o,
+          unreadMessageCount: Math.max(0, currentCount - 1)
+        };
+      }
+      return o;
+    }));
+
     setActiveChatWindows(prev => prev.map(w => {
       if (w.id === windowId) {
         return {
@@ -1385,6 +1700,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return w;
     }));
+    playAppSound('message');
 
     // Auto response for ongoing active messaging thread
     if (!meetLink) {
@@ -1412,6 +1728,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           return w;
         }));
+        playAppSound('message');
       }, 1200);
     }
   };
@@ -1578,19 +1895,50 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Marketplace & Agency Dispatch Functions
   const createGig = (newGig: Omit<MarketplaceGig, 'id' | 'createdAt' | 'rating' | 'reviewsCount' | 'salesCount'>) => {
-    // Enforce maximum 6 gigs limit per seller
-    const userGigCount = gigs.filter(g =>
-      (newGig.sellerId && g.sellerId === newGig.sellerId) ||
-      (newGig.sellerName && g.sellerName.toLowerCase() === newGig.sellerName.toLowerCase())
-    ).length;
+    const isAgencyAdmin = newGig.sellerId === 'ptenit-official' || newGig.sellerId === 'ptenit-agency' || newGig.isAgencyStaff;
+    
+    // Enforce maximum 6 gigs limit per regular seller (not agency admin)
+    if (!isAgencyAdmin) {
+      const userGigCount = gigs.filter(g =>
+        (newGig.sellerId && g.sellerId === newGig.sellerId) ||
+        (newGig.sellerName && g.sellerName.toLowerCase() === newGig.sellerName.toLowerCase())
+      ).length;
 
-    if (userGigCount >= 6) {
-      console.warn("Gig limit reached: A seller cannot create more than 6 gigs.");
-      return;
+      if (userGigCount >= 6) {
+        console.warn("Gig limit reached: A seller cannot create more than 6 gigs.");
+        return;
+      }
     }
+
+    const defaultFeatures = ['কাস্টম ডিজাইন ও ডেভেলপমেন্ট', 'রেসপন্সিভ লেআউট', 'ফুল টেকনিক্যাল সাপোর্ট', 'সোর্স ফাইল ডেলিভারি'];
+
+    const packages = newGig.packages || {
+      basic: {
+        name: 'বেসিক প্যাকেজ',
+        price: 5000,
+        deliveryDays: 3,
+        revisions: '3',
+        features: defaultFeatures.slice(0, 2)
+      },
+      standard: {
+        name: 'স্ট্যান্ডার্ড প্যাকেজ',
+        price: 12000,
+        deliveryDays: 5,
+        revisions: '5',
+        features: defaultFeatures.slice(0, 3)
+      },
+      premium: {
+        name: 'প্রিমিয়াম প্যাকেজ',
+        price: 25000,
+        deliveryDays: 7,
+        revisions: 'Unlimited',
+        features: defaultFeatures
+      }
+    };
 
     const created: MarketplaceGig = {
       ...newGig,
+      packages,
       id: `gig-${Date.now()}`,
       rating: 5.0,
       reviewsCount: 0,
@@ -1980,6 +2328,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMarketplaceOrders(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
   };
 
+  const addDigitalProduct = (product: Omit<DigitalProduct, 'id' | 'createdAt' | 'salesCount'>) => {
+    const newProd: DigitalProduct = {
+      ...product,
+      id: `prod-${Date.now()}`,
+      salesCount: 0,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setDigitalProducts(prev => [newProd, ...prev]);
+  };
+
+  const updateDigitalProduct = (id: string, updatedFields: Partial<DigitalProduct>) => {
+    setDigitalProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+  };
+
+  const deleteDigitalProduct = (id: string) => {
+    setDigitalProducts(prev => prev.filter(p => p.id !== id));
+  };
+
   const deleteTeacherPayout = (id: string) => {
     setPayouts(prev => prev.filter(p => p.id !== id));
   };
@@ -2020,6 +2386,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         notifications,
         directMessages,
         activeChatWindows,
+        activeMessengerConversationId,
+        setActiveMessengerConversationId,
+        activeMessengerOrderId,
+        setActiveMessengerOrderId,
+        isMessengerInboxOpen,
+        setIsMessengerInboxOpen,
+        initialMessengerTab,
+        openMessengerInbox,
+        closeMessengerInbox,
+        isNotificationCenterOpen,
+        setIsNotificationCenterOpen,
+        openNotificationCenter,
+        closeNotificationCenter,
+        clearAllNotifications,
+        deleteNotification,
         assignments,
         submissions,
         customerProjects,
@@ -2029,6 +2410,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         jobs,
         proposals,
         marketplaceOrders,
+        digitalProducts,
+        addDigitalProduct,
+        updateDigitalProduct,
+        deleteDigitalProduct,
         createGig,
         updateGig,
         deleteGig,
@@ -2048,6 +2433,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signup,
         logout,
         demoLogin,
+        switchRole,
         updateProfile,
         addUser,
         deleteUser,
@@ -2101,7 +2487,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toggleMinimizeChatWindow,
         sendChatMessage,
         createGoogleMeetCall,
-        toggleUserBlock
+        toggleUserBlock,
+        playAppSound
       }}
     >
       {children}

@@ -8,6 +8,8 @@ import {
   Clock,
   CheckCircle,
   CheckCircle2,
+  BadgeCheck,
+  Info,
   Award,
   Upload,
   User,
@@ -44,15 +46,18 @@ import {
   Moon,
   Sun,
   Shield,
+  ShieldCheck,
+  XCircle,
   Phone,
   Save,
   Image,
   Pencil,
   MoreVertical,
-  Zap
+  Zap,
+  Banknote
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
-import { Assignment, AssignmentSubmission } from '../types';
+import { Assignment, AssignmentSubmission, Course, CustomerProject } from '../types';
 
 interface TeacherDashboardProps {
   onViewCourse?: (courseId: string) => void;
@@ -75,6 +80,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     currentUser,
     users = [],
     courses = [],
+    customerProjects = [],
     enrollments = [],
     certificates = [],
     assignments = [],
@@ -192,6 +198,12 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   // Notification dismissal state
   const [isPolicyDismissed, setIsPolicyDismissed] = useState(false);
   const [isOfferNoticeDismissed, setIsOfferNoticeDismissed] = useState(false);
+
+  // Detail Modal States for Offers & Projects
+  const [selectedDetailCourse, setSelectedDetailCourse] = useState<Course | null>(null);
+  const [selectedDetailProject, setSelectedDetailProject] = useState<CustomerProject | null>(null);
+  const [offerToastMsg, setOfferToastMsg] = useState<string | null>(null);
+  const [offerCountdown, setOfferCountdown] = useState<number>(45);
 
   // Notification and Message Filtering & Preferences Toggle State
   const [teacherNotifToggles, setTeacherNotifToggles] = useState({
@@ -538,6 +550,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
   // Offered & Active Courses - show all admin course offers to trainers
   const offeredCourses = courses.filter(c => c.offerStatus === 'offered');
+
+  // Auto countdown for live offer banner
+  useEffect(() => {
+    if (offeredCourses.length === 0) return;
+    const interval = setInterval(() => {
+      setOfferCountdown(prev => (prev <= 1 ? 45 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [offeredCourses.length]);
 
   const teacherCourses = courses.filter(c =>
     c.offerStatus === 'accepted' ||
@@ -1129,80 +1150,147 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
           </div>
 
-          {/* COMPACT ACTIVE COURSE OFFERS WIDGET (INSIDE PROFILE CARD) */}
-          {offeredCourses.length > 0 && !isOfferNoticeDismissed && (
-            <div className="mt-5 pt-4 border-t border-amber-500/30 font-bengali relative z-10">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-                  <h3 className="text-xs sm:text-sm font-black text-amber-300 flex items-center gap-1.5">
-                    📩 মেইন এডমিন থেকে প্রাপ্ত কোর্স অফারসমূহ ({offeredCourses.length} টি)
-                  </h3>
-                  <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
-                    রিভিউ অপেক্ষমাণ
-                  </span>
-                </div>
-                <button
-                  onClick={() => setIsOfferNoticeDismissed(true)}
-                  className="p-1 hover:bg-slate-800/80 text-amber-300/80 hover:text-white rounded-lg transition-all cursor-pointer"
-                  title="অফার উইজেট বন্ধ করুন"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+          {/* LIVE OFFER & ORDER NOTIFICATION BANNER INSIDE COVER SECTION */}
+          {offeredCourses.length > 0 && (
+            <div className="relative z-20 mt-3 sm:mt-4 max-w-3xl mx-auto animate-slideUp">
+              {(() => {
+                const offerCourse = offeredCourses[0];
+                const coursePrice = offerCourse.price || 8500;
+                const teacherEarnings = Math.round(coursePrice * ((offerCourse.teacherCommissionRate || 90) / 100));
+                const totalModules = offerCourse.targetModules || (offerCourse.modules?.length || 3);
+                const totalLessons = offerCourse.targetLessons || 18;
 
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-2.5 transition-all ${
-                offeredCourses.length > 2
-                  ? 'max-h-72 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-amber-500/30'
-                  : ''
-              }`}>
-                {offeredCourses.map(course => (
-                  <div key={course.id} className="bg-slate-900/90 backdrop-blur-sm p-2.5 sm:p-3 rounded-2xl border border-amber-500/40 shadow-md flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <img src={course.thumbnail} alt={course.title} className="w-11 h-11 rounded-xl object-cover shrink-0 border border-slate-700" />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            {course.level === 'basic' ? '🟢 বেসিক' : course.level === 'advanced' ? '⚡ এডভান্সড' : course.level === 'professional' ? '🎓 প্রফেশনাল' : '📘 কোর্স'}
-                          </span>
-                          <span className="text-[9px] font-semibold text-slate-300">
-                            {course.category}
-                          </span>
+                return (
+                  <div className="relative overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-emerald-500/30 dark:border-emerald-500/40 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4.5 shadow-2xl text-slate-900 dark:text-white transition-all duration-300 group hover:border-emerald-500/60">
+                    {/* Soft Ambient Glows */}
+                    <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full blur-3xl pointer-events-none bg-emerald-500/15 dark:bg-emerald-500/20" />
+                    <div className="absolute -left-10 -bottom-10 w-28 h-28 rounded-full blur-3xl pointer-events-none bg-teal-500/15 dark:bg-teal-500/20" />
+
+                    {/* Top Sub-Bar: Admin Badge, Offer Tag & Live Countdown */}
+                    <div className="relative z-10 flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800/80">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Admin Badge */}
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700">
+                          <img
+                            src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80"
+                            alt="PTENit Admin"
+                            className="w-4 h-4 rounded-full object-cover border border-emerald-500"
+                          />
+                          <span>PTENit Academy Admin</span>
+                          <BadgeCheck className="w-3.5 h-3.5 text-[#1DB954] shrink-0" />
                         </div>
-                        <h4 className="font-extrabold text-xs text-white truncate">{course.title}</h4>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-300">
-                          <span>মডিউল: {course.targetModules || 4}টি</span>
-                          <span>ক্লাস: {course.targetLessons || 16}টি</span>
-                          <span className="text-[#1DB954] font-bold">কমিশন: {course.teacherCommissionRate || 35}%</span>
-                        </div>
+
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 rounded-full text-[11px] font-extrabold border border-emerald-500/30">
+                          <Sparkles className="w-3 h-3 text-[#1DB954]" />
+                          নতুন কোর্স অফার
+                        </span>
+                      </div>
+
+                      {/* Live Countdown Badge */}
+                      <div
+                        className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-400/60 text-amber-800 dark:text-amber-300 rounded-full text-xs font-black shrink-0 shadow-xs"
+                        title="অফার গ্রহণের সময়সীমা"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-spin" style={{ animationDuration: '4s' }} />
+                        <span className="font-mono font-black text-xs">
+                          {offerCountdown}s বাকি
+                        </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        onClick={() => {
-                          acceptCourseOffer(course.id, currentUser?.id, currentUser?.name);
-                          playChimeSound('accept');
-                        }}
-                        className="px-3 py-1.5 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] rounded-xl shadow flex items-center gap-1 cursor-pointer transition-all active:scale-95 whitespace-nowrap"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>গ্রহণ</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          declineCourseOffer(course.id);
-                          playChimeSound('decline');
-                        }}
-                        className="p-1.5 bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 text-[11px] font-semibold rounded-xl cursor-pointer transition-all border border-slate-700"
-                        title="প্রত্যাখ্যান করুন"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                    {/* Main Banner Content */}
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+                      {/* Left: Cash Credit & Net Earnings */}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="px-3.5 py-2 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/60 dark:to-teal-950/40 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 shadow-sm flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-[#1DB954]/15 dark:bg-[#1DB954]/25 flex items-center justify-center shrink-0">
+                            <Banknote className="w-5 h-5 text-[#1DB954] animate-pulse" />
+                          </div>
+                          <div>
+                            <div className="text-base sm:text-lg font-black text-emerald-900 dark:text-emerald-200 font-mono tracking-tight leading-none flex items-center gap-0.5">
+                              <span>+৳</span>
+                              <span>{coursePrice.toLocaleString('bn-BD')}</span>
+                            </div>
+                            <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider mt-0.5">
+                              ক্যাশ ক্রেডিট
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="hidden lg:block text-left pl-1">
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
+                            আপনার সম্ভাব্য আয়:
+                          </span>
+                          <span className="text-xs font-black text-[#1DB954] font-mono">
+                            ৳{teacherEarnings.toLocaleString('bn-BD')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Middle: Course Title & Features Pills */}
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate" title={offerCourse.title}>
+                          {offerCourse.title}
+                        </h4>
+
+                        <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                            📚 {totalModules}টি মডিউল
+                          </span>
+                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                            🎥 {totalLessons}টি লাইভ ক্লাস
+                          </span>
+                          <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-md border border-emerald-500/20">
+                            • আয়: ৳{teacherEarnings.toLocaleString('bn-BD')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Actions (View Details & Receive Button) */}
+                      <div className="flex items-center justify-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                        {/* View Details Button */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDetailCourse(offerCourse)}
+                          className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shrink-0"
+                          title="কোর্সের বিস্তারিত দেখুন"
+                        >
+                          <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                          <span>ভিউ ডিটেইলস</span>
+                        </button>
+
+                        {/* Receive Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            acceptCourseOffer(offerCourse.id, currentUser?.id, currentUser?.name);
+                            playChimeSound('accept');
+                            setOfferToastMsg(`🎉 '${offerCourse.title}' অফার রিসিভ করা হয়েছে • ৳${coursePrice.toLocaleString('bn-BD')}`);
+                            setTimeout(() => setOfferToastMsg(null), 4000);
+                          }}
+                          className="px-4 py-2 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center gap-1.5 shadow-lg shadow-emerald-500/25 active:scale-95 transition cursor-pointer shrink-0"
+                        >
+                          <Zap className="w-4 h-4 fill-slate-950 text-slate-950" />
+                          <span>রিসিভ</span>
+                          {offeredCourses.length > 0 && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-slate-950 text-[#1DB954] text-[10px] font-black rounded-full leading-none">
+                              ({offeredCourses.length})
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Micro Animated Progress Line */}
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-teal-400 via-[#1DB954] to-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
+                        style={{ width: `${(offerCountdown / 45) * 100}%` }}
+                      />
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
           )}
 
@@ -1867,102 +1955,153 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           <div className="space-y-6">
             {/* ADMIN COURSE OFFERS SECTION - RECEIVE OFFERS */}
             {offeredCourses.length > 0 && (
-              <div className="bg-gradient-to-r from-amber-500/15 via-slate-900/90 to-amber-950/30 border-2 border-amber-500/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 font-bengali">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-amber-500/30">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-3 h-3 rounded-full bg-amber-400 animate-ping shrink-0" />
+              <div className="bg-slate-900/90 dark:bg-slate-950/90 border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5 font-bengali backdrop-blur-md relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-amber-500/30 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center font-black text-slate-950 text-lg shadow-lg shadow-amber-500/20 shrink-0">
+                      📩
+                    </div>
                     <div>
-                      <h3 className="text-base sm:text-lg font-black text-amber-300 flex items-center gap-2">
-                        <span>📩 মেইন এডমিন থেকে প্রাপ্ত কোর্স অফারসমূহ</span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-xs">
+                      <h3 className="text-lg sm:text-xl font-black text-amber-300 flex items-center gap-2.5 flex-wrap">
+                        <span>মেইন এডমিন থেকে প্রাপ্ত কোর্স অফারসমূহ</span>
+                        <span className="px-3 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-xs shadow">
                           {offeredCourses.length}টি অফার অপেক্ষমাণ
                         </span>
                       </h3>
-                      <p className="text-xs text-slate-300 mt-0.5">
-                        এডমিন কর্তৃক আপনাকে নির্ধারিত কোর্সের অফার ও দায়িত্ব রিভিউ করুন এবং রিসিভ করে ক্লাস শুরু করুন।
+                      <p className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">
+                        এডমিন কর্তৃক আপনাকে নির্ধারিত কোর্সের অফার ও দায়িত্ব রিভিউ করুন এবং রিসিভ করে ক্লাস নেওয়া শুরু করুন।
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/40 shrink-0">
-                    ইনস্ট্যান্ট রিসিভ সুবিধাযুক্ত
+                  <span className="text-xs font-black px-3.5 py-1.5 bg-amber-500/20 text-amber-300 rounded-2xl border border-amber-500/40 shrink-0 flex items-center gap-1.5 shadow-sm">
+                    <Zap className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+                    <span>ইনস্ট্যান্ট অ্যাসাইন সুবিধাযুক্ত</span>
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Project Order Style Card Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 relative z-10">
                   {offeredCourses.map(course => (
                     <div
                       key={course.id}
-                      className="bg-white dark:bg-slate-900/90 rounded-2xl p-4 border border-amber-500/40 shadow-md flex flex-col justify-between space-y-3 hover:border-amber-400 transition"
+                      className="group bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border-2 border-slate-200/90 dark:border-slate-800 hover:border-[#1DB954] dark:hover:border-[#1DB954] shadow-md hover:shadow-2xl hover:shadow-[#1DB954]/15 transition-all duration-300 flex flex-col justify-between overflow-hidden relative"
                     >
-                      <div className="space-y-3">
-                        <div className="flex items-start gap-3">
+                      {/* Top Header & Thumbnail Ribbon */}
+                      <div>
+                        <div className="relative h-40 sm:h-44 overflow-hidden bg-slate-950">
                           <img
                             src={course.thumbnail}
                             alt={course.title}
-                            className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-700"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                           />
-                          <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30">
-                                {course.level === 'basic' ? '🟢 বেসিক লেভেল' : course.level === 'advanced' ? '⚡ এডভান্সড লেভেল' : course.level === 'professional' ? '🎓 প্রফেশনাল' : '📘 কোর্স অফার'}
-                              </span>
-                              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                                {course.category}
-                              </span>
-                            </div>
-                            <h4 className="font-black text-sm text-slate-900 dark:text-white leading-snug line-clamp-2">
-                              {course.title}
-                            </h4>
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
+                          
+                          {/* Badges on Thumbnail */}
+                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                            <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md text-amber-400 text-[11px] font-black border border-amber-500/30 shadow">
+                              {course.category}
+                            </span>
+                            <span className="px-2.5 py-1 rounded-lg bg-[#1DB954]/90 backdrop-blur-md text-white text-[11px] font-black shadow flex items-center gap-1">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>অফিশিয়াল অফার</span>
+                            </span>
+                          </div>
+
+                          {/* Level Tag on Bottom Left of Image */}
+                          <div className="absolute bottom-3 left-3">
+                            <span className="px-2.5 py-1 rounded-md bg-slate-900/90 text-slate-200 text-xs font-bold border border-slate-700/80 flex items-center gap-1">
+                              {course.level === 'basic' ? '🟢 বেসিক লেভেল' : course.level === 'advanced' ? '⚡ এডভান্সড লেভেল' : course.level === 'professional' ? '🎓 প্রফেশনাল' : '📘 লাইভ ব্যাচ'}
+                            </span>
                           </div>
                         </div>
 
-                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                          {course.description}
-                        </p>
+                        {/* Card Content Area */}
+                        <div className="p-4 sm:p-5 space-y-3.5">
+                          {/* Title */}
+                          <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-snug line-clamp-2 group-hover:text-[#1DB954] transition-colors min-h-[2.75rem]">
+                            {course.title}
+                          </h4>
 
-                        {/* Admin Offer Breakdown */}
-                        <div className="grid grid-cols-3 gap-2 p-2.5 bg-amber-500/5 dark:bg-amber-950/20 rounded-xl border border-amber-500/20 text-center">
-                          <div>
-                            <span className="text-[9px] text-slate-400 block font-bold">মডিউল টার্গেট</span>
-                            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">
-                              {course.targetModules || 4}টি
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-slate-400 block font-bold">ক্লাস টার্গেট</span>
-                            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200">
-                              {course.targetLessons || 16}টি
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-slate-400 block font-bold">শিক্ষক কমিশন</span>
-                            <span className="font-black text-xs text-emerald-600 dark:text-[#1DB954]">
-                              {course.teacherCommissionRate || 35}% ফি
-                            </span>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed font-medium bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                            {course.description}
+                          </p>
+
+                          {/* SPECIFICATIONS GRID (মডিউল টার্গেট, ক্লাস টার্গেট, শিক্ষক কমিশন) */}
+                          <div className="grid grid-cols-3 gap-2 sm:gap-2.5 p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-inner text-center">
+                            <div className="space-y-0.5">
+                              <Layers className="w-4 h-4 text-amber-500 mx-auto" />
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">
+                                মডিউল টার্গেট
+                              </span>
+                              <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-slate-100">
+                                {course.targetModules || 4}টি
+                              </span>
+                            </div>
+
+                            <div className="space-y-0.5 border-x border-slate-200 dark:border-slate-700/60 px-1">
+                              <Video className="w-4 h-4 text-blue-500 mx-auto" />
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">
+                                ক্লাস টার্গেট
+                              </span>
+                              <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-slate-100">
+                                {course.targetLessons || 16}টি
+                              </span>
+                            </div>
+
+                            <div className="space-y-0.5">
+                              <Zap className="w-4 h-4 text-[#1DB954] mx-auto animate-pulse" />
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">
+                                শিক্ষক কমিশন
+                              </span>
+                              <span className="text-xs sm:text-sm font-black text-[#1DB954]">
+                                {course.teacherCommissionRate || 35}% ফি
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Action Buttons: Accept / Decline */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                      {/* Action Footer Ribbon: Details, Receive & Decline Buttons */}
+                      <div className="p-3.5 sm:p-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 sm:gap-2.5 bg-slate-50/70 dark:bg-slate-950/40 rounded-b-2xl sm:rounded-b-3xl">
                         <button
+                          type="button"
+                          onClick={() => {
+                            if (onViewCourse) {
+                              onViewCourse(course.id);
+                            }
+                            setSelectedDetailCourse(course);
+                          }}
+                          className="py-2.5 px-3 rounded-xl sm:rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-xs sm:text-sm border border-slate-700 transition-all cursor-pointer flex items-center justify-center gap-1 hover:scale-[1.02] active:scale-95 shrink-0"
+                          title="কোর্সের বিস্তারিত দেখুন"
+                        >
+                          <Eye className="w-4 h-4 text-cyan-400" />
+                          <span>বিস্তারিত</span>
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => {
                             acceptCourseOffer(course.id, currentUser?.id, currentUser?.name);
                             playChimeSound('accept');
+                            setOfferToastMsg(`🎉 '${course.title}' অফার রিসিভ করা হয়েছে • ৳${(course.price || 4500).toLocaleString()}`);
+                            setTimeout(() => setOfferToastMsg(null), 4000);
                           }}
-                          className="flex-1 py-2 px-3 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 dark:text-white font-black text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="flex-1 py-2.5 px-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 dark:text-white font-black text-xs sm:text-sm shadow-md shadow-[#1DB954]/20 hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-1 hover:scale-[1.02] active:scale-95"
                         >
                           <CheckCircle2 className="w-4 h-4 text-slate-950 dark:text-white" />
                           <span>রিসিভ করুন</span>
                         </button>
+
                         <button
+                          type="button"
                           onClick={() => {
                             declineCourseOffer(course.id);
                             playChimeSound('decline');
                           }}
-                          className="py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/20 text-slate-600 dark:text-slate-300 hover:text-rose-500 font-bold text-xs rounded-xl transition border border-slate-200 dark:border-slate-700 cursor-pointer flex items-center gap-1"
+                          className="py-2.5 px-2.5 sm:px-3 rounded-xl sm:rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 hover:text-rose-500 font-bold text-xs sm:text-sm border border-rose-500/30 transition-all cursor-pointer flex items-center justify-center gap-1 hover:scale-[1.02] active:scale-95 shrink-0"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-4 h-4" />
                           <span>প্রত্যাখ্যান</span>
                         </button>
                       </div>
@@ -3437,6 +3576,134 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* COURSE DETAILS POPUP MODAL */}
+        {selectedDetailCourse && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-bengali">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-5 relative">
+              <button
+                onClick={() => setSelectedDetailCourse(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Image Header */}
+              <div className="relative h-52 sm:h-60 rounded-2xl overflow-hidden bg-slate-950">
+                <img
+                  src={selectedDetailCourse.thumbnail}
+                  alt={selectedDetailCourse.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                  <span className="px-3 py-1 bg-amber-500 text-slate-950 font-black text-xs rounded-lg shadow">
+                    {selectedDetailCourse.category}
+                  </span>
+                  <span className="px-3 py-1 bg-[#1DB954] text-white font-black text-xs rounded-lg shadow">
+                    কমিশন: {selectedDetailCourse.teacherCommissionRate || 35}% ফি
+                  </span>
+                </div>
+              </div>
+
+              {/* Details Body */}
+              <div className="space-y-4">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                  {selectedDetailCourse.title}
+                </h2>
+
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                  <span className="text-xs font-bold text-amber-500 dark:text-amber-400 block uppercase tracking-wider">
+                    কোর্স পরিচিতি ও ওভারভিউ:
+                  </span>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                    {selectedDetailCourse.description}
+                  </p>
+                </div>
+
+                {/* Specs Grid */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-center">
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold block uppercase">মডিউল টার্গেট</span>
+                    <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white">{selectedDetailCourse.targetModules || 4}টি</span>
+                  </div>
+                  <div className="border-x border-slate-300 dark:border-slate-700 px-1">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold block uppercase">ক্লাস টার্গেট</span>
+                    <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white">{selectedDetailCourse.targetLessons || 16}টি</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold block uppercase">শিক্ষক কমিশন</span>
+                    <span className="text-sm sm:text-base font-black text-[#1DB954]">{selectedDetailCourse.teacherCommissionRate || 35}%</span>
+                  </div>
+                </div>
+
+                {/* What You Will Learn */}
+                {selectedDetailCourse.whatYouWillLearn && selectedDetailCourse.whatYouWillLearn.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white">এই কোর্সের সিলেবাস টার্গেটসমূহ:</h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300">
+                      {selectedDetailCourse.whatYouWillLearn.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-2 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                          <CheckCircle2 className="w-4 h-4 text-[#1DB954] shrink-0 mt-0.5" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  onClick={() => {
+                    acceptCourseOffer(selectedDetailCourse.id, currentUser?.id, currentUser?.name);
+                    playChimeSound('accept');
+                    setOfferToastMsg(`🎉 '${selectedDetailCourse.title}' অফার রিসিভ করা হয়েছে • ৳${(selectedDetailCourse.price || 4500).toLocaleString()}`);
+                    setTimeout(() => setOfferToastMsg(null), 4000);
+                    setSelectedDetailCourse(null);
+                  }}
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  <span>কোর্স অফার রিসিভ করুন</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    declineCourseOffer(selectedDetailCourse.id);
+                    playChimeSound('decline');
+                    setSelectedDetailCourse(null);
+                  }}
+                  className="py-3 px-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-bold text-xs sm:text-sm rounded-xl transition border border-rose-500/30 cursor-pointer flex items-center gap-1.5"
+                >
+                  <X className="w-4 h-4" />
+                  <span>প্রত্যাখ্যান</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* FLOATING ACTION/SUCCESS TOAST (নিচে শর্ট ফ্লোটিং নোটিফিকেশন) */}
+        {/* ========================================================================= */}
+        {offerToastMsg && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-slideUp font-bengali max-w-[95vw] sm:max-w-md">
+            <div className="flex items-center gap-2.5 px-4 py-2.5 bg-slate-950/95 backdrop-blur-xl border border-[#1DB954]/60 text-white shadow-2xl shadow-black/90 rounded-2xl text-xs sm:text-sm font-black ring-1 ring-white/10">
+              <CheckCircle2 className="w-4 h-4 text-[#1DB954] shrink-0 animate-pulse" />
+              <span className="truncate flex-1">{offerToastMsg}</span>
+              <button
+                type="button"
+                onClick={() => setOfferToastMsg(null)}
+                className="ml-1.5 p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition cursor-pointer text-xs"
+                title="বন্ধ করুন"
+              >
+                ✕
+              </button>
             </div>
           </div>
         )}
