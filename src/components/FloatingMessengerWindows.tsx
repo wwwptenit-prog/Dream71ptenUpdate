@@ -145,9 +145,25 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
     setSelectedConversationId(activeMessengerConversationId || null);
   }, [activeMessengerConversationId, isMessengerInboxOpen]);
 
+  // Always reset mobile search and settings modals when switching tabs or closing/opening messenger or changing conversation
+  useEffect(() => {
+    setIsMobileSearchActive(false);
+    setSearchQuery('');
+    setIsSettingsModalOpen(false);
+    setIsNoteModalOpen(false);
+    setIsNewChatModalOpen(false);
+    setIsAiModalOpen(false);
+  }, [activeTopTab, isMessengerInboxOpen, selectedConversationId]);
+
   const handleCloseAll = () => {
     setIsFullScreenOpen(false);
     setSelectedConversationId(null);
+    setIsMobileSearchActive(false);
+    setSearchQuery('');
+    setIsSettingsModalOpen(false);
+    setIsNoteModalOpen(false);
+    setIsNewChatModalOpen(false);
+    setIsAiModalOpen(false);
     if (setActiveMessengerConversationId) setActiveMessengerConversationId(null);
     closeMessengerInbox();
     if (isNotificationCenterOpen) closeNotificationCenter();
@@ -460,7 +476,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                 type="button"
                 onClick={() => {
                   handleCloseAll();
-                  if (onNavigateTab) onNavigateTab('marketplace');
+                  if (onNavigateTab) onNavigateTab('marketplace', 'my-orders');
                 }}
                 className="flex-1 flex justify-center items-center py-1 transition relative active:scale-95 cursor-pointer text-white"
                 title="আমার অর্ডারসমূহ"
@@ -471,6 +487,8 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
               <button
                 type="button"
                 onClick={() => {
+                  setIsSettingsModalOpen(false);
+                  setIsMobileSearchActive(false);
                   setActiveTopTab('messages');
                   if (isNotificationCenterOpen) closeNotificationCenter();
                 }}
@@ -485,6 +503,8 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
               <button
                 type="button"
                 onClick={() => {
+                  setIsSettingsModalOpen(false);
+                  setIsMobileSearchActive(false);
                   setActiveTopTab('notifications');
                   setSelectedConversationId(null);
                 }}
@@ -513,7 +533,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
             </div>
 
             {/* Sub-Header Attached Below 6 Icons */}
-            <div className="px-3 py-2 border-t border-slate-800/60 bg-[#0B132B]">
+            <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs transition-colors">
               {selectedConversationId && currentActiveWin ? (
                 /* Active Chat Sub-Header: < [Avatar] Name Active now 📹 📞 */
                 <div className="flex items-center justify-between w-full animate-in fade-in duration-150 py-0.5">
@@ -573,38 +593,30 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                   </div>
                 </div>
               ) : isMobileSearchActive ? (
-                /* Inline Search Input inside Top Sub-Header */
-                <div className="flex items-center gap-2 animate-in fade-in duration-150 py-0.5">
-                  <div className="relative flex-1">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                /* Inline Search Input inside Top Sub-Header (Centered, White Box, Inside X Button that closes on tap) */
+                <div className="w-full max-w-md mx-auto flex items-center animate-in fade-in duration-150 py-0.5">
+                  <div className="relative w-full flex items-center">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="সেলার, বায়ার বা সার্ভিস খুঁজুন..."
                       autoFocus
-                      className="w-full pl-8 pr-7 py-1 bg-slate-900/90 text-white placeholder-slate-400 border border-slate-700/80 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-[#1DB954]"
+                      className="w-full pl-9 pr-8 py-1.5 bg-white text-slate-900 placeholder-slate-400 border border-slate-300 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#1DB954] focus:border-transparent shadow-xs"
                     />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setIsMobileSearchActive(false);
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs transition cursor-pointer"
+                      title="সার্চ বন্ধ করুন"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMobileSearchActive(false);
-                      setSearchQuery('');
-                    }}
-                    className="px-2 py-1 rounded-lg text-slate-300 hover:text-white text-xs font-bold cursor-pointer shrink-0"
-                  >
-                    বাতিল
-                  </button>
                 </div>
               ) : activeTopTab === 'courses' ? (
                 /* List View Sub-Header for Courses: Courses & Academy Features • PTENit */
@@ -616,18 +628,18 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                         handleCloseAll();
                         if (onNavigateTab) onNavigateTab('home');
                       }}
-                      className="p-1 -ml-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      className="p-1 -ml-1 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       title="হোমে ফিরে যান"
                     >
-                      <ChevronLeft className="w-5 h-5 text-slate-200" />
+                      <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200" />
                     </button>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <h2 className="text-sm font-black text-white tracking-tight leading-none">আমার কোর্সসমূহ ও ফিচারস</h2>
+                        <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none">Academy & Learning</h2>
                         <span className="w-2 h-2 rounded-full bg-[#1DB954]" />
                       </div>
-                      <p className="text-[10px] font-semibold text-slate-400/90 tracking-wide leading-tight mt-0.5 font-sans">
-                        PTENit Academy & Learning Features
+                      <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide leading-tight mt-0.5 font-sans">
+                        PTENit Enrolled Courses & Features
                       </p>
                     </div>
                   </div>
@@ -636,7 +648,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                     <button
                       type="button"
                       onClick={() => setIsMobileSearchActive(true)}
-                      className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       title="কোর্স খুঁজুন"
                     >
                       <Search className="w-4 h-4" />
@@ -650,7 +662,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                     <button
                       type="button"
                       onClick={() => setSelectedNotification(null)}
-                      className="flex items-center gap-1 text-slate-200 hover:text-white transition cursor-pointer active:scale-95 py-1 -ml-1"
+                      className="flex items-center gap-1 text-slate-800 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white transition cursor-pointer active:scale-95 py-1 -ml-1"
                     >
                       <ChevronLeft className="w-5 h-5 text-[#1DB954] stroke-[2.5]" />
                       <span className="text-xs font-black">ফিরে যান</span>
@@ -663,7 +675,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                           deleteNotification(selectedNotification.id);
                           setSelectedNotification(null);
                         }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         title="নোটিফিকেশন মুছে ফেলুন"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -680,14 +692,14 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                           handleCloseAll();
                           if (onNavigateTab) onNavigateTab('home');
                         }}
-                        className="p-1 -ml-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                        className="p-1 -ml-1 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         title="হোমে ফিরে যান"
                       >
-                        <ChevronLeft className="w-5 h-5 text-slate-200" />
+                        <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200" />
                       </button>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h2 className="text-sm font-black text-white tracking-tight leading-none">Notifications</h2>
+                          <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none">Notifications</h2>
                           <span className="w-2 h-2 rounded-full bg-[#1DB954]" />
                           {notifications.filter(n => !n.read).length > 0 && (
                             <span className="bg-[#1DB954] text-white text-[10px] font-black rounded-full px-1.5 py-0.2 shrink-0">
@@ -695,7 +707,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] font-semibold text-slate-400/90 tracking-wide leading-tight mt-0.5 font-sans">
+                        <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide leading-tight mt-0.5 font-sans">
                           PTENit Marketplace Updates
                         </p>
                       </div>
@@ -706,7 +718,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                       <button
                         type="button"
                         onClick={() => setIsMobileSearchActive(true)}
-                        className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         title="সার্চ করুন"
                       >
                         <Search className="w-4 h-4" />
@@ -714,7 +726,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                       <button
                         type="button"
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         title="সেটিংস"
                       >
                         <Settings className="w-4 h-4" />
@@ -732,17 +744,17 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                         handleCloseAll();
                         if (onNavigateTab) onNavigateTab('home');
                       }}
-                      className="p-1 -ml-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      className="p-1 -ml-1 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       title="হোমে ফিরে যান"
                     >
-                      <ChevronLeft className="w-5 h-5 text-slate-200" />
+                      <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200" />
                     </button>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <h2 className="text-sm font-black text-white tracking-tight leading-none">Messages</h2>
+                        <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none">Messages</h2>
                         <span className="w-2 h-2 rounded-full bg-[#1DB954]" />
                       </div>
-                      <p className="text-[10px] font-semibold text-slate-400/90 tracking-wide leading-tight mt-0.5 font-sans">
+                      <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide leading-tight mt-0.5 font-sans">
                         PTENit Marketplace Inbox
                       </p>
                     </div>
@@ -753,7 +765,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                     <button
                       type="button"
                       onClick={() => setIsMobileSearchActive(true)}
-                      className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       title="সার্চ করুন"
                     >
                       <Search className="w-4 h-4" />
@@ -761,7 +773,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                     <button
                       type="button"
                       onClick={() => setIsSettingsModalOpen(true)}
-                      className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       title="সেটিংস"
                     >
                       <Settings className="w-4 h-4" />
@@ -840,7 +852,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="সেলার, বায়ার বা সার্ভিস খুঁজুন..."
-                      className="w-full pl-9 pr-8 py-2 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0084FF]"
+                      className="w-full pl-9 pr-8 py-2 bg-white dark:bg-white text-slate-900 dark:text-slate-900 placeholder-slate-400 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#0084FF] shadow-xs"
                     />
                     {searchQuery && (
                       <button
@@ -1540,8 +1552,13 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
 
       {/* 3. SETTINGS MODAL */}
       {isSettingsModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+        <div 
+          onClick={() => setIsSettingsModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <Settings className="w-5 h-5 text-[#0084FF]" />
@@ -1625,8 +1642,13 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
 
       {/* 4. NOTE UPDATE MODAL */}
       {isNoteModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
+        <div 
+          onClick={() => setIsNoteModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-black text-sm text-slate-900 dark:text-white">
                 আপনার স্ট্যাটাস নোট দিন
@@ -1677,8 +1699,13 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
 
       {/* 5. NEW CHAT PICKER MODAL */}
       {isNewChatModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+        <div 
+          onClick={() => setIsNewChatModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <Plus className="w-5 h-5 text-[#0084FF]" />
@@ -1732,8 +1759,13 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
 
       {/* 6. AI ASSISTANT MODAL */}
       {isAiModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+        <div 
+          onClick={() => setIsAiModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-purple-500/10 text-purple-600 flex items-center justify-center">
@@ -1803,7 +1835,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
 
       {/* 7. LIVE VOICE CALL OVERLAY */}
       {activeCallState?.active && (
-        <div className="fixed inset-0 z-70 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white font-bengali animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100000] pointer-events-auto bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white font-bengali animate-in zoom-in-95 duration-200">
           <div className="text-center space-y-4 max-w-sm w-full">
             <div className="relative inline-block">
               <img
@@ -2461,8 +2493,13 @@ const FullScreenChatThread: React.FC<FullScreenChatThreadProps> = ({
 
       {/* CUSTOM OFFER MODAL */}
       {isOfferModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+        <div 
+          onClick={() => setIsOfferModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-emerald-500" />

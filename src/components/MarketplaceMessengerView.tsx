@@ -601,8 +601,13 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
 
       {/* SETTINGS MODAL */}
       {isSettingsModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+        <div 
+          onClick={() => setIsSettingsModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <Settings className="w-5 h-5 text-[#1DB954]" />
@@ -686,8 +691,13 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
 
       {/* NOTE UPDATE MODAL */}
       {isNoteModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-5 space-y-4">
+        <div 
+          onClick={() => setIsNoteModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-black text-sm text-slate-900 dark:text-white">
                 আপনার স্ট্যাটাস নোট দিন
@@ -731,8 +741,13 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
 
       {/* NEW CHAT SELECTION MODAL */}
       {isNewChatModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col">
+        <div 
+          onClick={() => setIsNewChatModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col">
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
               <h3 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#1DB954]" />
@@ -786,8 +801,13 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
 
       {/* AI ASSISTANT PROMPT MODAL */}
       {isAiModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+        <div 
+          onClick={() => setIsAiModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
@@ -845,7 +865,7 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
 
       {/* ACTIVE VOICE CALL MODAL */}
       {activeCallState?.active && (
-        <div className="fixed inset-0 z-70 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 font-bengali animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100000] pointer-events-auto bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 font-bengali animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-sm p-6 text-center space-y-6 shadow-2xl">
             <div className="space-y-2">
               <div className="relative inline-block">
@@ -1228,8 +1248,13 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
 
       {/* CUSTOM PROJECT OFFER MODAL */}
       {isOfferModalOpen && (
-        <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-bengali animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-5 space-y-4">
+        <div 
+          onClick={() => setIsOfferModalOpen(false)}
+          className="fixed inset-0 z-[100000] pointer-events-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-bengali animate-in fade-in duration-150"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-[#1C2733] border border-slate-200 dark:border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-[#1DB954]" />

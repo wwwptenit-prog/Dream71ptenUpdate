@@ -145,3 +145,34 @@
 }
 
 
+
+
+/* Global Text Selection - Crisp White Text with Brand Green Highlight */
+::selection {
+  background-color: #1DB954 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+::-moz-selection {
+  background-color: #1DB954 !important;
+  color: #ffffff !important;
+}
+
+*::selection {
+  background-color: #1DB954 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+*::-moz-selection {
+  background-color: #1DB954 !important;
+  color: #ffffff !important;
+}
+
+input::selection,
+textarea::selection {
+  background-color: #1DB954 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
