@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
+  Radio,
   Briefcase,
   FileCheck,
   Users,
@@ -54,7 +55,8 @@ import {
   Pencil,
   MoreVertical,
   Zap,
-  Banknote
+  Banknote,
+  ChevronRight
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Assignment, AssignmentSubmission, Course, CustomerProject } from '../types';
@@ -204,6 +206,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   const [selectedDetailProject, setSelectedDetailProject] = useState<CustomerProject | null>(null);
   const [offerToastMsg, setOfferToastMsg] = useState<string | null>(null);
   const [offerCountdown, setOfferCountdown] = useState<number>(45);
+  const [currentOfferIndex, setCurrentOfferIndex] = useState<number>(0);
 
   // Notification and Message Filtering & Preferences Toggle State
   const [teacherNotifToggles, setTeacherNotifToggles] = useState({
@@ -641,7 +644,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               {/* Marketplace Projects Link */}
               <button
                 onClick={() => setActiveTab?.('marketplace')}
-                className="px-3 py-2.5 sm:px-3.5 sm:py-3 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 border border-[#1DB954] rounded-xl sm:rounded-2xl shadow-lg flex items-center gap-1.5 cursor-pointer transition-all font-black text-xs"
+                className="px-3 py-2.5 sm:px-3.5 sm:py-3 bg-[#1DB954] hover:bg-emerald-600 text-white border border-[#1DB954] rounded-xl sm:rounded-2xl shadow-lg flex items-center gap-1.5 cursor-pointer transition-all font-black text-xs"
                 title="মার্কেটপ্লেস ও ডেসপ্যাচ জবস"
               >
                 <Briefcase className="w-4 h-4 text-slate-950" />
@@ -1152,141 +1155,167 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
           {/* LIVE OFFER & ORDER NOTIFICATION BANNER INSIDE COVER SECTION */}
           {offeredCourses.length > 0 && (
-            <div className="relative z-20 mt-3 sm:mt-4 max-w-3xl mx-auto animate-slideUp">
+            <div className="relative z-20 mt-1.5 sm:mt-3 w-full max-w-2xl mx-auto animate-slideUp font-bengali">
               {(() => {
-                const offerCourse = offeredCourses[0];
-                const coursePrice = offerCourse.price || 8500;
+                const safeOfferIndex = currentOfferIndex % offeredCourses.length;
+                const offerCourse = offeredCourses[safeOfferIndex] || offeredCourses[0];
+                const coursePrice = offerCourse.price || 9500;
                 const teacherEarnings = Math.round(coursePrice * ((offerCourse.teacherCommissionRate || 90) / 100));
-                const totalModules = offerCourse.targetModules || (offerCourse.modules?.length || 3);
-                const totalLessons = offerCourse.targetLessons || 18;
+                const totalModules = offerCourse.targetModules || (offerCourse.modules?.length || 4);
+                const totalLessons = offerCourse.targetLessons || 20;
+                const timerPercentage = (offerCountdown / 45) * 100;
 
                 return (
-                  <div className="relative overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-emerald-500/30 dark:border-emerald-500/40 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4.5 shadow-2xl text-slate-900 dark:text-white transition-all duration-300 group hover:border-emerald-500/60">
-                    {/* Soft Ambient Glows */}
-                    <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full blur-3xl pointer-events-none bg-emerald-500/15 dark:bg-emerald-500/20" />
-                    <div className="absolute -left-10 -bottom-10 w-28 h-28 rounded-full blur-3xl pointer-events-none bg-teal-500/15 dark:bg-teal-500/20" />
-
-                    {/* Top Sub-Bar: Admin Badge, Offer Tag & Live Countdown */}
-                    <div className="relative z-10 flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800/80">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {/* Admin Badge */}
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700">
-                          <img
-                            src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80"
-                            alt="PTENit Admin"
-                            className="w-4 h-4 rounded-full object-cover border border-emerald-500"
-                          />
-                          <span>PTENit Academy Admin</span>
-                          <BadgeCheck className="w-3.5 h-3.5 text-[#1DB954] shrink-0" />
-                        </div>
-
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 rounded-full text-[11px] font-extrabold border border-emerald-500/30">
-                          <Sparkles className="w-3 h-3 text-[#1DB954]" />
-                          নতুন কোর্স অফার
-                        </span>
+                  <div>
+                    {/* 1. CENTERED AUTO-SEARCH STYLE LIVE TEXT WITH SEQUENTIAL ANIMATED DOTS */}
+                    <div className="flex items-center justify-center gap-2 mb-2 px-3 py-1 text-slate-700 text-[11px] sm:text-xs font-semibold w-fit mx-auto select-none">
+                      <div className="relative flex items-center justify-center">
+                        <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+                        <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-60" />
                       </div>
-
-                      {/* Live Countdown Badge */}
-                      <div
-                        className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-400/60 text-amber-800 dark:text-amber-300 rounded-full text-xs font-black shrink-0 shadow-xs"
-                        title="অফার গ্রহণের সময়সীমা"
-                      >
-                        <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-spin" style={{ animationDuration: '4s' }} />
-                        <span className="font-mono font-black text-xs">
-                          {offerCountdown}s বাকি
+                      <span className="text-slate-800 font-bold tracking-tight flex items-center">
+                        <span>নতুন অর্ডার এসেছে</span>
+                        <span className="inline-flex items-center ml-0.5 font-black text-emerald-600 tracking-wider">
+                          <span className="animate-pulse inline-block" style={{ animationDelay: "0ms", animationDuration: "1s" }}>.</span>
+                          <span className="animate-pulse inline-block" style={{ animationDelay: "200ms", animationDuration: "1s" }}>.</span>
+                          <span className="animate-pulse inline-block" style={{ animationDelay: "400ms", animationDuration: "1s" }}>.</span>
                         </span>
-                      </div>
+                      </span>
                     </div>
 
-                    {/* Main Banner Content */}
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
-                      {/* Left: Cash Credit & Net Earnings */}
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="px-3.5 py-2 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/60 dark:to-teal-950/40 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 shadow-sm flex items-center gap-2.5">
-                          <div className="w-9 h-9 rounded-xl bg-[#1DB954]/15 dark:bg-[#1DB954]/25 flex items-center justify-center shrink-0">
-                            <Banknote className="w-5 h-5 text-[#1DB954] animate-pulse" />
+                    {/* 2. 3D COMPACT ORDER CARD (REDUCED HEIGHT, EXPANDED WIDTH, CRISP TYPOGRAPHY) */}
+                    <div className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-emerald-50/20 rounded-2xl sm:rounded-3xl border-t-2 border-l-2 border-r-2 border-b-4 border-slate-200 hover:border-emerald-300 shadow-[0_12px_28px_-8px_rgba(16,185,129,0.14),0_4px_12px_-2px_rgba(0,0,0,0.05)] p-3 sm:p-3.5 text-slate-800 transition-all font-bengali">
+                      {/* Ambient Top Glow Line */}
+                      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400" />
+
+                      {/* Row 1: Sender Profile & Multi-Order Switcher */}
+                      <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 mt-0.5">
+                        {/* Sender Info */}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="relative shrink-0">
+                            <img
+                              src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=120&q=80"
+                              alt="PTENit"
+                              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover ring-2 ring-emerald-500 shadow-xs"
+                            />
+                            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
                           </div>
-                          <div>
-                            <div className="text-base sm:text-lg font-black text-emerald-900 dark:text-emerald-200 font-mono tracking-tight leading-none flex items-center gap-0.5">
-                              <span>+৳</span>
-                              <span>{coursePrice.toLocaleString('bn-BD')}</span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs sm:text-[13px] font-black text-slate-900 truncate">
+                                PTENit IT Academy
+                              </span>
+                              <BadgeCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                             </div>
-                            <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider mt-0.5">
-                              ক্যাশ ক্রেডিট
-                            </div>
+                            <span className="text-[9px] sm:text-[10px] text-emerald-700 font-bold block leading-none">
+                              মেইন এডমিন • লাইভ কোর্স অফার
+                            </span>
                           </div>
                         </div>
 
-                        <div className="hidden lg:block text-left pl-1">
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                            আপনার সম্ভাব্য আয়:
-                          </span>
-                          <span className="text-xs font-black text-[#1DB954] font-mono">
-                            ৳{teacherEarnings.toLocaleString('bn-BD')}
-                          </span>
-                        </div>
+                        {/* Right: Multi-Order Switcher */}
+                        {offeredCourses.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setCurrentOfferIndex((curr) => (curr + 1) % offeredCourses.length)}
+                            className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold transition flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs shrink-0"
+                            title="অন্যান্য কোর্স অফার দেখুন"
+                          >
+                            <span className="font-mono">{offeredCourses.length}</span>
+                            <span>অর্ডার</span>
+                            <ChevronRight className="w-3 h-3 text-emerald-700" />
+                          </button>
+                        )}
                       </div>
 
-                      {/* Middle: Course Title & Features Pills */}
-                      <div className="min-w-0 flex-1 space-y-1.5">
-                        <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate" title={offerCourse.title}>
+                      {/* Row 2: Course Title & Clean Tags (No Borders, Light Soft Backgrounds) */}
+                      <div className="py-1.5 sm:py-2">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug line-clamp-1" title={offerCourse.title}>
                           {offerCourse.title}
                         </h4>
-
-                        <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
-                            📚 {totalModules}টি মডিউল
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1 text-[10px] sm:text-[11px] font-medium">
+                          <span className="px-2 py-0.5 bg-sky-50/80 text-sky-700 rounded-md flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-sky-600" />
+                            <span>{totalLessons}টি ক্লাস</span>
                           </span>
-                          <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
-                            🎥 {totalLessons}টি লাইভ ক্লাস
+                          <span className="px-2 py-0.5 bg-indigo-50/80 text-indigo-700 rounded-md flex items-center gap-1">
+                            <Layers className="w-3 h-3 text-indigo-600" />
+                            <span>{totalModules}টি মডিউল</span>
                           </span>
-                          <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-md border border-emerald-500/20">
-                            • আয়: ৳{teacherEarnings.toLocaleString('bn-BD')}
+                          <span className="px-2 py-0.5 bg-purple-50/80 text-purple-700 rounded-md flex items-center gap-1">
+                            <Briefcase className="w-3 h-3 text-purple-600" />
+                            <span>{offerCourse.category || "UI/UX"}</span>
                           </span>
                         </div>
                       </div>
 
-                      {/* Right: Actions (View Details & Receive Button) */}
-                      <div className="flex items-center justify-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
-                        {/* View Details Button */}
+                      {/* Row 3: Compact Earnings Box With Subtle Dashed Border */}
+                      <div className="grid grid-cols-2 gap-2 p-2 rounded-xl bg-slate-50/90 border border-dashed border-slate-300 dark:border-slate-700 mb-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                            <Banknote className="w-4 h-4 text-rose-600" />
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-500 font-bold block leading-none">অর্ডার বাজেট</span>
+                            <span className="text-xs sm:text-sm font-black font-mono text-slate-800 leading-tight">
+                              ৳{coursePrice.toLocaleString("bn-BD")}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="border-l border-dashed border-slate-300 dark:border-slate-700 pl-2.5 flex items-center justify-between">
+                          <div>
+                            <span className="text-[9px] text-rose-600 font-bold block leading-none">আপনার আয় (৯০%)</span>
+                            <span className="text-sm sm:text-base font-black font-mono text-emerald-700 leading-tight">
+                              ৳{teacherEarnings.toLocaleString("bn-BD")}
+                            </span>
+                          </div>
+                          <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-600 text-white text-[8px] font-black rounded">
+                            ইনস্ট্যান্ট
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Row 4: 2 Equal Action Buttons With Countdown in the Middle */}
+                      <div className="flex items-center gap-2">
+                        {/* বিস্তারিত Button */}
                         <button
                           type="button"
                           onClick={() => setSelectedDetailCourse(offerCourse)}
-                          className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shrink-0"
-                          title="কোর্সের বিস্তারিত দেখুন"
+                          className="flex-1 py-2 px-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
                         >
-                          <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                          <span>ভিউ ডিটেইলস</span>
+                          <Info className="w-3.5 h-3.5 text-slate-500" />
+                          <span>বিস্তারিত</span>
                         </button>
 
-                        {/* Receive Button */}
+                        {/* Center Countdown Badge */}
+                        <div className="flex items-center gap-1 font-mono text-[11px] text-amber-700 font-black bg-amber-50 px-2 py-1.5 rounded-xl shrink-0 select-none">
+                          <Clock className="w-3 h-3 text-amber-500 animate-spin" style={{ animationDuration: "4s" }} />
+                          <span>{offerCountdown}s</span>
+                        </div>
+
+                        {/* রিসিভ করুন Button */}
                         <button
                           type="button"
                           onClick={() => {
                             acceptCourseOffer(offerCourse.id, currentUser?.id, currentUser?.name);
-                            playChimeSound('accept');
-                            setOfferToastMsg(`🎉 '${offerCourse.title}' অফার রিসিভ করা হয়েছে • ৳${coursePrice.toLocaleString('bn-BD')}`);
+                            playChimeSound("accept");
+                            setOfferToastMsg(`🎉 "${offerCourse.title}" অর্ডার রিসিভ করা হয়েছে • ৳${coursePrice.toLocaleString("bn-BD")}`);
                             setTimeout(() => setOfferToastMsg(null), 4000);
                           }}
-                          className="px-4 py-2 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center gap-1.5 shadow-lg shadow-emerald-500/25 active:scale-95 transition cursor-pointer shrink-0"
+                          className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-600/20 transition flex items-center justify-center gap-1 cursor-pointer"
                         >
-                          <Zap className="w-4 h-4 fill-slate-950 text-slate-950" />
-                          <span>রিসিভ</span>
-                          {offeredCourses.length > 0 && (
-                            <span className="ml-1 px-1.5 py-0.5 bg-slate-950 text-[#1DB954] text-[10px] font-black rounded-full leading-none">
-                              ({offeredCourses.length})
-                            </span>
-                          )}
+                          <Zap className="w-3.5 h-3.5 fill-white text-white" />
+                          <span>রিসিভ করুন</span>
                         </button>
                       </div>
-                    </div>
 
-                    {/* Micro Animated Progress Line */}
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-teal-400 via-[#1DB954] to-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
-                        style={{ width: `${(offerCountdown / 45) * 100}%` }}
-                      />
+                      {/* Micro Animated Progress Line */}
+                      <div className="w-full bg-slate-100 rounded-full h-1 mt-2.5 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-amber-500 via-rose-500 to-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
+                          style={{ width: `${timerPercentage}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                 );
@@ -1294,7 +1323,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
             </div>
           )}
 
-          {/* Quick Metrics Grid */}
+                                                                                                              {/* Quick Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-slate-700/60">
             <div className="bg-slate-800/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-700/80 shadow-inner">
               <span className="text-slate-400 text-[11px] sm:text-xs font-semibold block">মোট কোর্স</span>
@@ -2087,7 +2116,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                             setOfferToastMsg(`🎉 '${course.title}' অফার রিসিভ করা হয়েছে • ৳${(course.price || 4500).toLocaleString()}`);
                             setTimeout(() => setOfferToastMsg(null), 4000);
                           }}
-                          className="flex-1 py-2.5 px-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 dark:text-white font-black text-xs sm:text-sm shadow-md shadow-[#1DB954]/20 hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-1 hover:scale-[1.02] active:scale-95"
+                          className="flex-1 py-2.5 px-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white dark:text-white font-black text-xs sm:text-sm shadow-md shadow-[#1DB954]/20 hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-1 hover:scale-[1.02] active:scale-95"
                         >
                           <CheckCircle2 className="w-4 h-4 text-slate-950 dark:text-white" />
                           <span>রিসিভ করুন</span>
@@ -3570,7 +3599,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 font-black hover:opacity-95 transition cursor-pointer shadow-lg shadow-[#1DB954]/20"
+                    className="w-2/3 py-2.5 rounded-xl bg-gradient-to-r from-[#1DB954] to-emerald-400 text-white font-black hover:opacity-95 transition cursor-pointer shadow-lg shadow-[#1DB954]/20"
                   >
                     আপডেট সংরক্ষণ করুন
                   </button>

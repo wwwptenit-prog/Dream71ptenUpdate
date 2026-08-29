@@ -277,7 +277,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
           
           <button
             onClick={onBack}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-[#1DB954] dark:bg-slate-800 dark:hover:bg-[#1DB954] text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-slate-950 font-bold text-xs sm:text-sm transition cursor-pointer shrink-0 shadow-xs active:scale-95"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-[#1DB954] dark:bg-slate-800 dark:hover:bg-[#1DB954] text-slate-700 dark:text-slate-200 hover:text-white dark:hover:text-white font-bold text-xs sm:text-sm transition cursor-pointer shrink-0 shadow-xs active:scale-95"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>ফিরে যান</span>
@@ -297,7 +297,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(true)}
-                  className="px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-[#1DB954] text-emerald-600 dark:text-[#1DB954] hover:text-slate-950 transition cursor-pointer text-xs font-bold flex items-center gap-1"
+                  className="px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-[#1DB954] text-emerald-600 dark:text-[#1DB954] hover:text-white transition cursor-pointer text-xs font-bold flex items-center gap-1"
                 >
                   <Edit className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">এডিট</span>
@@ -426,7 +426,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveMediaIndex(prev => (prev > 0 ? prev - 1 : mediaList.length - 1))}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/80 hover:bg-[#1DB954] text-white hover:text-slate-950 transition backdrop-blur-md shadow-md cursor-pointer"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/80 hover:bg-[#1DB954] text-white hover:text-white transition backdrop-blur-md shadow-md cursor-pointer"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -434,7 +434,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveMediaIndex(prev => (prev < mediaList.length - 1 ? prev + 1 : 0))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/80 hover:bg-[#1DB954] text-white hover:text-slate-950 transition backdrop-blur-md shadow-md cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-slate-900/80 hover:bg-[#1DB954] text-white hover:text-white transition backdrop-blur-md shadow-md cursor-pointer"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -716,7 +716,9 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                     {reviewsList.map((rev, rIdx) => (
                       <div key={rIdx} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
                         <div className="flex items-center gap-3">
-                          <img src={rev.avatar} alt={rev.name} className="w-10 h-10 rounded-full object-cover border border-[#1DB954]" />
+                          <div className="w-10 h-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-[#1DB954] flex items-center justify-center border border-[#1DB954] shrink-0 font-bold">
+                            <User className="w-5 h-5" />
+                          </div>
                           <div>
                             <h4 className="text-sm font-black text-slate-900 dark:text-white">{rev.name}</h4>
                             <span className="text-xs text-slate-400 font-medium">{rev.date}</span>
@@ -768,7 +770,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                     <button
                       type="button"
                       onClick={handleOpenSellerChat}
-                      className="w-full py-3 bg-slate-900 text-white dark:bg-slate-800 hover:bg-[#1DB954] hover:text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                      className="w-full py-3 bg-slate-900 text-white dark:bg-slate-800 hover:bg-[#1DB954] hover:text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
                     >
                       <MessageSquare className="w-4 h-4 text-[#1DB954]" />
                       <span>মেসেজে কথা বলুন</span>
@@ -1152,7 +1154,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 rounded-xl font-black cursor-pointer shadow"
+                  className="px-5 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white rounded-xl font-black cursor-pointer shadow"
                 >
                   সেভ করুন
                 </button>
@@ -1197,7 +1199,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
 
             <button
               onClick={() => setIsPerformanceModalOpen(false)}
-              className="w-full py-2.5 bg-[#1DB954] text-slate-950 font-black rounded-xl cursor-pointer text-xs shadow"
+              className="w-full py-2.5 bg-[#1DB954] text-white font-black rounded-xl cursor-pointer text-xs shadow"
             >
               বন্ধ করুন
             </button>

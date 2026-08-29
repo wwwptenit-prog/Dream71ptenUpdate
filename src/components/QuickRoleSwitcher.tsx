@@ -97,7 +97,7 @@ export const QuickRoleSwitcher: React.FC<QuickRoleSwitcherProps> = ({ activeTab,
                     </div>
                   </div>
                   {isActive && (
-                    <span className="flex items-center gap-1 text-[10px] bg-[#1DB954] text-slate-950 px-2 py-0.5 rounded-full font-black shadow-sm shrink-0">
+                    <span className="flex items-center gap-1 text-[10px] bg-[#1DB954] text-white px-2 py-0.5 rounded-full font-black shadow-sm shrink-0">
                       <Check className="w-3 h-3" /> এক্টিভ
                     </span>
                   )}

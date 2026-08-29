@@ -37,7 +37,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         {/* Top Badges */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex items-center gap-1 sm:gap-2 flex-wrap">
           {isEnrolled ? (
-            <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-[#1DB954] text-slate-950 font-black text-[9px] sm:text-xs shadow-md uppercase tracking-wider flex items-center gap-1">
+            <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-[#1DB954] text-white font-black text-[9px] sm:text-xs shadow-md uppercase tracking-wider flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3 text-slate-950" /> {t('এনরোল্ড', 'Enrolled')}
             </span>
           ) : course.isFree ? (
@@ -140,7 +140,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                     onOpenDetail(course.id);
                   }
                 }}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-slate-950 bg-[#1DB954] hover:bg-[#19a34a] shadow-xs sm:shadow-md sm:shadow-[#1DB954]/20 transition-all cursor-pointer flex items-center gap-1 active:scale-95 shrink-0"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-white bg-[#1DB954] hover:bg-[#19a34a] shadow-xs sm:shadow-md sm:shadow-[#1DB954]/20 transition-all cursor-pointer flex items-center gap-1 active:scale-95 shrink-0"
               >
                 <PlayCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>{t('ক্লাসে যান →', 'Go to Class →')}</span>

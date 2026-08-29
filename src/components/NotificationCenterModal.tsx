@@ -327,7 +327,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               onClick={() => setActiveFilter("all")}
               className={`px-3 py-1.5 rounded-full transition cursor-pointer whitespace-nowrap ${
                 activeFilter === "all"
-                  ? "bg-[#1DB954] text-slate-950 font-black shadow-xs"
+                  ? "bg-[#1DB954] text-white font-black shadow-xs"
                   : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
@@ -338,7 +338,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               onClick={() => setActiveFilter("unread")}
               className={`px-3 py-1.5 rounded-full transition cursor-pointer whitespace-nowrap flex items-center gap-1 ${
                 activeFilter === "unread"
-                  ? "bg-[#1DB954] text-slate-950 font-black shadow-xs"
+                  ? "bg-[#1DB954] text-white font-black shadow-xs"
                   : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
@@ -350,7 +350,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               onClick={() => setActiveFilter("orders")}
               className={`px-3 py-1.5 rounded-full transition cursor-pointer whitespace-nowrap ${
                 activeFilter === "orders"
-                  ? "bg-[#1DB954] text-slate-950 font-black shadow-xs"
+                  ? "bg-[#1DB954] text-white font-black shadow-xs"
                   : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
@@ -361,7 +361,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               onClick={() => setActiveFilter("updates")}
               className={`px-3 py-1.5 rounded-full transition cursor-pointer whitespace-nowrap ${
                 activeFilter === "updates"
-                  ? "bg-[#1DB954] text-slate-950 font-black shadow-xs"
+                  ? "bg-[#1DB954] text-white font-black shadow-xs"
                   : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
@@ -410,7 +410,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                   <button
                     type="button"
                     onClick={() => handleActionClick(selectedNotification)}
-                    className="flex-1 py-3 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer active:scale-95"
+                    className="flex-1 py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 transition shadow-md cursor-pointer active:scale-95"
                   >
                     <span>
                       {selectedNotification.actionLabel || "সরাসরি ওপেন করুন"}
@@ -586,7 +586,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                 <button
                   type="button"
                   onClick={() => setIsNotifSettingsOpen(false)}
-                  className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black rounded-xl transition text-xs shadow-md cursor-pointer"
+                  className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black rounded-xl transition text-xs shadow-md cursor-pointer"
                 >
                   সংরক্ষণ ও বন্ধ করুন
                 </button>

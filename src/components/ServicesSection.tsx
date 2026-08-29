@@ -225,7 +225,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => setMobileAgencyExpanded(!mobileAgencyExpanded)}
-                  className="w-full max-w-xs py-2.5 px-5 rounded-2xl bg-[#1DB954] hover:bg-emerald-600 active:scale-95 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition font-bengali shadow-md cursor-pointer"
+                  className="w-full max-w-xs py-2.5 px-5 rounded-2xl bg-[#1DB954] hover:bg-emerald-600 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-2 transition font-bengali shadow-md cursor-pointer"
                 >
                   <span>
                     {mobileAgencyExpanded
@@ -451,7 +451,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => setMobileAgencyExpanded(!mobileAgencyExpanded)}
-                  className="w-full max-w-xs py-2.5 px-5 rounded-2xl bg-[#1DB954] hover:bg-emerald-600 active:scale-95 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition font-bengali shadow-md cursor-pointer"
+                  className="w-full max-w-xs py-2.5 px-5 rounded-2xl bg-[#1DB954] hover:bg-emerald-600 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-2 transition font-bengali shadow-md cursor-pointer"
                 >
                   <span>
                     {mobileAgencyExpanded

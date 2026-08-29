@@ -257,7 +257,7 @@ const MainAppContent: React.FC = () => {
   return (
     <div
       style={siteSettings?.customScalePercent && siteSettings.customScalePercent !== 100 ? { zoom: `${siteSettings.customScalePercent}%` } : undefined}
-      className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-[#1DB954] selection:text-white max-w-full overflow-x-hidden"
+      className="min-h-screen bg-slate-50 dark:bg-slate-900 text-white dark:text-slate-100 flex flex-col font-sans selection:bg-[#1DB954] selection:text-white max-w-full overflow-x-hidden"
     >
       
       {/* Top Main Navbar (Only shown on public website pages) */}

@@ -183,7 +183,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {mode === 'forgot' ? (
           resetSuccess ? (
             <div className="space-y-3 text-center py-2 bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl">
-              <div className="w-10 h-10 rounded-full bg-[#1DB954] text-slate-950 flex items-center justify-center mx-auto shadow-md">
+              <div className="w-10 h-10 rounded-full bg-[#1DB954] text-white flex items-center justify-center mx-auto shadow-md">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div className="space-y-1">
@@ -197,7 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="button"
                 onClick={() => { setMode('login'); setResetSuccess(false); setErrorMsg(''); }}
-                className="w-full py-2 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow transition cursor-pointer"
+                className="w-full py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl shadow transition cursor-pointer"
               >
                 লগইন করুন
               </button>
@@ -244,7 +244,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{resetLoading ? 'পাঠানো হচ্ছে...' : 'রিসেট মেইল পাঠান'}</span>
@@ -466,7 +466,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#1DB954] hover:bg-emerald-500 text-slate-950 font-black text-sm sm:text-base rounded-2xl shadow-lg shadow-[#1DB954]/25 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 tracking-wide mt-1"
+              className="w-full py-3.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg shadow-[#1DB954]/25 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 tracking-wide mt-1"
             >
               <LogIn className="w-4 h-4 stroke-[2.5]" />
               <span>লগইন করুন</span>

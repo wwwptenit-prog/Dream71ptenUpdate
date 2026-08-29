@@ -456,7 +456,7 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
                 onClick={() => setActiveCategoryFilter(tab.id as any)}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                   activeCategoryFilter === tab.id
-                    ? 'bg-[#1DB954] text-slate-950 font-black shadow-xs'
+                    ? 'bg-[#1DB954] text-white font-black shadow-xs'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                 }`}
               >
@@ -680,7 +680,7 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
               <button
                 type="button"
                 onClick={() => setIsSettingsModalOpen(false)}
-                className="px-4 py-2 bg-[#1DB954] text-slate-950 text-xs font-black rounded-xl cursor-pointer shadow-xs transition"
+                className="px-4 py-2 bg-[#1DB954] text-white text-xs font-black rounded-xl cursor-pointer shadow-xs transition"
               >
                 সংরক্ষণ করুন
               </button>
@@ -730,7 +730,7 @@ export const MarketplaceMessengerView: React.FC<MarketplaceMessengerViewProps> =
               <button
                 type="button"
                 onClick={() => setIsNoteModalOpen(false)}
-                className="px-4 py-1.5 bg-[#1DB954] text-slate-950 text-xs font-black rounded-lg cursor-pointer"
+                className="px-4 py-1.5 bg-[#1DB954] text-white text-xs font-black rounded-lg cursor-pointer"
               >
                 শেয়ার করুন
               </button>
@@ -1096,7 +1096,7 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
               <div
                 className={`px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-2xs ${
                   m.isSelf
-                    ? 'bg-[#1DB954] text-slate-950 font-bold rounded-2xl rounded-br-xs'
+                    ? 'bg-[#1DB954] text-white font-bold rounded-2xl rounded-br-xs'
                     : 'bg-white dark:bg-[#243447] text-slate-900 dark:text-slate-100 border border-slate-200/70 dark:border-slate-700/60 rounded-2xl rounded-bl-xs'
                 }`}
               >
@@ -1131,7 +1131,7 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
                         onClick={() => {
                           alert('অভিনন্দন! ডাইরেক্ট প্রজেক্ট অর্ডার কনফার্ম করা হয়েছে এবং এস্ক্রো গেটওয়েতে ফান্ড সিকিউরড করা হয়েছে।');
                         }}
-                        className="w-full py-2 px-3 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition active:scale-95"
+                        className="w-full py-2 px-3 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition active:scale-95"
                       >
                         <ShoppingBag className="w-4 h-4" />
                         <span>অর্ডার একসেপ্ট ও সিকিউরড পেমেন্ট</span>
@@ -1236,7 +1236,7 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
             disabled={!inputText.trim()}
             className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full cursor-pointer transition active:scale-95 shadow-xs shrink-0 flex items-center justify-center ${
               inputText.trim()
-                ? 'bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 opacity-100'
+                ? 'bg-[#1DB954] hover:bg-[#19a34a] text-white opacity-100'
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed opacity-60'
             }`}
             title="পাঠান"
@@ -1314,7 +1314,7 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
               <button
                 type="button"
                 onClick={handleSendCustomOffer}
-                className="px-4 py-2 bg-[#1DB954] text-slate-950 text-xs font-black rounded-xl cursor-pointer shadow-md hover:bg-[#19a34a] transition"
+                className="px-4 py-2 bg-[#1DB954] text-white text-xs font-black rounded-xl cursor-pointer shadow-md hover:bg-[#19a34a] transition"
               >
                 অফার সেন্ড করুন 🚀
               </button>

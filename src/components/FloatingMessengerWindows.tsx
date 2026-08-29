@@ -23,6 +23,7 @@ import {
   Mic,
   MicOff,
   Volume2,
+  User,
   PhoneOff,
   Briefcase,
   Clock,
@@ -547,22 +548,28 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                         setActiveCategoryFilter('all');
                         if (setActiveMessengerConversationId) setActiveMessengerConversationId(null);
                       }}
-                      className="p-1 -ml-1 rounded-lg text-slate-200 hover:text-white hover:bg-slate-800/80 transition cursor-pointer shrink-0"
+                      className="p-1 -ml-1 rounded-lg text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
                       title="ইনবক্সে ফিরে যান"
                     >
-                      <ChevronLeft className="w-5 h-5 text-slate-100" />
+                      <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200 stroke-[2.5]" />
                     </button>
                     <div className="relative shrink-0 p-[2px] rounded-full bg-gradient-to-tr from-emerald-400 via-blue-500 to-cyan-400 shadow-xs">
-                      <img
-                        src={currentActiveWin.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
-                        alt={currentActiveWin.senderName}
-                        className="w-8 h-8 rounded-full object-cover border border-[#0B132B]"
-                      />
+                      {currentActiveWin.senderRole === 'customer' || currentActiveWin.senderRole === 'buyer' ? (
+                        <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center border border-[#0B132B]">
+                          <User className="w-4 h-4" />
+                        </div>
+                      ) : (
+                        <img
+                          src={currentActiveWin.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
+                          alt={currentActiveWin.senderName}
+                          className="w-8 h-8 rounded-full object-cover border border-[#0B132B]"
+                        />
+                      )}
                       <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#1DB954] border-2 border-[#0B132B]" />
                     </div>
                     <div className="min-w-0 flex flex-col justify-center">
                       <div className="flex items-center gap-1">
-                        <h2 className="text-xs sm:text-sm font-black text-white tracking-tight leading-tight truncate">
+                        <h2 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight leading-tight truncate">
                           {currentActiveWin.senderName}
                         </h2>
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#0084FF] fill-[#0084FF] text-white shrink-0" title="ভেরিফাইড প্রোফাইল" />
@@ -956,7 +963,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                         {activeCourseFeatureModal.featureType === 'video' && (
                           <div className="space-y-3">
                             <div className="aspect-video w-full rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center p-4 text-center relative overflow-hidden">
-                              <div className="w-12 h-12 rounded-full bg-[#1DB954] text-slate-950 flex items-center justify-center shadow-lg mb-2">
+                              <div className="w-12 h-12 rounded-full bg-[#1DB954] text-white flex items-center justify-center shadow-lg mb-2">
                                 <Play className="w-6 h-6 fill-slate-950 ml-0.5" />
                               </div>
                               <p className="text-xs font-bold text-white">Lesson 17: Redux Toolkit State Management & RTK Query</p>
@@ -964,7 +971,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                             </div>
                             <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
                               <span className="text-[11px] text-emerald-400 font-bold">✓ ১৬/২০ লেসন সম্পূর্ণ</span>
-                              <button onClick={() => alert('পরবর্তী ক্লাসে চলে যাওয়া হচ্ছে...')} className="px-3 py-1.5 bg-[#1DB954] text-slate-950 font-black rounded-lg text-xs hover:bg-emerald-400 transition cursor-pointer">
+                              <button onClick={() => alert('পরবর্তী ক্লাসে চলে যাওয়া হচ্ছে...')} className="px-3 py-1.5 bg-[#1DB954] text-white font-black rounded-lg text-xs hover:bg-emerald-400 transition cursor-pointer">
                                 পরবর্তী লেসন →
                               </button>
                             </div>
@@ -1040,7 +1047,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                                 </label>
                               </div>
                             </div>
-                            <button onClick={() => alert('কুইজ উত্তর সাবমিট করা হয়েছে! স্কোর: ১০০%')} className="w-full py-2 bg-[#1DB954] hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl cursor-pointer">
+                            <button onClick={() => alert('কুইজ উত্তর সাবমিট করা হয়েছে! স্কোর: ১০০%')} className="w-full py-2 bg-[#1DB954] hover:bg-emerald-400 text-white font-black text-xs rounded-xl cursor-pointer">
                               উত্তর জমা দিন
                             </button>
                           </div>
@@ -1054,7 +1061,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                               rows={2}
                               className="w-full p-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-[#1DB954]"
                             />
-                            <button onClick={() => alert('আপনার প্রশ্ন সফলভাবে সাবমিট হয়েছে। ইন্সট্রাকটর শীঘ্রই উত্তর দিবেন।')} className="w-full py-2 bg-[#1DB954] text-slate-950 font-black text-xs rounded-xl cursor-pointer">
+                            <button onClick={() => alert('আপনার প্রশ্ন সফলভাবে সাবমিট হয়েছে। ইন্সট্রাকটর শীঘ্রই উত্তর দিবেন।')} className="w-full py-2 bg-[#1DB954] text-white font-black text-xs rounded-xl cursor-pointer">
                               প্রশ্ন পাঠান
                             </button>
                           </div>
@@ -1227,7 +1234,7 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
                         onClick={() => {
                           handleCloseAll();
                         }}
-                        className="px-3 py-2 bg-[#1DB954] hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs shrink-0 cursor-pointer transition shadow"
+                        className="px-3 py-2 bg-[#1DB954] hover:bg-emerald-400 text-white font-black rounded-xl text-xs shrink-0 cursor-pointer transition shadow"
                       >
                         কোর্স ক্যাটালগ →
                       </button>
@@ -1953,11 +1960,17 @@ const SingleChatWindow: React.FC<SingleChatWindowProps> = ({
       <div className="px-3.5 py-2.5 bg-gradient-to-r from-[#0084FF] to-[#0066CC] text-white flex items-center justify-between select-none shadow-md">
         <div className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer" onClick={onMinimize} title="মিনিমাইজ / ম্যাক্সিমাইজ করুন">
           <div className="relative shrink-0">
-            <img
-              src={win.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
-              alt={win.senderName}
-              className="w-8 h-8 rounded-full object-cover border-2 border-white/60 shadow-xs"
-            />
+            {win.senderRole === 'customer' || win.senderRole === 'buyer' ? (
+              <div className="w-8 h-8 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center border-2 border-white/60 shadow-xs">
+                <User className="w-4 h-4" />
+              </div>
+            ) : (
+              <img
+                src={win.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
+                alt={win.senderName}
+                className="w-8 h-8 rounded-full object-cover border-2 border-white/60 shadow-xs"
+              />
+            )}
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-1.5 ring-white" />
           </div>
           <div className="min-w-0 flex-1">
@@ -2317,11 +2330,17 @@ const FullScreenChatThread: React.FC<FullScreenChatThreadProps> = ({
             className={`flex items-end gap-2 ${m.isSelf ? 'justify-end' : 'justify-start'}`}
           >
             {!m.isSelf && (
-              <img
-                src={m.senderAvatar || win.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
-                alt=""
-                className="w-7 h-7 rounded-full object-cover shrink-0 mb-1"
-              />
+              win.senderRole === 'customer' || win.senderRole === 'buyer' ? (
+                <div className="w-7 h-7 rounded-full bg-slate-800 text-emerald-400 flex items-center justify-center shrink-0 mb-1 border border-slate-700">
+                  <User className="w-3.5 h-3.5" />
+                </div>
+              ) : (
+                <img
+                  src={m.senderAvatar || win.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
+                  alt=""
+                  className="w-7 h-7 rounded-full object-cover shrink-0 mb-1"
+                />
+              )
             )}
 
             <div className={`flex flex-col ${m.isSelf ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[70%]`}>
@@ -2363,7 +2382,7 @@ const FullScreenChatThread: React.FC<FullScreenChatThreadProps> = ({
                         onClick={() => {
                           alert('অভিনন্দন! ডাইরেক্ট প্রজেক্ট অর্ডার কনফার্ম করা হয়েছে এবং এস্ক্রো গেটওয়েতে ফান্ড সিকিউরড করা হয়েছে।');
                         }}
-                        className="w-full py-2 px-3 bg-[#1DB954] hover:bg-[#19a34a] text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition active:scale-95"
+                        className="w-full py-2 px-3 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition active:scale-95"
                       >
                         <ShoppingBag className="w-4 h-4" />
                         <span>অর্ডার একসেপ্ট ও সিকিউরড পেমেন্ট</span>

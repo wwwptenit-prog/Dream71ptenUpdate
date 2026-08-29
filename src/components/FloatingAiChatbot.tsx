@@ -462,7 +462,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
               {/* Bot Icon with AI Colorful Sparkles */}
               <div className="relative flex items-center justify-center">
                 {/* Bot Icon on Dark Circle - White Color & Prominent Size */}
-                <div className="w-8 h-8 rounded-full bg-black sm:bg-gradient-to-tr sm:from-[#1DB954] sm:to-emerald-400 flex items-center justify-center text-white sm:text-slate-950 shadow-inner">
+                <div className="w-8 h-8 rounded-full bg-black sm:bg-gradient-to-tr sm:from-[#1DB954] sm:to-emerald-400 flex items-center justify-center text-white sm:text-white shadow-inner">
                   <Bot className="w-5.5 h-5.5 sm:w-4 sm:h-4 text-white sm:text-slate-950 stroke-[2.2]" />
                 </div>
                 
@@ -494,7 +494,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
           <div className="bg-gradient-to-r from-[#091124] via-[#0f1d3a] to-[#091124] p-3.5 border-b border-slate-800 flex items-center justify-between text-white shrink-0 shadow-md">
             <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-[#1DB954] via-emerald-400 to-[#38bdf8] flex items-center justify-center border-2 border-[#34d399] shadow-md text-slate-950">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-[#1DB954] via-emerald-400 to-[#38bdf8] flex items-center justify-center border-2 border-[#34d399] shadow-md text-white">
                   <Bot className="w-5 h-5 text-slate-950" />
                 </div>
                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#1DB954] border-2 border-slate-950 rounded-full animate-pulse"></span>
@@ -502,7 +502,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-white font-heading tracking-wide flex items-center gap-1.5">
                   AI Assistant
-                  <span className="text-[9px] bg-[#1DB954] text-slate-950 px-1.5 py-0.2 rounded-full font-extrabold">
+                  <span className="text-[9px] bg-[#1DB954] text-white px-1.5 py-0.2 rounded-full font-extrabold">
                     ONLINE
                   </span>
                 </h3>
@@ -542,7 +542,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                     }`}
                   >
                     {m.sender === 'user' ? (
-                      <div className="w-7 h-7 rounded-full bg-[#1DB954] text-slate-950 flex items-center justify-center shrink-0 border border-[#34d399] font-bold shadow">
+                      <div className="w-7 h-7 rounded-full bg-[#1DB954] text-white flex items-center justify-center shrink-0 border border-[#34d399] font-bold shadow">
                         <User className="w-3.5 h-3.5" />
                       </div>
                     ) : m.sender === 'agent' ? (
@@ -552,7 +552,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                         className="w-8 h-8 rounded-full object-cover shrink-0 border-2 border-[#1DB954] shadow"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1DB954] via-emerald-500 to-[#38bdf8] text-slate-950 flex items-center justify-center shrink-0 border border-[#34d399] font-extrabold shadow text-sm">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1DB954] via-emerald-500 to-[#38bdf8] text-white flex items-center justify-center shrink-0 border border-[#34d399] font-extrabold shadow text-sm">
                         <Bot className="w-4 h-4 text-slate-950" />
                       </div>
                     )}
@@ -561,7 +561,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                       <div
                         className={`p-3 rounded-2xl shadow text-xs leading-relaxed space-y-1.5 ${
                           m.sender === 'user'
-                            ? 'bg-[#1DB954] text-slate-950 font-semibold rounded-tr-none'
+                            ? 'bg-[#1DB954] text-white font-semibold rounded-tr-none'
                             : 'bg-[#131f37] text-slate-100 border border-slate-700/80 rounded-tl-none font-sans'
                         }`}
                       >
@@ -631,7 +631,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
                                     {card.badge && (
-                                      <span className="absolute top-1.5 right-1.5 bg-[#1DB954] text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-md shadow">
+                                      <span className="absolute top-1.5 right-1.5 bg-[#1DB954] text-white font-black text-[9px] px-1.5 py-0.5 rounded-md shadow">
                                         {card.badge}
                                       </span>
                                     )}
@@ -674,7 +674,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
 
                                   <button
                                     onClick={() => handleCardClick(card)}
-                                    className="w-full py-1.5 bg-[#1DB954] hover:bg-[#18a249] active:scale-95 text-slate-950 font-extrabold text-[10px] rounded-xl flex items-center justify-center gap-1 transition shadow cursor-pointer"
+                                    className="w-full py-1.5 bg-[#1DB954] hover:bg-[#18a249] active:scale-95 text-white font-extrabold text-[10px] rounded-xl flex items-center justify-center gap-1 transition shadow cursor-pointer"
                                   >
                                     <span>{card.actionText}</span>
                                     <ExternalLink className="w-3 h-3" />
@@ -719,7 +719,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                       key={idx}
                       disabled={isBusy}
                       onClick={() => handleSend(sug)}
-                      className="px-2.5 py-1.5 bg-slate-900 hover:bg-[#1DB954] hover:text-slate-950 disabled:opacity-50 disabled:hover:bg-slate-900 disabled:hover:text-slate-200 text-slate-200 border border-slate-700/80 rounded-xl text-[11px] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed transition shadow-sm"
+                      className="px-2.5 py-1.5 bg-slate-900 hover:bg-[#1DB954] hover:text-white disabled:opacity-50 disabled:hover:bg-slate-900 disabled:hover:text-slate-200 text-slate-200 border border-slate-700/80 rounded-xl text-[11px] font-semibold whitespace-nowrap cursor-pointer disabled:cursor-not-allowed transition shadow-sm"
                     >
                       {sug}
                     </button>
@@ -750,7 +750,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                 <button
                   type="submit"
                   disabled={isBusy || !inputMsg.trim()}
-                  className="p-2.5 bg-[#1DB954] hover:bg-[#19a34a] disabled:opacity-50 text-slate-950 font-bold rounded-xl shadow cursor-pointer disabled:cursor-not-allowed transition shrink-0"
+                  className="p-2.5 bg-[#1DB954] hover:bg-[#19a34a] disabled:opacity-50 text-white font-bold rounded-xl shadow cursor-pointer disabled:cursor-not-allowed transition shrink-0"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -778,7 +778,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                 className="w-16 h-16 rounded-xl object-cover border border-[#1DB954]"
               />
               <div>
-                <span className="text-[10px] font-bold bg-[#1DB954] text-slate-950 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-bold bg-[#1DB954] text-white px-2 py-0.5 rounded-full">
                   {selectedModalCard.badge || 'PTENit Service'}
                 </span>
                 <h3 className="text-sm font-extrabold text-white mt-1 leading-snug">
@@ -790,7 +790,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
 
             {orderSuccess ? (
               <div className="py-8 text-center space-y-3">
-                <div className="w-16 h-16 bg-[#1DB954] text-slate-950 rounded-full flex items-center justify-center mx-auto animate-bounce">
+                <div className="w-16 h-16 bg-[#1DB954] text-white rounded-full flex items-center justify-center mx-auto animate-bounce">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
                 <h4 className="text-lg font-black text-white">অর্ডার সফলভাবে কনফার্ম হয়েছে! 🎈</h4>
@@ -810,7 +810,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
                         onClick={() => setSelectedPkg(pkg)}
                         className={`py-1.5 rounded-xl font-bold capitalize border text-[11px] transition cursor-pointer ${
                           selectedPkg === pkg
-                            ? 'bg-[#1DB954] text-slate-950 border-[#1DB954]'
+                            ? 'bg-[#1DB954] text-white border-[#1DB954]'
                             : 'bg-slate-900 text-slate-300 border-slate-700'
                         }`}
                       >
@@ -879,7 +879,7 @@ export const FloatingAiChatbot: React.FC<FloatingAiChatbotProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[#1DB954] hover:bg-[#18a249] text-slate-950 font-black rounded-xl text-xs transition cursor-pointer shadow-lg mt-2"
+                  className="w-full py-2.5 bg-[#1DB954] hover:bg-[#18a249] text-white font-black rounded-xl text-xs transition cursor-pointer shadow-lg mt-2"
                 >
                   অর্ডার কনফার্ম করুন 🚀
                 </button>

@@ -737,7 +737,7 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                       setActiveTab('marketplace');
                     }
                   }}
-                  className="py-3 px-2 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md truncate"
+                  className="py-3 px-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md truncate"
                 >
                   <ArrowRight className="w-4 h-4 shrink-0 text-slate-950" />
                   <span className="truncate">বায়ারের ড্যাশবোর্ডে যান</span>

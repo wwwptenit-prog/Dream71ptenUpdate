@@ -22,7 +22,6 @@ import {
   FileText,
   Paperclip,
   Pencil,
-  Palette,
   Check,
   Sparkles,
   ArrowRight,
@@ -38,6 +37,7 @@ import {
   LogIn,
   LogOut,
   GraduationCap,
+  Radio,
   ShieldAlert,
   User,
   Code,
@@ -616,25 +616,42 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     return 'courses';
   });
   const [overviewInnerTab, setOverviewInnerTab] = useState<'all' | 'courses' | 'orders'>('all');
-  const [buyerOrderStatusFilter, setBuyerOrderStatusFilter] = useState<'all' | 'in_progress' | 'in_review' | 'completed' | 'cancelled' | 'public_projects' | 'courses'>('all');
-  const [revisionModalOrder, setRevisionModalOrder] = useState<any | null>(null);
-  const [revisionNote, setRevisionNote] = useState<string>("");
+  const [buyerOrderStatusFilter, setBuyerOrderStatusFilter] = useState<'all' | 'in_progress' | 'in_review' | 'completed' | 'cancelled' | 'public_projects'>('public_projects');
   const [messengerSubTabFilter, setMessengerSubTabFilter] = useState<'all' | 'sellers' | 'online' | 'orders'>('all');
   const [isMessengerSearchActive, setIsMessengerSearchActive] = useState(false);
   const [messengerSearchQuery, setMessengerSearchQuery] = useState('');
-  const [isOrderSearchActive, setIsOrderSearchActive] = useState(false);
-  const [isMarketplaceSettingsModalOpen, setIsMarketplaceSettingsModalOpen] = useState(false);
-  const [mktSettings, setMktSettings] = useState({
-    notifications: true,
-    autoSaveOrders: true,
-    soundAlerts: true,
-    currency: "BDT"
-  });
-  const [orderSearchQuery, setOrderSearchQuery] = useState('');
   const [isSavedSearchActive, setIsSavedSearchActive] = useState(false);
   const [savedSearchQuery, setSavedSearchQuery] = useState('');
-
-
+  const [savedCategoryFilter, setSavedCategoryFilter] = useState('all');
+  const [isSavedGigsSettingsModalOpen, setIsSavedGigsSettingsModalOpen] = useState(false);
+  const [isOrdersSettingsModalOpen, setIsOrdersSettingsModalOpen] = useState(false);
+  const [orderNotificationAlerts, setOrderNotificationAlerts] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('ptenit_order_alerts') !== 'false';
+    } catch {
+      return true;
+    }
+  });
+  const [isMessengerSettingsModalOpen, setIsMessengerSettingsModalOpen] = useState(false);
+  const [messengerOnlineStatus, setMessengerOnlineStatus] = useState(true);
+  const [messengerSoundAlerts, setMessengerSoundAlerts] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('ptenit_messenger_sound') !== 'false';
+    } catch {
+      return true;
+    }
+  });
+  const [savedGigsSort, setSavedGigsSort] = useState<'recent' | 'price_asc' | 'price_desc' | 'rating' | 'popular'>('recent');
+  const [savedGigsPriceAlerts, setSavedGigsPriceAlerts] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('ptenit_saved_price_alerts') !== 'false';
+    } catch {
+      return true;
+    }
+  });
+  const [savedWishlistCopied, setSavedWishlistCopied] = useState(false);
+  const [isOrderSearchActive, setIsOrderSearchActive] = useState(false);
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
   const activeMessengerUser = useMemo(() => {
     if (!activeMessengerConversationId) return null;
@@ -663,7 +680,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     };
     return defaultContacts[activeMessengerConversationId] || { name: '‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶ö‡ßç‡¶Ø‡¶æ‡¶ü', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80', role: '‡¶Ö‡¶®‡¶≤‡¶æ‡¶á‡¶®' };
   }, [activeMessengerConversationId, activeChatWindows]);
-  const [sellerOrderFilter, setSellerOrderFilter] = useState<'all' | 'pending' | 'in_progress' | 'in_review' | 'completed'>('all');
+  const [sellerOrderFilter, setSellerOrderFilter] = useState<'pending' | 'in_progress' | 'in_review' | 'completed'>('pending');
 
   // Public Project Post Modal States
   const [detailsModalOrder, setDetailsModalOrder] = useState<any | null>(null);
@@ -825,6 +842,16 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   const [orderProgressNote, setOrderProgressNote] = useState<{ [orderId: string]: string }>({});
   const [readOrderIds, setReadOrderIds] = useState<{ [orderId: string]: boolean }>({});
   const [deliveringOrder, setDeliveringOrder] = useState<any | null>(null);
+  const [viewingOrderDetails, setViewingOrderDetails] = useState<any | null>(null);
+  const [nowTimestamp, setNowTimestamp] = useState<number>(Date.now());
+
+  // 1-second interval for real-time countdown decrement
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowTimestamp(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
   const [deliveryNote, setDeliveryNote] = useState('');
   const [deliveryFileUrl, setDeliveryFileUrl] = useState('');
   const [deliveryFileName, setDeliveryFileName] = useState('');
@@ -855,10 +882,6 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   const [isFilterBarVisible, setIsFilterBarVisible] = useState(true);
   const [isMobileCatSheetOpen, setIsMobileCatSheetOpen] = useState(false);
   const [isMobileFilterSheetOpen, setIsMobileFilterSheetOpen] = useState(false);
-  // Mobile expansion toggles for 2-column sections (max 4 by default on phone)
-  const [mobileServicesExpanded, setMobileServicesExpanded] = useState(false);
-  const [mobileCoursesExpanded, setMobileCoursesExpanded] = useState(false);
-  const [mobileGigsExpanded, setMobileGigsExpanded] = useState(false);
 
   // Dynamic Live Class Schedule State per course
   const [courseLiveSchedules, setCourseLiveSchedules] = useState<{ [id: string]: string }>({
@@ -904,6 +927,115 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   const [assignmentSubmittedMap, setAssignmentSubmittedMap] = useState<{ [key: string]: boolean }>({
     'asg-1': true
   });
+
+  const getOrderCountdown = (ord: any, currentNow: number) => {
+    if (!ord) return null;
+    if (ord.status === "completed") {
+      return {
+        text: "‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶® ‡¶ì ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡ßç‡¶°",
+        shortBadge: "‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶®",
+        isOverdue: false,
+        badgeColor: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-[#1DB954]",
+        penaltyAmount: 0,
+        buyerBonus: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      };
+    }
+    if (ord.status === "cancelled") {
+      return {
+        text: "‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá",
+        shortBadge: "‡¶¨‡¶æ‡¶§‡¶ø‡¶≤",
+        isOverdue: false,
+        badgeColor: "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300",
+        penaltyAmount: 0,
+        buyerBonus: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      };
+    }
+    if (ord.status === "in_review" || ord.status === "revision_requested") {
+      return {
+        text: "‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø ‡¶ú‡¶Æ‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá ‚Ä¢ ‡¶¨‡¶æ‡ßü‡¶æ‡¶∞ ‡¶∞‡¶ø‡¶≠‡¶ø‡¶â ‡¶ï‡¶∞‡¶õ‡ßá‡¶®",
+        shortBadge: "‡¶∞‡¶ø‡¶≠‡¶ø‡¶â‡¶ß‡ßÄ‡¶®",
+        isOverdue: false,
+        badgeColor: "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300",
+        penaltyAmount: 0,
+        buyerBonus: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      };
+    }
+
+    const createdTime = ord.createdAt ? new Date(ord.createdAt).getTime() : (currentNow - 3600 * 1000 * 4);
+    const deliveryDays = ord.deliveryDays || 3;
+    const deadline = (ord.deadlineDate ? new Date(ord.deadlineDate).getTime() : 0) || (createdTime + deliveryDays * 24 * 3600 * 1000);
+    const diff = deadline - currentNow;
+
+    const penaltyAmount = Math.round((ord.amount || 0) * 0.05);
+    const buyerBonus = Math.round((ord.amount || 0) * 0.03);
+
+    if (diff > 0) {
+      const totalSecs = Math.floor(diff / 1000);
+      const d = Math.floor(totalSecs / 86400);
+      const h = Math.floor((totalSecs % 86400) / 3600);
+      const m = Math.floor((totalSecs % 3600) / 60);
+      const s = totalSecs % 60;
+
+      const dStr = d.toLocaleString("bn-BD");
+      const hStr = h.toLocaleString("bn-BD");
+      const mStr = m.toLocaleString("bn-BD");
+      const sStr = s.toLocaleString("bn-BD");
+
+      let formattedText = "";
+      if (d > 0) {
+        formattedText = `‡¶¨‡¶æ‡¶ï‡¶ø: ${dStr}‡¶¶‡¶ø‡¶® ${hStr}‡¶ò ${mStr}‡¶Æ‡¶ø ${sStr}‡¶∏‡ßá`;
+      } else {
+        formattedText = `‡¶¨‡¶æ‡¶ï‡¶ø: ${hStr}‡¶ò ${mStr}‡¶Æ‡¶ø ${sStr}‡¶∏‡ßá`;
+      }
+
+      return {
+        text: formattedText,
+        shortBadge: d > 0 ? `${dStr}‡¶¶‡¶ø‡¶® ${hStr}‡¶ò` : `${hStr}‡¶ò ${mStr}‡¶Æ‡¶ø`,
+        isOverdue: false,
+        badgeColor: d > 0 ? "bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300" : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300",
+        penaltyAmount,
+        buyerBonus,
+        days: d,
+        hours: h,
+        minutes: m,
+        seconds: s,
+      };
+    } else {
+      const absSecs = Math.floor(Math.abs(diff) / 1000);
+      const h = Math.floor(absSecs / 3600);
+      const m = Math.floor((absSecs % 3600) / 60);
+      const s = absSecs % 60;
+
+      const hStr = h.toLocaleString("bn-BD");
+      const mStr = m.toLocaleString("bn-BD");
+      const sStr = s.toLocaleString("bn-BD");
+
+      return {
+        text: `‡¶∏‡¶Æ‡ßü ‡¶∂‡ßá‡¶∑: -${hStr}‡¶ò ${mStr}‡¶Æ‡¶ø ${sStr}‡¶∏‡ßá`,
+        shortBadge: `-${hStr}‡¶ò ${mStr}‡¶Æ‡¶ø`,
+        isOverdue: true,
+        badgeColor: "bg-rose-500 text-white font-black animate-pulse",
+        penaltyAmount,
+        buyerBonus,
+        days: 0,
+        hours: h,
+        minutes: m,
+        seconds: s,
+      };
+    };
+  };
 
   const getTimeAgoBengali = (dateString?: string) => {
     if (!dateString) return '‡¶è‡¶ñ‡¶®‡¶á';
@@ -959,6 +1091,8 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   useEffect(() => {
     if (initialCategory === 'selling' || initialCategory === 'seller') {
       setViewMode('selling');
+      setSpecialistMainTab('marketplace');
+      setSellerSubTab('gigs');
     } else {
       setViewMode('buying');
     }
@@ -1115,7 +1249,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
   // Seller Workspace & Profile States (Specialist = Seller + Teacher)
   const [specialistMainTab, setSpecialistMainTab] = useState<'overview' | 'courses' | 'marketplace' | 'mentor' | 'payments' | 'ai_toolkit'>('marketplace');
-  const [sellerSubTab, setSellerSubTab] = useState<'gigs' | 'orders' | 'requests' | 'earnings' | 'create_gig' | 'courses' | 'assignments' | 'students' | 'certificates'>('orders');
+  const [sellerSubTab, setSellerSubTab] = useState<'gigs' | 'orders' | 'requests' | 'earnings' | 'create_gig' | 'courses' | 'assignments' | 'students' | 'certificates'>('gigs');
   const [payoutSubTab, setPayoutSubTab] = useState<'overview' | 'sources' | 'withdraw' | 'history'>('overview');
   const [payoutStatusFilter, setPayoutStatusFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [payoutMinAmount, setPayoutMinAmount] = useState<number>(0);
@@ -1201,38 +1335,40 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   };
   
   // Create New Order Page State (3-Package Dedicated Page)
-  const [isCreateGigModalOpen, setIsCreateGigModalOpen] = useState(false);
+  const [activePackageStep, setActivePackageStep] = useState<'basic' | 'standard' | 'premium'>('basic');
+  const [packageLayoutMode, setPackageLayoutMode] = useState<'stepped' | 'columns'>('stepped');
   const [newGigTitle, setNewGigTitle] = useState('');
   const [newGigCategory, setNewGigCategory] = useState('Programming & Tech');
-  const [newGigOfferBadge, setNewGigOfferBadge] = useState<string>('‡ß©‡ß¶% ‡¶õ‡¶æ‡ßú');
+  const [newGigOfferBadge, setNewGigOfferBadge] = useState<string>('');
   const [newGigThumbnail, setNewGigThumbnail] = useState('');
   const [newGigGalleryPic, setNewGigGalleryPic] = useState('');
   const [newGigVideoUrl, setNewGigVideoUrl] = useState('');
   const [newGigDesc, setNewGigDesc] = useState('');
   const [newGigTags, setNewGigTags] = useState('');
   const [newGigRequirements, setNewGigRequirements] = useState('');
-  const [newGigFaqQ, setNewGigFaqQ] = useState('');
-  const [newGigFaqA, setNewGigFaqA] = useState('');
+  const [newGigFaqs, setNewGigFaqs] = useState<{ id: string; question: string; answer: string }[]>([
+    { id: "1", question: "", answer: "" }
+  ]);
   const [createGigSuccess, setCreateGigSuccess] = useState(false);
 
   // Basic Package State
   const [newBasicTitle, setNewBasicTitle] = useState('');
-  const [newBasicPrice, setNewBasicPrice] = useState<number>(2500);
-  const [newBasicDelivery, setNewBasicDelivery] = useState<number>(3);
+  const [newBasicPrice, setNewBasicPrice] = useState<string | number>('');
+  const [newBasicDelivery, setNewBasicDelivery] = useState<string | number>('');
   const [newBasicRevisions, setNewBasicRevisions] = useState<string>('1');
   const [newBasicDesc, setNewBasicDesc] = useState('');
 
   // Standard Package State
   const [newStandardTitle, setNewStandardTitle] = useState('');
-  const [newStandardPrice, setNewStandardPrice] = useState<number>(6000);
-  const [newStandardDelivery, setNewStandardDelivery] = useState<number>(2);
+  const [newStandardPrice, setNewStandardPrice] = useState<string | number>('');
+  const [newStandardDelivery, setNewStandardDelivery] = useState<string | number>('');
   const [newStandardRevisions, setNewStandardRevisions] = useState<string>('3');
   const [newStandardDesc, setNewStandardDesc] = useState('');
 
   // Premium Package State
   const [newPremiumTitle, setNewPremiumTitle] = useState('');
-  const [newPremiumPrice, setNewPremiumPrice] = useState<number>(15000);
-  const [newPremiumDelivery, setNewPremiumDelivery] = useState<number>(1);
+  const [newPremiumPrice, setNewPremiumPrice] = useState<string | number>('');
+  const [newPremiumDelivery, setNewPremiumDelivery] = useState<string | number>('');
   const [newPremiumRevisions, setNewPremiumRevisions] = useState<string>('Unlimited');
   const [newPremiumDesc, setNewPremiumDesc] = useState('');
 
@@ -1649,6 +1785,9 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   const [receivedOfferIds, setReceivedOfferIds] = useState<string[]>([]);
   const [selectedOfferForModal, setSelectedOfferForModal] = useState<LiveOfferItem | null>(null);
   const [isSeeAllOffersModalOpen, setIsSeeAllOffersModalOpen] = useState(false);
+  const [sellerHomeShowcaseTab, setSellerHomeShowcaseTab] = useState<'gigs' | 'offers'>('gigs');
+  const [showAllSellerGigs, setShowAllSellerGigs] = useState(false);
+  const [homeOrderFilter, setHomeOrderFilter] = useState<'all' | 'in_progress' | 'pending' | 'in_review' | 'completed'>('all');
   const [justActionedOfferId, setJustActionedOfferId] = useState<string | null>(null);
   const [offerActionType, setOfferActionType] = useState<'received' | 'rejected' | null>(null);
   const activeAudioContextRef = useRef<AudioContext | null>(null);
@@ -1779,6 +1918,28 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
     return () => clearInterval(interval);
   }, [isOfferPaused, selectedOfferForModal, isSeeAllOffersModalOpen, justActionedOfferId, activeOffersList.length, totalOfferDuration]);
+
+  // Helper to get Gig-style high-quality thumbnail for incoming live orders
+  const getOfferThumbnail = (offer: LiveOfferItem): string => {
+    if (offer.type === "course" || offer.typeLabel?.includes("‡¶ï‡ßã‡¶∞‡ßç‡¶∏") || offer.title?.toLowerCase().includes("‡¶ï‡ßã‡¶∞‡ßç‡¶∏")) {
+      return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80";
+    }
+    const cat = (offer.category || "").toLowerCase();
+    const title = (offer.title || "").toLowerCase();
+    if (cat.includes("web") || title.includes("website") || title.includes("‡¶ì‡ßü‡ßá‡¶¨‡¶∏‡¶æ‡¶á‡¶ü") || title.includes("‡¶á-‡¶ï‡¶Æ‡¶æ‡¶∞‡ßç‡¶∏") || title.includes("next.js") || title.includes("fullstack") || title.includes("‡¶´‡ßÅ‡¶≤-‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶ï")) {
+      return "https://images.unsplash.com/photo-1557821552-17105176677c?auto=format&fit=crop&w=600&q=80";
+    }
+    if (cat.includes("ui") || cat.includes("ux") || cat.includes("design") || title.includes("figma") || title.includes("‡¶™‡ßç‡¶∞‡ßã‡¶ü‡ßã‡¶ü‡¶æ‡¶á‡¶™") || title.includes("‡¶Ö‡ßç‡¶Ø‡¶æ‡¶™") || title.includes("‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®")) {
+      return "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=600&q=80";
+    }
+    if (cat.includes("marketing") || cat.includes("‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶ø‡¶Ç") || title.includes("‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶ø‡¶Ç") || title.includes("‡¶è‡¶°‡¶∏") || title.includes("ads") || title.includes("seo")) {
+      return "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80";
+    }
+    if (cat.includes("mentor") || cat.includes("‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞") || title.includes("‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞") || title.includes("‡¶≤‡¶æ‡¶∞‡¶æ‡¶≠‡ßá‡¶≤") || title.includes("‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü")) {
+      return "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80";
+    }
+    return offer.clientAvatar || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80";
+  };
 
   // Handle Receive Action (Creates order in marketplaceOrders with 'pending' status and switches to pending tab)
   const handleReceiveLiveOffer = (offer: LiveOfferItem) => {
@@ -1919,17 +2080,6 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     return null;
   });
 
-  // Always reset search inputs when changing sub tabs, categories, or closing/opening messenger/notifications
-  useEffect(() => {
-    setIsOrderSearchActive(false);
-    setOrderSearchQuery('');
-    setIsSavedSearchActive(false);
-    setSavedSearchQuery('');
-    setIsMessengerSearchActive(false);
-    setMessengerSearchQuery('');
-    setIsMarketplaceSettingsModalOpen(false);
-  }, [activeSubTab, orderHubTab, selectedGig, isMessengerInboxOpen, isNotificationCenterOpen]);
-
   useEffect(() => {
     try {
       const savedGigData = localStorage.getItem('ptenit_selected_gig_data');
@@ -1971,20 +2121,28 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   });
   const [showSavedOnly, setShowSavedOnly] = useState(false);
 
-  const savedGigs = useMemo(() => gigs.filter(g => savedGigIds.includes(g.id)), [gigs, savedGigIds]);
-  const displayedSavedGigs = useMemo(() => {
-    let list = savedGigs;
+  const savedGigs = useMemo(() => {
+    let list = gigs.filter(g => savedGigIds.includes(g.id));
+    if (savedCategoryFilter === 'top') {
+      list = list.filter(g => (g.rating || 0) >= 4.8);
+    } else if (savedCategoryFilter && savedCategoryFilter !== 'all') {
+      list = list.filter(g => g.category === savedCategoryFilter || (g.category && g.category.toLowerCase().includes(savedCategoryFilter.toLowerCase())));
+    }
     if (savedSearchQuery.trim()) {
       const q = savedSearchQuery.toLowerCase();
-      list = list.filter(g =>
-        g.title?.toLowerCase().includes(q) ||
-        g.category?.toLowerCase().includes(q) ||
-        g.sellerName?.toLowerCase().includes(q) ||
-        g.tags?.some((t: string) => t.toLowerCase().includes(q))
-      );
+      list = list.filter(g => g.title.toLowerCase().includes(q) || (g.sellerName && g.sellerName.toLowerCase().includes(q)) || (g.category && g.category.toLowerCase().includes(q)));
+    }
+    if (savedGigsSort === 'price_asc') {
+      list = [...list].sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (savedGigsSort === 'price_desc') {
+      list = [...list].sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (savedGigsSort === 'rating') {
+      list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (savedGigsSort === 'popular') {
+      list = [...list].sort((a, b) => (b.reviewsCount || 0) - (a.reviewsCount || 0));
     }
     return list;
-  }, [savedGigs, savedSearchQuery]);
+  }, [gigs, savedGigIds, savedSearchQuery, savedCategoryFilter, savedGigsSort]);
 
   const toggleFavorite = (gigId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -2135,6 +2293,31 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     }, 1800);
   };
 
+  // Quick helpers to auto-fill Standard / Premium from Basic
+  const handleCopyBasicToStandard = () => {
+    if (!newStandardTitle || newStandardTitle === 'Standard Pro') {
+      setNewStandardTitle((newBasicTitle || 'Standard') + ' Pro');
+    }
+    if (!newStandardPrice || newStandardPrice === 6000) {
+      setNewStandardPrice(Math.round((Number(newBasicPrice) || 2500) * 2.2));
+    }
+    if (!newStandardDesc) {
+      setNewStandardDesc(newBasicDesc || '‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶°‡¶æ‡¶∞‡ßç‡¶° ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶°‡¶≠‡¶æ‡¶®‡ßç‡¶∏‡¶° ‡¶´‡¶ø‡¶ö‡¶æ‡¶∞ ‡¶ì ‡¶∞‡ßá‡¶∏‡¶™‡¶®‡ßç‡¶∏‡¶ø‡¶≠ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶® ‡¶Ö‡¶®‡ßç‡¶§‡¶∞‡ßç‡¶≠‡ßÅ‡¶ï‡ßç‡¶§‡•§');
+    }
+  };
+
+  const handleCopyStandardToPremium = () => {
+    if (!newPremiumTitle || newPremiumTitle === 'Premium Enterprise') {
+      setNewPremiumTitle((newStandardTitle || newBasicTitle || 'Premium') + ' VIP Enterprise');
+    }
+    if (!newPremiumPrice || newPremiumPrice === 15000) {
+      setNewPremiumPrice(Math.round((Number(newStandardPrice) || 6000) * 2.5));
+    }
+    if (!newPremiumDesc) {
+      setNewPremiumDesc(newStandardDesc || '‡¶´‡ßÅ‡¶≤ ‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶ï ‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü, ‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ API ‡¶ì ‡¶≠‡¶ø‡¶Ü‡¶á‡¶™‡¶ø ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü ‡¶Ö‡¶®‡ßç‡¶§‡¶∞‡ßç‡¶≠‡ßÅ‡¶ï‡ßç‡¶§‡•§');
+    }
+  };
+
   // Handle Create Order Submit (3-Package Dedicated Page)
   const handleCreateGigSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2142,7 +2325,10 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
       if (openAuthModal) openAuthModal();
       return;
     }
-    if (!newGigTitle || !newGigDesc) return;
+    if (!newGigTitle || !newGigDesc) {
+      alert('‡¶Ö‡¶®‡ßÅ‡¶ó‡ßç‡¶∞‡¶π ‡¶ï‡¶∞‡ßá ‡¶ó‡¶ø‡¶ó ‡¶ü‡¶æ‡¶á‡¶ü‡ßá‡¶≤ ‡¶è‡¶¨‡¶Ç ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ ‡¶™‡ßÇ‡¶∞‡¶£ ‡¶ï‡¶∞‡ßÅ‡¶®‡•§');
+      return;
+    }
 
     // Enforce max 6 gigs limit per seller
     const userGigCount = gigs.filter(g =>
@@ -2162,33 +2348,37 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
       sellerLevel: 'Level 2 Freelancer',
       title: newGigTitle,
       category: newGigCategory,
+      status: 'active',
       offerBadge: newGigOfferBadge || '‡ß©‡ß¶% ‡¶õ‡¶æ‡ßú',
       thumbnail: newGigThumbnail || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80',
+      galleryImages: newGigGalleryPic ? [newGigGalleryPic] : [],
+      videoUrl: newGigVideoUrl || undefined,
+      tags: newGigTags ? newGigTags.split(',').map(t => t.trim()).filter(Boolean) : [],
       description: newGigDesc,
       packages: {
         basic: {
           name: newBasicTitle || 'Basic Starter',
-          price: Number(newBasicPrice),
-          deliveryDays: Number(newBasicDelivery),
+          price: Number(newBasicPrice) || 2500,
+          deliveryDays: Number(newBasicDelivery) || 3,
           revisions: newBasicRevisions || '1',
-          description: newBasicDesc,
-          features: ['Sourse Code File', 'Responsive Layout', 'Basic Support']
+          description: newBasicDesc || '‡¶ï‡ßã‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶ì ‡¶∏‡ßã‡¶∞‡ßç‡¶∏ ‡¶´‡¶æ‡¶á‡¶≤ ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø',
+          features: ['Source Code File', 'Responsive Layout', 'Basic Support']
         },
         standard: {
           name: newStandardTitle || 'Standard Pro',
-          price: Number(newStandardPrice),
-          deliveryDays: Number(newStandardDelivery),
+          price: Number(newStandardPrice) || 6000,
+          deliveryDays: Number(newStandardDelivery) || 2,
           revisions: newStandardRevisions || '3',
-          description: newStandardDesc,
-          features: ['Sourse Code File', 'Responsive Layout', 'Commercial Use', 'Database Integration']
+          description: newStandardDesc || '‡¶´‡ßÅ‡¶≤ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶∏‡ßá‡¶ü‡¶Ü‡¶™ ‡¶ì ‡¶°‡¶æ‡¶ü‡¶æ‡¶¨‡ßá‡¶ú ‡¶á‡¶®‡ßç‡¶ü‡¶ø‡¶ó‡ßç‡¶∞‡ßá‡¶∂‡¶®',
+          features: ['Source Code File', 'Responsive Layout', 'Commercial Use', 'Database Integration']
         },
         premium: {
           name: newPremiumTitle || 'Premium Enterprise',
-          price: Number(newPremiumPrice),
-          deliveryDays: Number(newPremiumDelivery),
+          price: Number(newPremiumPrice) || 15000,
+          deliveryDays: Number(newPremiumDelivery) || 1,
           revisions: newPremiumRevisions || 'Unlimited',
-          description: newPremiumDesc,
-          features: ['Sourse Code File', 'Responsive Layout', 'Commercial Use', 'Database Integration', 'API Connect', '30 Days VIP Support']
+          description: newPremiumDesc || '‡¶ï‡¶Æ‡¶™‡ßç‡¶≤‡¶ø‡¶ü ‡¶´‡ßÅ‡¶≤ ‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶ï ‡¶∏‡¶≤‡ßç‡¶Ø‡ßÅ‡¶∂‡¶® ‡¶ì ‡¶≤‡¶æ‡¶á‡¶´‡¶ü‡¶æ‡¶á‡¶Æ ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü',
+          features: ['Source Code File', 'Responsive Layout', 'Commercial Use', 'Database Integration', 'API Connect', '30 Days VIP Support']
         }
       }
     });
@@ -2196,12 +2386,18 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
     setCreateGigSuccess(true);
     setTimeout(() => {
       setCreateGigSuccess(false);
-      setIsCreateGigModalOpen(false);
       setSellerSubTab('gigs');
       setNewGigTitle('');
       setNewGigOfferBadge('‡ß©‡ß¶% ‡¶õ‡¶æ‡ßú');
       setNewGigDesc('');
-    }, 1200);
+      setNewGigThumbnail('');
+      setNewGigGalleryPic('');
+      setNewGigVideoUrl('');
+      setNewGigTags('');
+      setNewGigRequirements('');
+      setNewGigFaqs([{ id: Date.now().toString(), question: '', answer: '' }]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 1000);
   };
 
   // Handle Bill Cashout Application Submit
@@ -2263,505 +2459,641 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
   };
 
   return (
-    <div id="marketplace-top" className={`pt-0 pb-6 sm:py-6 px-0 sm:px-8 md:px-12 lg:px-16 xl:px-20 w-full max-w-[1920px] mx-auto space-y-3 sm:space-y-8 font-sans text-slate-900 dark:text-slate-100 min-h-screen ${
-    (activeSubTab === "gigs" && selectedCategory === "All" && !selectedGig)
-      ? "bg-slate-50 dark:bg-slate-950" 
-      : "bg-white sm:bg-slate-50 dark:bg-slate-950"
-  } pb-12 md:pb-8`}>
+    <div id="marketplace-top" className="pt-0 pb-6 sm:py-6 px-2 sm:px-8 md:px-12 lg:px-16 xl:px-20 w-full max-w-[1920px] mx-auto space-y-2 sm:space-y-6 font-sans text-slate-900 dark:text-slate-100 min-h-screen bg-slate-50 dark:bg-slate-950 pb-12 md:pb-8">
       
       {/* PTENit MODERN FIVERR-STYLE MARKETPLACE HEADER (MATCHING PTENIT NAVBAR COLOR & STYLE) */}
-      {!selectedGig && viewMode !== "selling" && (
-        <div className={`sticky top-0 z-40 bg-[#0B132B] text-white w-full px-0 sm:px-8 md:px-12 lg:px-16 xl:px-20 mb-0 sm:mb-6 shadow-md ${
-          ["overview", "my-orders", "my-courses", "saved_gigs", "settings", "post-project", "public-offers"].includes(activeSubTab) ? "md:hidden" : ""
+      {!selectedGig && !(viewMode === 'selling' && sellerSubTab === 'create_gig') && (
+        <div className={`fixed sm:sticky top-0 left-0 right-0 sm:left-auto sm:right-auto z-40 bg-[#0B132B] text-white px-2 sm:px-8 md:px-12 lg:px-16 xl:px-20 mb-0 sm:mb-6 shadow-none sm:shadow-md ${
+          ['overview', 'my-orders', 'my-courses', 'saved_gigs', 'settings', 'post-project', 'public-offers'].includes(activeSubTab) ? 'md:hidden' : ''
         }`}>
-          <div className="w-full max-w-[1920px] mx-auto py-0 sm:py-3 flex flex-col md:flex-row md:items-center justify-between gap-0 sm:gap-4">
-            
-            {/* MOBILE VIEW HEADER (< md screen: Always Logo + Search Bar + 5 Icons) */}
-            <div className="flex md:hidden flex-col w-full font-bengali">
-              {/* Top Bar: Brand, Search, Profile, Menu - ONLY ON HOME TAB */}
-              {activeSubTab === "gigs" && !selectedGig && (
-                <div className="flex items-center justify-between gap-1.5 w-full px-3 py-1.5">
-                  {/* Left: PTENit Brand Logo */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedGig(null);
-                      setViewMode("buying");
-                      setActiveSubTab("gigs");
-                      setSelectedCategory("All");
-                      setSearchQuery("");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="flex items-center gap-1.5 text-left cursor-pointer shrink-0 group"
-                    title="‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶∞‡¶ø‡¶´‡ßç‡¶∞‡ßá‡¶∂"
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1DB954] to-emerald-600 flex items-center justify-center font-bold text-base text-white shadow-md shadow-[#1DB954]/20 shrink-0">
-                      P
-                    </div>
-                    <span className="font-heading text-base font-black tracking-wider text-white">
-                      PTEN<span className="text-[#1DB954]">it</span>
-                    </span>
-                  </button>
+          <div className="w-full max-w-[1920px] mx-auto py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
+          
+          {/* MOBILE VIEW HEADER (< md screen: Facebook Lite Style Header & Merged Icon Navigation) */}
+          <div className="flex md:hidden flex-col gap-2 w-full font-bengali">
+            {/* Top Bar: Brand, Search, Profile, Menu - ONLY visible on Home/Gigs tab */}
+            {(((activeSubTab === 'gigs' && viewMode === 'buying') || (viewMode === 'selling' && sellerSubTab === 'gigs')) && !isInboxModalOpen && !isNotificationsOpen) && (
+              <div className="flex items-center justify-between gap-1.5 w-full">
+                {/* Left: PTENit Brand Logo */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedGig(null);
+                    if (viewMode === 'selling') {
+                      setSpecialistMainTab('marketplace');
+                      setSellerSubTab('gigs');
+                    } else {
+                      setViewMode('buying');
+                      setActiveSubTab('gigs');
+                      setSelectedCategory('All');
+                    }
+                    setSearchQuery('');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex items-center gap-1.5 text-left cursor-pointer shrink-0 group"
+                  title="‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶∞‡¶ø‡¶´‡ßç‡¶∞‡ßá‡¶∂"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#1DB954] to-emerald-600 flex items-center justify-center font-bold text-base text-white shadow-md shadow-[#1DB954]/20 shrink-0">
+                    P
+                  </div>
+                  <span className="font-heading text-base font-black tracking-wider text-white">
+                    PTEN<span className="text-[#1DB954]">it</span>
+                  </span>
+                </button>
 
-                  {/* Mobile Inline Search Bar */}
-                  <div className="flex-1 min-w-0 mx-1 relative items-center">
-                    <div className="relative w-full flex items-center">
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®..."
-                        className="w-full pl-7 pr-6 py-1 bg-slate-900/90 border border-slate-700/80 text-white rounded-lg text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#1DB954] font-bengali shadow-inner"
-                      />
-                      <Search className="w-3.5 h-3.5 text-[#1DB954] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery("")}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                    {/* LIVE FLOATING SEARCH RESULTS DROPDOWN (MOBILE MARKETPLACE) */}
-                    {searchQuery.trim() && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-[#142B4D] border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 text-slate-200 max-h-80 overflow-y-auto">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 border-b border-slate-700 pb-1 font-bengali flex items-center justify-between">
-                          <span>‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶ó‡¶ø‡¶ó‡¶∏‡¶Æ‡ßÇ‡¶π ({filteredGigs.length})</span>
-                          <span className="text-[9px] text-[#1DB954] font-normal">‡¶≤‡¶æ‡¶á‡¶≠ ‡¶´‡¶≤‡¶æ‡¶´‡¶≤</span>
-                        </div>
-                        {filteredGigs.length > 0 ? (
-                          <div className="space-y-1.5">
-                            {filteredGigs.slice(0, 4).map(gig => {
-                              const gigPrice = gig.packages?.basic?.price ?? (gig as any).price ?? 2500;
-                              const gigThumbnail = gig.images?.[0] || gig.sellerAvatar || "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80";
-                              return (
-                                <div
-                                  key={gig.id}
-                                  onClick={() => {
-                                    setSelectedGig(gig);
-                                    setViewMode("buying");
-                                    setActiveSubTab("gigs");
-                                    setSearchQuery("");
-                                    window.scrollTo({ top: 0, behavior: "smooth" });
-                                  }}
-                                  className="flex items-center gap-2 p-1.5 hover:bg-slate-800/90 rounded-lg cursor-pointer transition-colors bg-slate-900/60 border border-slate-800"
-                                >
-                                  <img
-                                    src={gigThumbnail}
-                                    alt={gig.title}
-                                    className="w-9 h-9 rounded-md object-cover shrink-0 border border-slate-700"
-                                  />
-                                  <div className="flex-1 min-w-0 font-bengali">
-                                    <p className="font-semibold text-xs text-white truncate">{gig.title}</p>
-                                    <div className="flex items-center justify-between mt-0.5">
-                                      <span className="text-[10px] text-slate-400 truncate max-w-[110px]">{gig.sellerName}</span>
-                                      <span className="text-[11px] text-[#1DB954] font-bold">
-                                        ‡ß≥{gigPrice.toLocaleString("en-US")}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p className="text-center text-slate-400 py-3 text-xs font-bengali">
-                            ‡¶ï‡ßã‡¶®‡ßã ‡¶ó‡¶ø‡¶ó ‡¶¨‡¶æ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶™‡¶æ‡¶ì‡ßü‡¶æ ‡¶Ø‡¶æ‡ßü‡¶®‡¶ø‡•§
-                          </p>
-                        )}
-                        {filteredGigs.length > 0 && (
-                          <div className="pt-2 mt-1.5 border-t border-slate-700/80">
-                            <button
-                              onClick={() => {
-                                setSelectedGig(null);
-                                setViewMode("buying");
-                                setActiveSubTab("gigs");
-                                window.scrollTo({ top: 400, behavior: "smooth" });
-                              }}
-                              className="w-full py-1.5 px-2.5 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition font-bengali cursor-pointer shadow"
-                            >
-                              <Search className="w-3.5 h-3.5" />
-                              <span>‡¶∏‡¶ï‡¶≤ ‡¶´‡¶≤‡¶æ‡¶´‡¶≤ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶® ({filteredGigs.length} ‡¶ü‡¶ø)</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                {/* Mobile Inline Search Bar - UNIVERSAL FOR BOTH BUYER AND SELLER */}
+                <div className="flex-1 min-w-0 mx-1 relative items-center">
+                  <div className="relative w-full flex items-center">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={viewMode === 'selling' ? "‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶¨‡¶æ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®..." : "‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®..."}
+                      className="w-full pl-7 pr-6 py-1 bg-slate-900/90 border border-slate-700/80 text-white rounded-lg text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#1DB954] font-bengali shadow-inner"
+                    />
+                    <Search className="w-3.5 h-3.5 text-[#1DB954] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     )}
                   </div>
 
-                  {/* Right Action Controls */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    {currentUser ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileDropdownOpen(!isProfileDropdownOpen);
-                          setIsMobileMarketplaceMenuOpen(false);
-                        }}
-                        className="flex items-center p-0.5 rounded-full bg-slate-900 border-2 border-[#1DB954] cursor-pointer active:scale-95 transition"
-                        title="‡¶™‡ßç‡¶∞‡ßã‡¶´‡¶æ‡¶á‡¶≤ ‡¶Æ‡ßá‡¶®‡ßÅ"
-                      >
-                        <img
-                          src={currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
-                          alt={currentUser.name}
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (openAuthModal) openAuthModal();
-                        }}
-                        className="px-2 py-0.5 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 font-bengali"
-                      >
-                        ‡¶≤‡¶ó‡¶á‡¶®
-                      </button>
-                    )}
+                  {/* LIVE FLOATING SEARCH RESULTS DROPDOWN (MOBILE MARKETPLACE) */}
+                  {searchQuery.trim() && (
+                    <div className="absolute left-0 right-0 top-full mt-2 bg-[#142B4D] border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 text-slate-200 max-h-80 overflow-y-auto">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 border-b border-slate-700 pb-1 font-bengali flex items-center justify-between">
+                        <span>‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶ó‡¶ø‡¶ó‡¶∏‡¶Æ‡ßÇ‡¶π ({filteredGigs.length})</span>
+                        <span className="text-[9px] text-[#1DB954] font-normal">‡¶≤‡¶æ‡¶á‡¶≠ ‡¶´‡¶≤‡¶æ‡¶´‡¶≤</span>
+                      </div>
 
+                      {filteredGigs.length > 0 ? (
+                        <div className="space-y-1.5">
+                          {filteredGigs.slice(0, 4).map(gig => {
+                            const gigPrice = gig.packages?.basic?.price ?? (gig as any).price ?? 2500;
+                            const gigThumbnail = gig.images?.[0] || gig.sellerAvatar || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80';
+                            return (
+                              <div
+                                key={gig.id}
+                                onClick={() => {
+                                  setSelectedGig(gig);
+                                  setViewMode('buying');
+                                  setActiveSubTab('gigs');
+                                  setSearchQuery('');
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="flex items-center gap-2 p-1.5 hover:bg-slate-800/90 rounded-lg cursor-pointer transition-colors bg-slate-900/60 border border-slate-800"
+                              >
+                                <img
+                                  src={gigThumbnail}
+                                  alt={gig.title}
+                                  className="w-9 h-9 rounded-md object-cover shrink-0 border border-slate-700"
+                                />
+                                <div className="flex-1 min-w-0 font-bengali">
+                                  <p className="font-semibold text-xs text-white truncate">{gig.title}</p>
+                                  <div className="flex items-center justify-between mt-0.5">
+                                    <span className="text-[10px] text-slate-400 truncate max-w-[110px]">{gig.sellerName}</span>
+                                    <span className="text-[11px] text-[#1DB954] font-bold">
+                                      ‡ß≥{gigPrice.toLocaleString('en-US')}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-center text-slate-400 py-3 text-xs font-bengali">
+                          ‡¶ï‡ßã‡¶®‡ßã ‡¶ó‡¶ø‡¶ó ‡¶¨‡¶æ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶™‡¶æ‡¶ì‡ßü‡¶æ ‡¶Ø‡¶æ‡ßü‡¶®‡¶ø‡•§
+                        </p>
+                      )}
+
+                      {filteredGigs.length > 0 && (
+                        <div className="pt-2 mt-1.5 border-t border-slate-700/80">
+                          <button
+                            onClick={() => {
+                              setSelectedGig(null);
+                              setViewMode('buying');
+                              setActiveSubTab('gigs');
+                              window.scrollTo({ top: 400, behavior: 'smooth' });
+                            }}
+                            className="w-full py-1.5 px-2.5 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs flex items-center justify-center gap-1.5 transition font-bengali cursor-pointer shadow"
+                          >
+                            <Search className="w-3.5 h-3.5" />
+                            <span>‡¶∏‡¶ï‡¶≤ ‡¶´‡¶≤‡¶æ‡¶´‡¶≤ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶® ({filteredGigs.length} ‡¶ü‡¶ø)</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Action Controls */}
+                <div className="flex items-center gap-1 shrink-0">
+                  {currentUser ? (
                     <button
                       type="button"
                       onClick={() => {
-                        setIsMobileMarketplaceMenuOpen(!isMobileMarketplaceMenuOpen);
-                        setIsProfileDropdownOpen(false);
+                        setIsProfileDropdownOpen(!isProfileDropdownOpen);
+                        setIsMobileMarketplaceMenuOpen(false);
                       }}
-                      className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                      title="‡¶Æ‡ßá‡¶®‡ßÅ ‡¶ì ‡¶´‡¶ø‡¶≤‡ßç‡¶ü‡¶æ‡¶∞"
+                      className="flex items-center p-0.5 rounded-full bg-slate-900 border-2 border-[#1DB954] cursor-pointer active:scale-95 transition"
+                      title="‡¶™‡ßç‡¶∞‡ßã‡¶´‡¶æ‡¶á‡¶≤ ‡¶Æ‡ßá‡¶®‡ßÅ"
                     >
-                      <Menu className="w-5 h-5" />
+                      <img
+                        src={currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
+                        alt={currentUser.name}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={openAuthModal}
+                      className="px-2 py-0.5 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 font-bengali"
+                    >
+                      ‡¶≤‡¶ó‡¶á‡¶®
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMarketplaceMenuOpen(!isMobileMarketplaceMenuOpen);
+                      setIsProfileDropdownOpen(false);
+                    }}
+                    className="p-1 text-slate-200 hover:text-white cursor-pointer"
+                    title="‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶Æ‡ßá‡¶®‡ßÅ"
+                  >
+                    {isMobileMarketplaceMenuOpen ? <X className="w-5 h-5 text-[#1DB954]" /> : <Menu className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* FACEBOOK LITE STYLE UNIFIED ICON NAVIGATION BAR */}
+            <div className="flex items-center justify-between px-2 pt-1.5 pb-0.5 text-slate-300 w-full overflow-hidden">
+              {/* 1. üè† Marketplace / Specialist Home */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedGig(null);
+                  if (viewMode === 'selling') {
+                    setSpecialistMainTab('marketplace');
+                    setSellerSubTab('gigs');
+                  } else {
+                    setViewMode('buying');
+                    setActiveSubTab('gigs');
+                    setSelectedCategory('All');
+                    if (setActiveTab) {
+                      setActiveTab('marketplace', 'All', true);
+                    }
+                  }
+                  setSearchQuery('');
+                  setIsInboxModalOpen(false);
+                  setIsNotificationsOpen(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex-1 flex justify-center items-center py-1.5 transition active:scale-95 cursor-pointer ${
+                  ((viewMode === 'buying' && activeSubTab === 'gigs' && (activeTab === 'marketplace' || !activeTab)) ||
+                   (viewMode === 'selling' && specialistMainTab === 'marketplace' && sellerSubTab === 'gigs')) &&
+                  !selectedGig && !isInboxModalOpen && !isNotificationsOpen
+                    ? 'text-[#1DB954]'
+                    : 'text-white'
+                }`}
+                title={viewMode === 'selling' ? '‡¶∏‡ßç‡¶™‡ßá‡¶∂‡¶æ‡¶≤‡¶ø‡¶∏‡ßç‡¶ü ‡¶°‡ßç‡¶Ø‡¶æ‡¶∂‡¶¨‡ßã‡¶∞‡ßç‡¶°' : '‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶π‡ßã‡¶Æ'}
+              >
+                <Home className={`w-5 h-5 ${
+                  ((viewMode === 'buying' && activeSubTab === 'gigs' && (activeTab === 'marketplace' || !activeTab)) ||
+                   (viewMode === 'selling' && specialistMainTab === 'marketplace' && sellerSubTab === 'gigs')) &&
+                  !selectedGig && !isInboxModalOpen && !isNotificationsOpen
+                    ? 'text-[#1DB954]'
+                    : 'text-white'
+                }`} />
+              </button>
+
+              {/* 2. üõçÔ∏è Order & Courses / Specialist Client Orders */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!currentUser) {
+                    if (openAuthModal) openAuthModal();
+                    return;
+                  }
+                  setSelectedGig(null);
+                  if (viewMode === 'selling') {
+                    setSpecialistMainTab('marketplace');
+                    setSellerSubTab('orders');
+                  } else {
+                    setViewMode('buying');
+                    setActiveSubTab('my-orders');
+                    setOrderHubTab('orders');
+                    if (setActiveTab) {
+                      setActiveTab('marketplace', 'my-orders', true);
+                    }
+                  }
+                  setIsInboxModalOpen(false);
+                  setIsNotificationsOpen(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex-1 flex justify-center items-center py-1.5 transition relative active:scale-95 cursor-pointer ${
+                  ((viewMode === 'buying' && (activeSubTab === 'my-orders' || activeSubTab === 'my-courses')) ||
+                   (viewMode === 'selling' && specialistMainTab === 'marketplace' && sellerSubTab === 'orders')) &&
+                  !selectedGig && !isInboxModalOpen && !isNotificationsOpen
+                    ? 'text-[#1DB954]'
+                    : 'text-white'
+                }`}
+                title={viewMode === 'selling' ? '‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞‡¶∏‡¶Æ‡ßÇ‡¶π' : '‡¶Ü‡¶Æ‡¶æ‡¶∞ ‡¶ï‡ßç‡¶∞‡ßü‡¶ï‡ßÉ‡¶§ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ì ‡¶ï‡ßã‡¶∞‡ßç‡¶∏‡¶∏‡¶Æ‡ßÇ‡¶π'}
+              >
+                <ShoppingBag className={`w-5 h-5 ${
+                  ((viewMode === 'buying' && (activeSubTab === 'my-orders' || activeSubTab === 'my-courses')) ||
+                   (viewMode === 'selling' && specialistMainTab === 'marketplace' && sellerSubTab === 'orders')) &&
+                  !selectedGig && !isInboxModalOpen && !isNotificationsOpen
+                    ? 'stroke-[2.5] text-[#1DB954]'
+                    : 'text-white'
+                }`} />
+                {viewMode === 'selling' ? (
+                  marketplaceOrders && marketplaceOrders.length > 0 && (
+                    <span className="absolute -top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-[#1DB954] text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                      {marketplaceOrders.length}
+                    </span>
+                  )
+                ) : (
+                  allBuyerOrders && allBuyerOrders.length > 0 && (
+                    <span className="absolute -top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-[#1DB954] text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                      {allBuyerOrders.length}
+                    </span>
+                  )
+                )}
+              </button>
+
+              {/* 3. ‚úâÔ∏è Messenger */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!currentUser) {
+                    if (openAuthModal) openAuthModal();
+                    return;
+                  }
+                  openMessengerInbox();
+                }}
+                className={`flex-1 flex justify-center items-center py-1.5 transition relative active:scale-95 cursor-pointer ${
+                  isMessengerInboxOpen || activeSubTab === 'messenger' ? 'text-[#1DB954]' : 'text-white hover:text-[#1DB954]'
+                }`}
+                title="‡¶Æ‡ßá‡¶∏‡ßá‡¶û‡ßç‡¶ú‡¶æ‡¶∞"
+              >
+                <Mail className={`w-5 h-5 ${isMessengerInboxOpen || activeSubTab === 'messenger' ? 'text-[#1DB954] stroke-[2.5]' : 'text-white'}`} />
+                {(directMessages && directMessages.length > 0) && (
+                  <span className="absolute -top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-[#1DB954] text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                    {directMessages.filter(m => !m.read).length > 0
+                      ? directMessages.filter(m => !m.read).length
+                      : directMessages.length}
+                  </span>
+                )}
+              </button>
+
+              {/* 4. üîî Notification */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!currentUser) {
+                    if (openAuthModal) openAuthModal();
+                    return;
+                  }
+                  openNotificationCenter();
+                }}
+                className={`flex-1 flex justify-center items-center py-1.5 transition relative active:scale-95 cursor-pointer ${
+                  isNotificationCenterOpen ? 'text-[#1DB954]' : 'text-white hover:text-[#1DB954]'
+                }`}
+                title="‡¶®‡ßã‡¶ü‡¶ø‡¶´‡¶ø‡¶ï‡ßá‡¶∂‡¶®"
+              >
+                <Bell className={`w-5 h-5 ${isNotificationCenterOpen ? 'text-[#1DB954] stroke-[2.5]' : 'text-white'}`} />
+                {(notifications && notifications.length > 0) && (
+                  <span className="absolute -top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                    {notifications.filter(n => !n.read).length > 0
+                      ? notifications.filter(n => !n.read).length
+                      : notifications.length}
+                  </span>
+                )}
+              </button>
+
+              {/* 5. ‚ù§Ô∏è Saved / Favorites */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedGig(null);
+                  setActiveSubTab('saved_gigs');
+                  if (setActiveTab) {
+                    setActiveTab('marketplace', 'saved_gigs', true);
+                  }
+                  setIsInboxModalOpen(false);
+                  setIsNotificationsOpen(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex-1 flex justify-center items-center py-1.5 transition relative active:scale-95 cursor-pointer ${
+                  activeSubTab === 'saved_gigs' && !selectedGig && !isInboxModalOpen && !isNotificationsOpen ? 'text-[#1DB954]' : 'text-white'
+                }`}
+                title="‡¶™‡¶õ‡¶®‡ßç‡¶¶‡ßá‡¶∞ ‡¶∏‡ßá‡¶≠ ‡¶ï‡¶∞‡¶æ ‡¶ó‡¶ø‡¶ó‡¶∏‡¶Æ‡ßÇ‡¶π"
+              >
+                <Heart className={`w-5 h-5 ${activeSubTab === 'saved_gigs' && !selectedGig && !isInboxModalOpen && !isNotificationsOpen ? 'fill-[#1DB954] text-[#1DB954]' : 'text-white'}`} />
+                {savedGigIds && savedGigIds.length > 0 && (
+                  <span className="absolute -top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                    {savedGigIds.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* ATTACHED SPECIALIST 3-TAB QUICK-ACTION STRIP FOR PHONE VIEW */}
+            {viewMode === 'selling' && sellerSubTab !== 'gigs' && !selectedGig && !isInboxModalOpen && !isNotificationsOpen && (
+              <div className="-mx-2 -mb-2 w-[calc(100%+1rem)] font-bengali bg-slate-900 text-white px-2 py-2 border-t border-slate-800 shadow-xs">
+                <div className="grid grid-cols-3 gap-1.5 w-full">
+                  {/* 1. ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞‡¶∏‡¶Æ‡ßÇ‡¶π */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSpecialistMainTab('marketplace');
+                      setSellerSubTab('orders');
+                    }}
+                    className={`py-2 px-1.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer active:scale-95 text-center ${
+                      specialistMainTab === 'marketplace' && sellerSubTab === 'orders'
+                        ? 'bg-[#1DB954] text-white shadow-md ring-1 ring-[#1DB954]/50'
+                        : 'bg-slate-800/90 text-slate-300 hover:text-white border border-slate-700/80'
+                    }`}
+                  >
+                    <ShoppingBag className={`w-3.5 h-3.5 shrink-0 ${specialistMainTab === 'marketplace' && sellerSubTab === 'orders' ? 'text-slate-950' : 'text-[#1DB954]'}`} />
+                    <span className="truncate">‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ({marketplaceOrders.length})</span>
+                  </button>
+
+                  {/* 2. ‡¶∏‡ßç‡¶ü‡ßá‡¶ü‡¶Æ‡ßá‡¶®‡ßç‡¶ü */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSpecialistMainTab('payments');
+                      setSellerSubTab('earnings');
+                    }}
+                    className={`py-2 px-1.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer active:scale-95 text-center ${
+                      specialistMainTab === 'payments'
+                        ? 'bg-amber-400 text-slate-950 shadow-md ring-1 ring-amber-400/50'
+                        : 'bg-slate-800/90 text-slate-300 hover:text-white border border-slate-700/80'
+                    }`}
+                  >
+                    <Wallet className={`w-3.5 h-3.5 shrink-0 ${specialistMainTab === 'payments' ? 'text-slate-950' : 'text-amber-400'}`} />
+                    <span className="truncate">‡¶∏‡ßç‡¶ü‡ßá‡¶ü‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span>
+                  </button>
+
+                  {/* 3. ‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isMentor) {
+                        setSpecialistMainTab('mentor');
+                        setSellerSubTab('courses');
+                      } else if (isMentorPending) {
+                        setIsMentorStatusModalOpen(true);
+                      } else {
+                        setIsMentorAppModalOpen(true);
+                      }
+                    }}
+                    className={`py-2 px-1.5 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 cursor-pointer active:scale-95 text-center ${
+                      specialistMainTab === 'mentor'
+                        ? 'bg-teal-400 text-slate-950 shadow-md ring-1 ring-teal-400/50'
+                        : 'bg-slate-800/90 text-slate-300 hover:text-white border border-slate-700/80'
+                    }`}
+                  >
+                    <GraduationCap className={`w-3.5 h-3.5 shrink-0 ${specialistMainTab === 'mentor' ? 'text-slate-950' : 'text-teal-400'}`} />
+                    <span className="truncate">‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            
+            {/* ATTACHED UNIFIED MESSENGER HEADER FOR PHONE VIEW (CLEAN WHITE FULL-WIDTH WITH SEARCH X & SETTINGS BUTTON) */}
+            {activeSubTab === 'messenger' && !selectedGig && !isInboxModalOpen && !isNotificationsOpen && (
+              <div className="-mx-2 -mb-2 w-[calc(100%+1rem)] font-bengali bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3.5 py-2.5 border-t border-slate-200 dark:border-slate-800 shadow-xs">
+                {activeMessengerConversationId && activeMessengerUser ? (
+                  <div className="flex items-center justify-between w-full animate-in fade-in duration-150 py-0.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (setActiveMessengerConversationId) setActiveMessengerConversationId(null);
+                          setIsMessengerSearchActive(false);
+                          setMessengerSearchQuery('');
+                        }}
+                        className="p-1 -ml-1 rounded-lg text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
+                        title="‡¶á‡¶®‡¶¨‡¶ï‡ßç‡¶∏‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
+                      >
+                        <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200 stroke-[2.5]" />
+                      </button>
+                      <div className="relative shrink-0 p-[2px] rounded-full bg-gradient-to-tr from-emerald-400 via-blue-500 to-cyan-400 shadow-xs">
+                        <img
+                          src={activeMessengerUser.avatar}
+                          alt={activeMessengerUser.name}
+                          className="w-8 h-8 rounded-full object-cover border border-white dark:border-slate-800"
+                        />
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#1DB954] border-2 border-white dark:border-slate-800" />
+                      </div>
+                      <div className="min-w-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-1">
+                          <h2 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                            {activeMessengerUser.name}
+                          </h2>
+                          <BadgeCheck className="w-3.5 h-3.5 text-blue-500 shrink-0 fill-blue-500/20" />
+                        </div>
+                        <p className="text-[10px] text-[#1DB954] font-bold leading-none mt-0.5 truncate">
+                          Active now
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const meetBtn = document.getElementById('messenger-meet-trigger');
+                          if (meetBtn) meetBtn.click();
+                        }}
+                        className="p-1.5 rounded-full text-blue-600 dark:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶≠‡¶ø‡¶°‡¶ø‡¶ì ‡¶ï‡¶≤"
+                      >
+                        <Video className="w-4.5 h-4.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const phoneBtn = document.getElementById('messenger-phone-trigger');
+                          if (phoneBtn) phoneBtn.click();
+                        }}
+                        className="p-1.5 rounded-full text-blue-600 dark:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶≠‡¶Ø‡¶º‡ßá‡¶∏ ‡¶ï‡¶≤"
+                      >
+                        <PhoneCall className="w-4.5 h-4.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : isMessengerSearchActive ? (
+                  <div className="flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={messengerSearchQuery}
+                        onChange={(e) => setMessengerSearchQuery(e.target.value)}
+                        placeholder="‡¶∏‡ßá‡¶≤‡¶æ‡¶∞, ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶¨‡¶æ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶ñ‡ßÅ‡¶Å‡¶ú‡ßÅ‡¶®..."
+                        autoFocus
+                        className="w-full pl-8 pr-8 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 border border-slate-200 dark:border-slate-700 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-[#1DB954]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMessengerSearchActive(false);
+                          setMessengerSearchQuery('');
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white flex items-center justify-center text-xs transition cursor-pointer"
+                        title="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶¨‡¶®‡ßç‡¶ß ‡¶ï‡¶∞‡ßÅ‡¶®"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsMessengerSettingsModalOpen(true)}
+                      className="p-1.5 rounded-full text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
+                      title="‡¶Æ‡ßá‡¶∏‡ßá‡¶û‡ßç‡¶ú‡¶æ‡¶∞ ‡¶∏‡ßá‡¶ü‡¶ø‡¶Ç‡¶∏"
+                    >
+                      <Settings className="w-4.5 h-4.5" />
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* FACEBOOK LITE STYLE UNIFIED 5 ICON NAVIGATION BAR (EXACT SAME SIZING AS MESSENGER) */}
-              <div className={`flex items-center justify-around py-2 px-2 border-b border-slate-800/80 w-full text-white ${
-                activeSubTab === "gigs" && !selectedGig ? "border-t border-slate-800/80 border-b-0" : ""
-              }`}>
-                {/* 1. üè† Marketplace Home */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMarketplaceSettingsModalOpen(false);
-                    setIsOrderSearchActive(false);
-                    setIsSavedSearchActive(false);
-                    setSelectedGig(null);
-                    setViewMode("buying");
-                    setActiveSubTab("gigs");
-                    setSelectedCategory("All");
-                    setSearchQuery("");
-                    setIsInboxModalOpen(false);
-                    setIsNotificationsOpen(false);
-                    if (setActiveTab) {
-                      setActiveTab("marketplace", "All", true);
-                    }
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className="flex-1 flex justify-center items-center py-1 transition relative active:scale-95 cursor-pointer text-white"
-                  title="‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶π‡ßã‡¶Æ"
-                >
-                  <Home className={`w-5 h-5 ${
-                    activeSubTab === "gigs" && selectedCategory === "All" && !selectedGig && !isInboxModalOpen && !isNotificationsOpen && (activeTab === "marketplace" || !activeTab)
-                      ? "text-[#1DB954] stroke-[2.5]"
-                      : "text-white"
-                  }`} />
-                </button>
-
-                {/* 2. üõçÔ∏è Order & Courses */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMarketplaceSettingsModalOpen(false);
-                    setIsOrderSearchActive(false);
-                    setIsSavedSearchActive(false);
-                    setSelectedGig(null);
-                    setViewMode("buying");
-                    setActiveSubTab("my-orders");
-                    setOrderHubTab("orders");
-                    if (setActiveTab) {
-                      setActiveTab("marketplace", "my-orders", true);
-                    }
-                    setIsInboxModalOpen(false);
-                    setIsNotificationsOpen(false);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className="flex-1 flex justify-center items-center py-1 transition relative active:scale-95 cursor-pointer text-white"
-                  title="‡¶Ü‡¶Æ‡¶æ‡¶∞ ‡¶ï‡ßç‡¶∞‡ßü‡¶ï‡ßÉ‡¶§ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ì ‡¶ï‡ßã‡¶∞‡ßç‡¶∏‡¶∏‡¶Æ‡ßÇ‡¶π"
-                >
-                  <ShoppingBag className={`w-5 h-5 ${
-                    (activeSubTab === "my-orders" || activeSubTab === "my-courses") && !selectedGig && !isInboxModalOpen && !isNotificationsOpen
-                      ? "stroke-[2.5] text-[#1DB954]"
-                      : "text-white"
-                  }`} />
-                </button>
-
-                {/* 3. ‚úâÔ∏è Messenger */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMarketplaceSettingsModalOpen(false);
-                    setIsOrderSearchActive(false);
-                    setIsSavedSearchActive(false);
-                    if (!currentUser) {
-                      if (openAuthModal) openAuthModal();
-                      return;
-                    }
-                    openMessengerInbox();
-                  }}
-                  className="flex-1 flex justify-center items-center py-1 transition relative active:scale-95 cursor-pointer text-white"
-                  title="‡¶Æ‡ßá‡¶∏‡ßá‡¶û‡ßç‡¶ú‡¶æ‡¶∞"
-                >
-                  <Mail className={`w-5 h-5 ${
-                    isMessengerInboxOpen
-                      ? "text-[#1DB954] stroke-[2.5]"
-                      : "text-white"
-                  }`} />
-                  {(directMessages && directMessages.length > 0) && (
-                    <span className="absolute -top-1.5 right-1.5 sm:right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-[#1DB954] text-white text-[9px] font-black flex items-center justify-center shadow-md ring-2 ring-[#0B132B]">
-                      {directMessages.filter(m => !m.read).length > 0 
-                        ? directMessages.filter(m => !m.read).length 
-                        : directMessages.length}
-                    </span>
-                  )}
-                </button>
-
-                {/* 4. üîî Notification */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMarketplaceSettingsModalOpen(false);
-                    setIsOrderSearchActive(false);
-                    setIsSavedSearchActive(false);
-                    if (!currentUser) {
-                      if (openAuthModal) openAuthModal();
-                      return;
-                    }
-                    openNotificationCenter();
-                  }}
-                  className="flex-1 flex justify-center items-center py-1 transition relative active:scale-95 cursor-pointer text-white"
-                  title="‡¶®‡ßã‡¶ü‡¶ø‡¶´‡¶ø‡¶ï‡ßá‡¶∂‡¶®"
-                >
-                  <Bell className={`w-5 h-5 ${
-                    isNotificationCenterOpen
-                      ? "text-[#1DB954] stroke-[2.5]"
-                      : "text-white"
-                  }`} />
-                  {(notifications && notifications.length > 0) && (
-                    <span className="absolute -top-1.5 right-1.5 sm:right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center shadow-md ring-2 ring-[#0B132B]">
-                      {notifications.filter(n => !n.read).length > 0 
-                        ? notifications.filter(n => !n.read).length 
-                        : notifications.length}
-                    </span>
-                  )}
-                </button>
-
-                {/* 5. ‚ù§Ô∏è Saved / Favorites */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMarketplaceSettingsModalOpen(false);
-                    setIsOrderSearchActive(false);
-                    setIsSavedSearchActive(false);
-                    setSelectedGig(null);
-                    setViewMode("buying");
-                    setActiveSubTab("saved_gigs");
-                    if (setActiveTab) {
-                      setActiveTab("marketplace", "saved_gigs", true);
-                    }
-                    setIsInboxModalOpen(false);
-                    setIsNotificationsOpen(false);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className="flex-1 flex justify-center items-center py-1 transition relative active:scale-95 cursor-pointer text-white"
-                  title="‡¶™‡¶õ‡¶®‡ßç‡¶¶‡ßá‡¶∞ ‡¶∏‡ßá‡¶≠ ‡¶ï‡¶∞‡¶æ ‡¶ó‡¶ø‡¶ó‡¶∏‡¶Æ‡ßÇ‡¶π"
-                >
-                  <Heart className={`w-5 h-5 ${
-                    activeSubTab === "saved_gigs" && !selectedGig && !isInboxModalOpen && !isNotificationsOpen
-                      ? "fill-[#1DB954] text-[#1DB954]"
-                      : "text-white"
-                  }`} />
-                  {savedGigIds && savedGigIds.length > 0 && (
-                    <span className="absolute -top-1.5 right-1.5 sm:right-2 min-w-[17px] h-[17px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center shadow-md ring-2 ring-[#0B132B]">
-                      {savedGigIds.length}
-                    </span>
-                  )}
-                </button>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setActiveSubTab('gigs')}
+                        className="p-1 rounded-lg text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
+                      >
+                        <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+                      </button>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none">Messages</h2>
+                          <span className="w-2 h-2 rounded-full bg-[#1DB954]" />
+                        </div>
+                        <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide leading-tight mt-0.5 font-sans">PTENit Marketplace Inbox</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsMessengerSearchActive(true)}
+                        className="p-1.5 rounded-full text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®"
+                      >
+                        <Search className="w-4.5 h-4.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsMessengerSettingsModalOpen(true)}
+                        className="p-1.5 rounded-full text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶Æ‡ßá‡¶∏‡ßá‡¶û‡ßç‡¶ú‡¶æ‡¶∞ ‡¶∏‡ßá‡¶ü‡¶ø‡¶Ç‡¶∏"
+                      >
+                        <Settings className="w-4.5 h-4.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* ATTACHED SUB-HEADER BELOW 5 ICONS FOR ORDER / SAVED GIGS (MATCHING MESSENGER PIXEL-FOR-PIXEL) */}
-              {(activeSubTab === "my-orders" || activeSubTab === "my-courses") && (
-                <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs transition-colors w-full">
-                  {isOrderSearchActive ? (
-                    /* Inline Direct Replacement Search Bar (Center, White Box, Inside X) */
-                    <div className="w-full max-w-md mx-auto flex items-center animate-in fade-in duration-150 py-0.5">
-                      <div className="relative w-full flex items-center">
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="text"
-                          value={orderSearchQuery}
-                          onChange={(e) => setOrderSearchQuery(e.target.value)}
-                          placeholder="‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶¨‡¶æ ‡¶ï‡ßã‡¶∞‡ßç‡¶∏ ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®..."
-                          autoFocus
-                          className="w-full pl-9 pr-8 py-1.5 bg-white text-slate-900 placeholder-slate-400 border border-slate-300 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#1DB954] focus:border-transparent shadow-xs"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOrderSearchQuery("");
-                            setIsOrderSearchActive(false);
-                          }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs transition cursor-pointer"
-                          title="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶¨‡¶®‡ßç‡¶ß ‡¶ï‡¶∞‡ßÅ‡¶®"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+            )}
+            {/* ATTACHED UNIFIED FAVORITES / SAVED GIGS HEADER FOR PHONE VIEW (CLEAN WHITE FULL-WIDTH WITH SETTINGS BUTTON) */}
+            {activeSubTab === 'saved_gigs' && !selectedGig && !isInboxModalOpen && !isNotificationsOpen && (
+              <div className="-mx-2 -mb-2 w-[calc(100%+1rem)] font-bengali bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-3.5 py-2.5 border-t border-slate-200 dark:border-slate-800 shadow-xs">
+                {isSavedSearchActive ? (
+                  <div className="flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={savedSearchQuery}
+                        onChange={(e) => setSavedSearchQuery(e.target.value)}
+                        placeholder="‡¶™‡¶õ‡¶®‡ßç‡¶¶‡ßá‡¶∞ ‡¶ó‡¶ø‡¶ó ‡¶¨‡¶æ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶ñ‡ßÅ‡¶Å‡¶ú‡ßÅ‡¶®..."
+                        autoFocus
+                        className="w-full pl-8 pr-8 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 border border-slate-200 dark:border-slate-700 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-[#1DB954]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSavedSearchActive(false);
+                          setSavedSearchQuery('');
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white flex items-center justify-center text-xs transition cursor-pointer"
+                        title="‡¶¨‡¶®‡ßç‡¶ß ‡¶ï‡¶∞‡ßÅ‡¶®"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between py-0.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedGig(null);
-                            setViewMode("buying");
-                            setActiveSubTab("gigs");
-                            setSelectedCategory("All");
-                            setSearchQuery("");
-                            if (setActiveTab) setActiveTab("marketplace", "All", true);
-                          }}
-                          className="p-1 -ml-1 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
-                          title="‡¶π‡ßã‡¶Æ‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
-                        >
-                          <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200" />
-                        </button>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none truncate">Orders & Learning</h2>
-                            <span className="w-2 h-2 rounded-full bg-[#1DB954] shrink-0" />
-                            {allBuyerOrders.length > 0 && (
-                              <span className="bg-[#1DB954] text-white text-[10px] font-black rounded-full px-1.5 py-0.2 shrink-0">
-                                {allBuyerOrders.length}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide leading-tight mt-0.5 font-sans truncate">
-                            PTENit Client Hub & Purchases
-                          </p>
+                    <button
+                      type="button"
+                      onClick={() => setIsSavedGigsSettingsModalOpen(true)}
+                      className="p-1.5 rounded-full text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
+                      title="‡¶∏‡ßá‡¶ü‡¶ø‡¶Ç‡¶∏ ‡¶ì ‡¶™‡ßç‡¶∞‡ßã‡¶´‡¶æ‡¶á‡¶≤"
+                    >
+                      <Settings className="w-4.5 h-4.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setActiveSubTab('gigs')}
+                        className="p-1 rounded-lg text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
+                      >
+                        <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+                      </button>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none font-english">Saved Gigs</h2>
+                          <span className="w-2 h-2 rounded-full bg-[#1DB954]" />
+                          {savedGigIds && savedGigIds.length > 0 && (
+                            <span className="min-w-4 h-4 px-1 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shrink-0 shadow-xs">
+                              {savedGigIds.length}
+                            </span>
+                          )}
                         </div>
-                      </div>
-                      {/* SEARCH & SETTINGS BUTTONS (Identical cleanly styled icon buttons without border clash) */}
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setIsOrderSearchActive(true)}
-                          className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                          title="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®"
-                        >
-                          <Search className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setIsMarketplaceSettingsModalOpen(true)}
-                          className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                          title="‡¶∏‡ßá‡¶ü‡¶ø‡¶Ç‡¶∏"
-                        >
-                          <Settings className="w-4 h-4" />
-                        </button>
+                        <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide leading-tight mt-0.5 font-english">
+                          PTENit Favorites & Wishlist
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {activeSubTab === "saved_gigs" && (
-                <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs transition-colors w-full">
-                  {isSavedSearchActive ? (
-                    /* Inline Direct Replacement Search Bar (Center, White Box, Inside X) */
-                    <div className="w-full max-w-md mx-auto flex items-center animate-in fade-in duration-150 py-0.5">
-                      <div className="relative w-full flex items-center">
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        <input
-                          type="text"
-                          value={savedSearchQuery}
-                          onChange={(e) => setSavedSearchQuery(e.target.value)}
-                          placeholder="‡¶∏‡ßá‡¶≠ ‡¶ï‡¶∞‡¶æ ‡¶ó‡¶ø‡¶ó ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®..."
-                          autoFocus
-                          className="w-full pl-9 pr-8 py-1.5 bg-white text-slate-900 placeholder-slate-400 border border-slate-300 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#1DB954] focus:border-transparent shadow-xs"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSavedSearchQuery("");
-                            setIsSavedSearchActive(false);
-                          }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs transition cursor-pointer"
-                          title="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶¨‡¶®‡ßç‡¶ß ‡¶ï‡¶∞‡ßÅ‡¶®"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsSavedSearchActive(true)}
+                        className="p-1.5 rounded-full text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®"
+                      >
+                        <Search className="w-4.5 h-4.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsSavedGigsSettingsModalOpen(true)}
+                        className="p-1.5 rounded-full text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        title="‡¶∏‡ßá‡¶ü‡¶ø‡¶Ç‡¶∏ ‡¶ì ‡¶™‡ßç‡¶∞‡ßã‡¶´‡¶æ‡¶á‡¶≤"
+                      >
+                        <Settings className="w-4.5 h-4.5" />
+                      </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between py-0.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedGig(null);
-                            setViewMode("buying");
-                            setActiveSubTab("gigs");
-                            setSelectedCategory("All");
-                            setSearchQuery("");
-                            if (setActiveTab) setActiveTab("marketplace", "All", true);
-                          }}
-                          className="p-1 -ml-1 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shrink-0"
-                          title="‡¶π‡ßã‡¶Æ‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
-                        >
-                          <ChevronLeft className="w-5 h-5 text-slate-700 dark:text-slate-200" />
-                        </button>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none truncate">Saved Gigs</h2>
-                            <span className="w-2 h-2 rounded-full bg-[#1DB954] shrink-0" />
-                            {savedGigIds && savedGigIds.length > 0 && (
-                              <span className="bg-[#1DB954] text-white text-[10px] font-black rounded-full px-1.5 py-0.2 shrink-0">
-                                {savedGigIds.length}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide leading-tight mt-0.5 font-sans truncate">
-                            PTENit Saved Services
-                          </p>
-                        </div>
-                      </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
-                      {/* Right: Search + Settings */}
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setIsSavedSearchActive(true)}
-                          className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                          title="‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®"
-                        >
-                          <Search className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setIsMarketplaceSettingsModalOpen(true)}
-                          className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                          title="‡¶∏‡ßá‡¶ü‡¶ø‡¶Ç‡¶∏"
-                        >
-                          <Settings className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-            </div>
           {/* DESKTOP VIEW HEADER (>= md screen) */}
           <div className="hidden md:flex items-center justify-between gap-4 w-full">
           {/* Left Brand Logo & Active Mode Indicator */}
@@ -2837,7 +3169,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
               ) : (
                 <button
                   onClick={() => setActiveSubTab('gigs')}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 bg-[#1DB954] hover:bg-emerald-400 text-slate-950 rounded-lg transition cursor-pointer font-bold shadow"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 bg-[#1DB954] hover:bg-emerald-400 text-white rounded-lg transition cursor-pointer font-bold shadow"
                   title="Search"
                 >
                   <Search className="w-3.5 h-3.5 text-slate-950 stroke-[2.5]" />
@@ -2903,7 +3235,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         setActiveSubTab('gigs');
                         window.scrollTo({ top: 500, behavior: 'smooth' });
                       }}
-                      className="w-full py-2 px-3 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition font-bengali cursor-pointer shadow"
+                      className="w-full py-2 px-3 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs flex items-center justify-center gap-2 transition font-bengali cursor-pointer shadow"
                     >
                       <Search className="w-3.5 h-3.5" />
                       <span>‡¶∏‡¶ï‡¶≤ ‡¶´‡¶≤‡¶æ‡¶´‡¶≤ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶® ({filteredGigs.length} ‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó)</span>
@@ -3052,6 +3384,8 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                 onClick={() => {
                   if (viewMode === 'buying') {
                     setViewMode('selling');
+                    setSpecialistMainTab('marketplace');
+                    setSellerSubTab('gigs');
                     setSelectedGig(null);
                   } else {
                     setViewMode('buying');
@@ -3059,7 +3393,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                     setActiveSubTab('gigs');
                   }
                 }}
-                className="hidden sm:flex px-3.5 py-2 rounded-xl text-xs font-black text-slate-950 bg-[#1DB954] hover:bg-[#19a34a] transition-all cursor-pointer items-center gap-1.5 shadow-md shadow-[#1DB954]/20 border border-[#1DB954]"
+                className="hidden sm:flex px-3.5 py-2 rounded-xl text-xs font-black text-white bg-[#1DB954] hover:bg-[#19a34a] transition-all cursor-pointer items-center gap-1.5 shadow-md shadow-[#1DB954]/20 border border-[#1DB954]"
               >
                 <Zap className="w-3.5 h-3.5 text-slate-950 fill-slate-950" />
                 <span>{viewMode === 'buying' ? '‡¶∏‡ßç‡¶™‡ßá‡¶∂‡¶æ‡¶≤‡¶ø‡¶∏‡ßç‡¶ü ‡¶Æ‡ßã‡¶°' : '‡¶¨‡¶æ‡ßü‡¶æ‡¶∞ ‡¶Æ‡ßã‡¶°'}</span>
@@ -3088,16 +3422,15 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
             ) : (
               <button
                 onClick={openAuthModal}
-                className="px-4 py-2 bg-[#1DB954] hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition cursor-pointer"
+                className="px-4 py-2 bg-[#1DB954] hover:bg-emerald-400 text-white font-black text-xs rounded-xl shadow-md transition cursor-pointer"
               >
                 Sign In
               </button>
             )}
-            </div>
           </div>
+          </div>
+
         </div>
-      </div>
-      )}
 
         {/* COMPREHENSIVE UNIFIED PROFILE POPUP MODAL/DROPDOWN (MOBILE & DESKTOP) */}
         {currentUser && isProfileDropdownOpen && (
@@ -3149,7 +3482,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           setActiveSubTab('settings');
                         }
                       }}
-                      className="px-2 py-1 rounded bg-[#1DB954]/20 hover:bg-[#1DB954] text-[#1DB954] hover:text-slate-950 font-bold text-[10px] transition cursor-pointer border border-[#1DB954]/40"
+                      className="px-2 py-1 rounded bg-[#1DB954]/20 hover:bg-[#1DB954] text-[#1DB954] hover:text-white font-bold text-[10px] transition cursor-pointer border border-[#1DB954]/40"
                     >
                       ‡¶ü‡¶™‡¶Ü‡¶™
                     </button>
@@ -3362,6 +3695,23 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
               <button
                 onClick={() => {
+                  setViewMode("selling");
+                  setSellerSubTab("create_gig");
+                  setSelectedGig(null);
+                  setIsMobileMarketplaceMenuOpen(false);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className={`p-2.5 rounded-xl text-left flex items-center gap-2 border ${
+                  viewMode === "selling" && sellerSubTab === "create_gig"
+                    ? "bg-[#1DB954] text-white border-[#1DB954] font-black"
+                    : "bg-emerald-950/40 text-emerald-300 border-emerald-500/50 hover:bg-emerald-900/50"
+                }`}
+              >
+                <PlusCircle className="w-4 h-4 shrink-0 text-[#1DB954]" />
+                <span className="truncate">Post a gig (‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú)</span>
+              </button>
+              <button
+                onClick={() => {
                   setViewMode('buying');
                   setActiveSubTab('post-project');
                   setSelectedGig(null);
@@ -3440,10 +3790,10 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                       setShowSavedOnly(false);
                       setIsMobileMarketplaceMenuOpen(false);
                     }}
-                    className={`px-2.5 py-2 rounded-xl font-bold text-xs text-left transition border truncate cursor-pointer ${
+                    className={`px-2 py-1.5 rounded-lg font-bold text-[11px] text-left transition border truncate ${
                       (selectedCategory === cat.id || (cat.id === 'AI Services' && selectedCategory === 'AI Development')) && activeSubTab === 'gigs' && !showSavedOnly
-                        ? 'bg-[#1DB954] !text-white border-[#1DB954] font-black shadow-md ring-1 ring-white/20'
-                        : 'bg-slate-800/90 text-slate-200 border-slate-700/80 hover:bg-slate-750 hover:text-white'
+                        ? 'bg-[#1DB954] text-white border-[#1DB954] font-black shadow-sm'
+                        : 'bg-slate-800/90 text-slate-300 border-slate-700/80 hover:bg-slate-800 hover:text-white'
                     }`}
                   >
                     {cat.label}
@@ -3470,18 +3820,101 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
             )}
           </div>
         )}
+      </div>
+      )}
 
-      {/* Clean layout: Sticky topbar occupies natural height */} 
+      {/* Spacer for fixed topbar on mobile */}
+      {!selectedGig && !(viewMode === 'selling' && sellerSubTab === 'create_gig') && (
+        <div className={`sm:hidden !mt-0 ${
+          viewMode === 'selling' && sellerSubTab !== 'gigs'
+            ? 'h-[142px]'
+            : activeSubTab === 'messenger' || activeSubTab === 'saved_gigs'
+            ? 'h-[136px]'
+            : 'h-[92px]'
+        }`} />
+      )}
 
-      {/* CATEGORY & SERVICE FILTER SUB-NAVBAR (DESKTOP VIEW) */}
-      {viewMode === 'buying' && activeSubTab === 'gigs' && selectedCategory === 'All' && !selectedGig && (
-        <div className={`hidden sm:block sm:sticky sm:top-[57px] z-30 !mt-0 transition-all duration-300 ease-in-out ${
+      {/* CATEGORY & SERVICE FILTER SUB-NAVBAR (NOT FIXED ON PHONE VIEW, STICKY ON DESKTOP VIEW) */}
+      {viewMode === 'buying' && !['overview', 'my-orders', 'my-courses', 'saved_gigs', 'settings', 'post-project', 'public-offers', 'messenger'].includes(activeSubTab) && !selectedGig && (
+        <div className={`relative sm:sticky sm:top-[57px] z-30 !mt-0 transition-all duration-300 ease-in-out ${
           isFilterBarVisible
-            ? 'translate-y-0 opacity-100 mb-6 max-h-[500px] pointer-events-auto'
-            : '-translate-y-2 opacity-0 py-0 max-h-0 overflow-hidden pointer-events-none'
+            ? 'translate-y-0 opacity-100 mb-2 sm:mb-6 max-h-[500px] pointer-events-auto'
+            : '-translate-y-2 opacity-0 py-0 mb-2 max-h-0 overflow-hidden pointer-events-none'
         }`}>
+          
+          {/* PHONE VIEW: SAME DARK COLOR AS TOPBAR (#0B132B), NO BORDERS OR SPACES, LOOKS LIKE CONTINUATION OF TOPBAR, NOT FIXED */}
+          <div className="sm:hidden bg-[#0B132B] -mx-2 px-2.5 py-2 text-white font-bengali">
+            <div className="flex items-center gap-1.5">
+              {/* 1. Category Select */}
+              <div className="relative flex-1 min-w-0">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    setActiveSubTab('gigs');
+                    setSelectedGig(null);
+                    setSelectedCategory(e.target.value);
+                  }}
+                  className={`w-full pl-2.5 pr-6 py-1 bg-slate-800/80 border-0 text-[10px] rounded-lg focus:outline-none appearance-none cursor-pointer truncate ${
+                    selectedCategory !== 'All'
+                      ? 'text-[#1DB954] font-extrabold'
+                      : 'text-slate-200 font-bold'
+                  }`}
+                >
+                  <option value="All" className="bg-slate-900 text-slate-100 font-normal">‡¶∏‡¶¨ ‡¶ï‡ßç‡¶Ø‡¶æ‡¶ü‡¶æ‡¶ó‡¶∞‡¶ø</option>
+                  <option value="AI Services" className="bg-slate-900 text-slate-100 font-normal">‡¶è‡¶Ü‡¶á ‡¶ì ‡¶∏‡¶´‡¶ü‡¶ì‡ßü‡ßç‡¶Ø‡¶æ‡¶∞</option>
+                  <option value="Programming & Tech" className="bg-slate-900 text-slate-100 font-normal">‡¶™‡ßç‡¶∞‡ßã‡¶ó‡ßç‡¶∞‡¶æ‡¶Æ‡¶ø‡¶Ç ‡¶ì ‡¶ü‡ßá‡¶ï‡¶®‡ßã‡¶≤‡¶ú‡¶ø</option>
+                  <option value="Graphics & Design" className="bg-slate-900 text-slate-100 font-normal">‡¶ó‡ßç‡¶∞‡¶æ‡¶´‡¶ø‡¶ï‡ßç‡¶∏ ‡¶ì ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®</option>
+                  <option value="Digital Marketing" className="bg-slate-900 text-slate-100 font-normal">‡¶°‡¶ø‡¶ú‡¶ø‡¶ü‡¶æ‡¶≤ ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶ø‡¶Ç</option>
+                  <option value="Video & Animation" className="bg-slate-900 text-slate-100 font-normal">‡¶≠‡¶ø‡¶°‡¶ø‡¶ì ‡¶ì ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶®‡¶ø‡¶Æ‡ßá‡¶∂‡¶®</option>
+                  <option value="SEO & Growth" className="bg-slate-900 text-slate-100 font-normal">‡¶è‡¶∏‡¶á‡¶ì ‡¶ì ‡¶ó‡ßç‡¶∞‡ßã‡¶•</option>
+                  <option value="Education & Training" className="bg-slate-900 text-slate-100 font-normal">‡¶è‡¶°‡ßÅ‡¶ï‡ßá‡¶∂‡¶® ‡¶ì ‡¶ü‡ßç‡¶∞‡ßá‡¶®‡¶ø‡¶Ç</option>
+                </select>
+                <ChevronDown className={`w-3.5 h-3.5 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none ${selectedCategory !== 'All' ? 'text-[#1DB954]' : 'text-slate-400'}`} />
+              </div>
+
+              {/* 2. Sort Select */}
+              <div className="relative shrink-0">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className={`pl-2 pr-5 py-1 bg-slate-800/80 border-0 text-[10px] rounded-lg focus:outline-none appearance-none cursor-pointer ${
+                    sortBy !== 'popular'
+                      ? 'text-[#1DB954] font-extrabold'
+                      : 'text-slate-200 font-bold'
+                  }`}
+                >
+                  <option value="popular" className="bg-slate-900 text-slate-100 font-normal">‡¶ú‡¶®‡¶™‡ßç‡¶∞‡¶ø‡¶Ø‡¶º‡¶§‡¶æ</option>
+                  <option value="price-asc" className="bg-slate-900 text-slate-100 font-normal">‡¶ï‡¶Æ ‡¶¶‡¶æ‡¶Æ</option>
+                  <option value="price-desc" className="bg-slate-900 text-slate-100 font-normal">‡¶¨‡ßá‡¶∂‡¶ø ‡¶¶‡¶æ‡¶Æ</option>
+                  <option value="rating" className="bg-slate-900 text-slate-100 font-normal">‡¶ü‡¶™ ‡¶∞‡ßá‡¶ü‡¶ø‡¶Ç</option>
+                </select>
+                <ChevronDown className={`w-3 h-3 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none ${sortBy !== 'popular' ? 'text-[#1DB954]' : 'text-slate-400'}`} />
+              </div>
+
+              {/* 3. Reset Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory('All');
+                  setSortBy('popular');
+                  setPriceRangeFilter('all');
+                  setDeliveryFilter('any');
+                  setRatingFilter(0);
+                  setSearchQuery('');
+                }}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition shrink-0 cursor-pointer active:scale-95 ${
+                  (selectedCategory !== 'All' || sortBy !== 'popular' || priceRangeFilter !== 'all' || deliveryFilter !== 'any' || ratingFilter > 0)
+                    ? 'bg-rose-500 text-white font-extrabold shadow-xs'
+                    : 'bg-slate-800 text-slate-300 border-0'
+                }`}
+              >
+                ‡¶∞‡¶ø‡¶∏‡ßá‡¶ü
+              </button>
+            </div>
+          </div>
+
           {/* DESKTOP VIEW MAIN BAR */}
-          <div className="flex items-center justify-between gap-2 bg-[#0F172A] dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 text-white -mx-8 md:-mx-12 lg:-mx-16 xl:-mx-20 px-8 md:px-12 lg:px-16 xl:px-20 py-2.5">
+          <div className="hidden sm:flex items-center justify-between gap-2 bg-[#0F172A] dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 text-white -mx-8 md:-mx-12 lg:-mx-16 xl:-mx-20 px-8 md:px-12 lg:px-16 xl:px-20 py-2.5">
             {/* Horizontal Swipe Scroll Category Pills */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none whitespace-nowrap py-1">
@@ -3506,8 +3939,8 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                       }}
                       className={`px-3.5 py-1.5 rounded-full font-bold text-xs transition cursor-pointer shrink-0 border whitespace-nowrap text-center ${
                         isSelected
-                          ? 'bg-[#1DB954] !text-white border-[#1DB954] shadow-md shadow-[#1DB954]/25 font-black ring-1 ring-white/20'
-                          : 'bg-slate-800/80 text-slate-200 border-slate-700/80 hover:bg-slate-700 hover:text-white hover:border-slate-600'
+                          ? 'bg-[#1DB954] text-white border-[#1DB954] shadow-xs font-black'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:border-[#1DB954]/50'
                       }`}
                     >
                       {cat.label}
@@ -3646,9 +4079,6 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
               </div>
             </div>
           )}
-
-          
-
         </div>
       )}
 
@@ -3685,98 +4115,113 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
           />
         ) : viewMode === 'selling' ? (
         /* SELLER WORKSPACE */
-        <div className="space-y-6 animate-fadeIn font-bengali">
+        <div className="space-y-3 sm:space-y-6 animate-fadeIn font-bengali !mt-1 sm:!mt-3">
           {(() => {
             const sellerGigs = currentUser ? gigs.filter(g =>
               (currentUser.id && g.sellerId === currentUser.id) ||
               (currentUser.name && g.sellerName && g.sellerName.toLowerCase().trim() === currentUser.name.toLowerCase().trim())
             ) : [];
 
-            /* STANDALONE DEDICATED GIG CREATION PAGE - HIDES ALL OTHER DASHBOARD PANELS & HEADERS */
+            /* STANDALONE DEDICATED GIG CREATION FULL-PAGE EXPERIENCE */
             if (sellerSubTab === 'create_gig') {
               return (
-                <div className="space-y-6 font-bengali bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl animate-fadeIn my-2">
+                <div className="space-y-4 sm:space-y-6 font-bengali bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 md:p-8 shadow-2xl animate-fadeIn my-1 sm:my-2 relative overflow-hidden">
                   
-                  {/* TOP PAGE HEADER WITH CLEAN X CLOSE BUTTON */}
-                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-5 mb-6">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-2xl bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-black shrink-0 shadow-inner">
-                        <PlusCircle className="w-7 h-7 text-[#1DB954]" />
+                  {/* STICKY TOP HEADER ON MOBILE & DESKTOP WITH FIXED QUICK NAVIGATION */}
+                  <div className="sticky -top-3.5 sm:-top-6 md:-top-8 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 -mx-3.5 sm:-mx-6 md:-mx-8 -mt-3.5 sm:-mt-6 md:-mt-8 px-3.5 sm:px-6 md:px-8 py-3 mb-3 sm:mb-6 flex items-center justify-between gap-2 shadow-xs">
+                    {/* Left: Prominent Back / Home button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSellerSubTab('gigs');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-2xs shrink-0"
+                      title="‡¶∏‡ßá‡¶≤‡¶æ‡¶∞ ‡¶°‡ßç‡¶Ø‡¶æ‡¶∂‡¶¨‡ßã‡¶∞‡ßç‡¶°‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
+                    >
+                      <ArrowLeft className="w-4 h-4 text-[#1DB954]" />
+                      <span>‡¶∏‡ßá‡¶≤‡¶æ‡¶∞ ‡¶°‡ßç‡¶Ø‡¶æ‡¶∂‡¶¨‡ßã‡¶∞‡ßç‡¶°</span>
+                    </button>
+
+                    {/* Center: Title & Short Badge */}
+                    <div className="flex items-center gap-2 min-w-0 text-center sm:text-left">
+                      <div className="hidden sm:flex w-8 h-8 rounded-lg bg-[#1DB954]/20 text-[#1DB954] items-center justify-center font-black shrink-0">
+                        <PlusCircle className="w-5 h-5 text-[#1DB954]" />
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                            ‡¶®‡¶§‡ßÅ‡¶® ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ì ‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ‡¶æ‡¶á‡¶ú‡ßá‡¶∂‡¶®
+                      <div className="min-w-0">
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5">
+                          <h1 className="text-xs sm:text-base md:text-lg font-black text-slate-900 dark:text-white truncate">
+                            ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶è ‡¶ó‡¶ø‡¶ó (‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú)
                           </h1>
-                          <span className="px-3 py-1 bg-[#1DB954]/20 text-[#1DB954] text-xs sm:text-sm font-black rounded-full border border-[#1DB954]/40">
-                            ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏‡¶ø‡¶Ç ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶è‡¶°‡¶ø‡¶ü‡¶∞
+                          <span className="px-2 py-0.5 bg-[#1DB954]/15 text-[#1DB954] text-[10px] font-black rounded-full border border-[#1DB954]/30 shrink-0 hidden sm:inline">
+                            ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú
                           </span>
                         </div>
-                        <p className="text-sm sm:text-base text-slate-500 font-bold mt-1">
-                          ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶∏‡ßç‡¶ï‡¶ø‡¶≤ ‡¶ì ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü‡ßá‡¶∞ ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ ‡¶§‡¶•‡ßç‡¶Ø, ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏‡¶ø‡¶Ç ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú, ‡¶Æ‡¶ø‡¶°‡¶ø‡ßü‡¶æ ‡¶ì ‡¶è‡¶´‡¶è‡¶ï‡¶ø‡¶â ‡¶∏‡¶π ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶®
-                        </p>
                       </div>
                     </div>
 
-                    {/* PROMINENT CLEAN CLOSE BUTTON (NO DOUBLE X) */}
+                    {/* Right: Quick Action Close */}
                     <button
                       type="button"
-                      onClick={() => setSellerSubTab('gigs')}
-                      className="px-4 py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 transition cursor-pointer flex items-center gap-2 text-sm sm:text-base font-black shrink-0 active:scale-95 shadow-md"
-                      title="‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ ‡¶ï‡¶∞‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
+                      onClick={() => {
+                        setSellerSubTab('gigs');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 text-xs sm:text-sm font-black transition flex items-center gap-1 cursor-pointer shrink-0 active:scale-95"
+                      title="‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ ‡¶ï‡¶∞‡ßá ‡¶°‡ßç‡¶Ø‡¶æ‡¶∂‡¶¨‡ßã‡¶∞‡ßç‡¶°‡ßá ‡¶Ø‡¶æ‡¶®"
                     >
-                      <X className="w-5 h-5 text-rose-500" />
-                      <span>‡¶¨‡¶®‡ßç‡¶ß ‡¶ï‡¶∞‡ßÅ‡¶®</span>
+                      <X className="w-4 h-4 text-rose-500" />
+                      <span className="hidden sm:inline">‡¶¨‡¶æ‡¶§‡¶ø‡¶≤</span>
                     </button>
                   </div>
 
                   {sellerGigs.length >= 6 ? (
-                    <div className="p-6 bg-rose-500/10 border-2 border-rose-500/40 rounded-2xl text-rose-600 dark:text-rose-400 text-base font-bold space-y-2">
+                    <div className="p-4 sm:p-6 bg-rose-500/10 border-2 border-rose-500/40 rounded-2xl text-rose-600 dark:text-rose-400 text-sm font-bold space-y-2">
                       <div className="flex items-center gap-2">
-                        <ShieldAlert className="w-6 h-6 text-rose-500 shrink-0 animate-bounce" />
-                        <h3 className="text-lg font-black">‡¶∏‡¶∞‡ßç‡¶¨‡ßã‡¶ö‡ßç‡¶ö ‡ß¨‡¶ü‡¶ø ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶Ü‡¶™‡¶≤‡ßã‡¶° ‡¶∏‡ßÄ‡¶Æ‡¶æ ‡¶Ö‡¶§‡¶ø‡¶ï‡ßç‡¶∞‡¶Æ ‡¶ï‡¶∞‡ßá‡¶õ‡ßá!</h3>
+                        <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 shrink-0" />
+                        <h3 className="text-sm sm:text-base font-black">‡¶∏‡¶∞‡ßç‡¶¨‡ßã‡¶ö‡ßç‡¶ö ‡ß¨‡¶ü‡¶ø ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶∏‡ßÄ‡¶Æ‡¶æ ‡¶Ö‡¶§‡¶ø‡¶ï‡ßç‡¶∞‡¶Æ ‡¶ï‡¶∞‡ßá‡¶õ‡ßá!</h3>
                       </div>
-                      <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                        ‡¶è‡¶ï‡¶ú‡¶® ‡¶∏‡ßá‡¶≤‡¶æ‡¶∞ ‡¶π‡¶ø‡¶∏‡ßá‡¶¨‡ßá ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶ï‡¶æ‡¶â‡¶®‡ßç‡¶ü‡ßá ‡¶á‡¶§‡ßã‡¶Æ‡¶ß‡ßç‡¶Ø‡ßá ‡¶∏‡¶∞‡ßç‡¶¨‡ßã‡¶ö‡ßç‡¶ö ‡ß¨‡¶ü‡¶ø ‡¶∏‡¶ï‡ßç‡¶∞‡¶ø‡ßü ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶∞‡ßü‡ßá‡¶õ‡ßá‡•§ ‡¶®‡¶§‡ßÅ‡¶® ‡¶ï‡ßã‡¶®‡ßã ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ï‡¶∞‡¶§‡ßá ‡¶ö‡¶æ‡¶á‡¶≤‡ßá ‡¶™‡ßÇ‡¶∞‡ßç‡¶¨‡ßá‡¶∞ ‡¶ï‡ßã‡¶®‡ßã ‡¶Ö‡¶®‡¶æ‡¶¨‡¶∂‡ßç‡¶Ø‡¶ï ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶°‡¶ø‡¶≤‡ßá‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®‡•§
+                      <p className="text-xs text-slate-600 dark:text-slate-300">
+                        ‡¶è‡¶ï‡¶ú‡¶® ‡¶∏‡ßá‡¶≤‡¶æ‡¶∞ ‡¶π‡¶ø‡¶∏‡ßá‡¶¨‡ßá ‡¶Ü‡¶™‡¶®‡¶ø ‡¶∏‡¶∞‡ßç‡¶¨‡ßã‡¶ö‡ßç‡¶ö ‡ß¨‡¶ü‡¶ø ‡¶∏‡¶ï‡ßç‡¶∞‡¶ø‡ßü ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶∞‡¶æ‡¶ñ‡¶§‡ßá ‡¶™‡¶æ‡¶∞‡ßá‡¶®‡•§ ‡¶®‡¶§‡ßÅ‡¶® ‡¶ó‡¶ø‡¶ó ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ï‡¶∞‡¶§‡ßá ‡¶™‡ßÇ‡¶∞‡ßç‡¶¨‡ßá‡¶∞ ‡¶ï‡ßã‡¶®‡ßã ‡¶ó‡¶ø‡¶ó ‡¶°‡¶ø‡¶≤‡¶ø‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®‡•§
                       </p>
                       <button
                         onClick={() => setSellerSubTab('gigs')}
-                        className="mt-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition shadow cursor-pointer flex items-center gap-2"
+                        className="mt-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <X className="w-4 h-4" />
                         <span>‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶≤‡¶ø‡¶∏‡ßç‡¶ü‡ßá ‡¶´‡ßá‡¶∞‡¶§ ‡¶Ø‡¶æ‡¶®</span>
                       </button>
                     </div>
                   ) : (
-                    <form onSubmit={handleCreateGigSubmit} className="space-y-8">
+                    <form onSubmit={handleCreateGigSubmit} className="space-y-4 sm:space-y-6">
                       
-                      {/* Step 1: Core Overview & Meta */}
-                      <div className="p-6 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-5">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2">
-                          <h3 className="text-base sm:text-lg font-black uppercase text-[#1DB954] flex items-center gap-2">
-                            <Layers className="w-5 h-5" />
-                            <span>‡ßß. ‡¶Æ‡ßÇ‡¶≤ ‡¶§‡¶•‡ßç‡¶Ø, ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ü‡¶æ‡¶á‡¶ü‡ßá‡¶≤ ‡¶ì ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ü‡ßç‡¶Ø‡¶æ‡¶ó‡¶∏</span>
+                      {/* SECTION 1: ‡¶Æ‡ßÇ‡¶≤ ‡¶§‡¶•‡ßç‡¶Ø (OVERVIEW) */}
+                      <div className="p-3.5 sm:p-5 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 gap-2">
+                          <h3 className="text-xs sm:text-sm font-black uppercase text-[#1DB954] flex items-center gap-1.5">
+                            <Layers className="w-4 h-4 shrink-0" />
+                            <span>‡ßß. ‡¶∏‡¶æ‡¶ß‡¶æ‡¶∞‡¶£ ‡¶§‡¶•‡ßç‡¶Ø ‡¶ì ‡¶ü‡¶æ‡¶á‡¶ü‡ßá‡¶≤</span>
                           </h3>
                           <button
                             type="button"
                             onClick={handleOptimizeWithGemini}
                             disabled={isAiOptimizing}
-                            className="px-4 py-2 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                            className="w-auto px-3 py-1.5 bg-[#1DB954] hover:bg-[#19a34a] text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                           >
-                            <Sparkles className="w-4 h-4 fill-slate-950" />
-                            <span>{isAiOptimizing ? 'AI ‡¶ú‡ßá‡¶®‡¶æ‡¶∞‡ßá‡¶ü ‡¶π‡¶ö‡ßç‡¶õ‡ßá...' : 'Gemini AI ‡¶¶‡¶ø‡ßü‡ßá ‡¶ü‡¶æ‡¶á‡¶ü‡ßá‡¶≤ ‡¶ì ‡¶¨‡¶∞‡ßç‡¶£‡¶®‡¶æ ‡¶Ö‡¶ü‡ßã ‡¶Ö‡¶™‡¶ü‡¶ø‡¶Æ‡¶æ‡¶á‡¶ú ‡¶ï‡¶∞‡ßÅ‡¶® ‚ú®'}</span>
+                            <Sparkles className="w-3.5 h-3.5 fill-white text-white shrink-0" />
+                            <span className="text-white">{isAiOptimizing ? 'AI ‡¶∏‡¶æ‡¶ú‡¶æ‡¶ö‡ßç‡¶õ‡ßá...' : 'AI ‡¶∏‡¶æ‡¶ú‡¶æ‡¶®'}</span>
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                          <div className="space-y-1.5">
-                            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶ï‡ßç‡¶Ø‡¶æ‡¶ü‡¶æ‡¶ó‡¶∞‡¶ø (Category) <span className="text-rose-500">*</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶ï‡ßç‡¶Ø‡¶æ‡¶ü‡¶æ‡¶ó‡¶∞‡¶ø <span className="text-rose-500">*</span>
                             </label>
                             <select
                               value={newGigCategory}
                               onChange={(e) => setNewGigCategory(e.target.value)}
-                              className="w-full p-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
                             >
                               <option value="Programming & Tech">Programming & Tech</option>
                               <option value="AI Services">AI Services</option>
@@ -3787,450 +4232,839 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                             </select>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶ü‡¶æ‡¶á‡¶™ / ‡¶¨‡ßç‡¶Ø‡¶æ‡¶ú (Offer Badge) <span className="text-rose-500">*</span>
+                          <div className="space-y-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶¨‡ßç‡¶Ø‡¶æ‡¶ú <span className="text-rose-500">*</span>
                             </label>
                             <select
                               value={newGigOfferBadge}
                               onChange={(e) => setNewGigOfferBadge(e.target.value)}
-                              className="w-full p-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954] font-bold font-bengali"
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954] font-bold"
                             >
-                              <option value="‡¶Ü‡¶ó‡ßá ‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ">‚ö° ‡¶Ü‡¶ó‡ßá ‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ (Work First)</option>
-                              <option value="‡ß´% ‡¶õ‡¶æ‡ßú">üéÅ ‡ß´% ‡¶õ‡¶æ‡ßú (5% Discount)</option>
-                              <option value="‡ßß‡ß¶% ‡¶õ‡¶æ‡ßú">üéÅ ‡ßß‡ß¶% ‡¶õ‡¶æ‡ßú (10% Discount)</option>
-                              <option value="‡ß®‡ß¶% ‡¶õ‡¶æ‡ßú">üéÅ ‡ß®‡ß¶% ‡¶õ‡¶æ‡ßú (20% Discount)</option>
                               <option value="‡ß©‡ß¶% ‡¶õ‡¶æ‡ßú">üéÅ ‡ß©‡ß¶% ‡¶õ‡¶æ‡ßú (30% Discount)</option>
+                              <option value="‡ß®‡ß¶% ‡¶õ‡¶æ‡ßú">üéÅ ‡ß®‡ß¶% ‡¶õ‡¶æ‡ßú (20% Discount)</option>
+                              <option value="‡ßß‡ß¶% ‡¶õ‡¶æ‡ßú">üéÅ ‡ßß‡ß¶% ‡¶õ‡¶æ‡ßú (10% Discount)</option>
                               <option value="‡ß´‡ß¶% ‡¶õ‡¶æ‡ßú">üéÅ ‡ß´‡ß¶% ‡¶õ‡¶æ‡ßú (50% Discount)</option>
+                              <option value="‡¶Ü‡¶ó‡ßá ‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ">‚ö° ‡¶Ü‡¶ó‡ßá ‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ (Work First)</option>
                             </select>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ü‡¶æ‡¶á‡¶ü‡ßá‡¶≤ (Title) <span className="text-rose-500">*</span>
+                          <div className="space-y-1 sm:col-span-2 md:col-span-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ü‡¶æ‡¶á‡¶ü‡ßá‡¶≤ <span className="text-rose-500">*</span>
                             </label>
                             <input
                               type="text"
                               required
-                              placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: I will build a full stack AI web application with React & Node.js..."
+                              placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: I will build a full stack AI web application..."
                               value={newGigTitle}
                               onChange={(e) => setNewGigTitle(e.target.value)}
-                              className="w-full p-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
                             />
                           </div>
                         </div>
 
                         {/* Search Keywords / Tags */}
-                        <div className="space-y-1.5 pt-1">
-                          <label className="block text-sm font-bold text-slate-800 dark:text-slate-200">
-                            ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶ø‡¶ì‡¶Ø‡¶º‡¶æ‡¶∞‡ßç‡¶° ‡¶ì ‡¶ü‡ßç‡¶Ø‡¶æ‡¶ó‡¶∏ (Keywords & Tags)
+                        <div className="space-y-1 pt-1">
+                          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                            ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶ï‡¶ø‡¶ì‡¶Ø‡¶º‡¶æ‡¶∞‡ßç‡¶° ‡¶ì ‡¶ü‡ßç‡¶Ø‡¶æ‡¶ó‡¶∏
                           </label>
                           <input
                             type="text"
-                            placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: React, Node.js, AI Integration, Web App, Frontend"
+                            placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: React, Next.js, AI, FullStack, Node.js (‡¶ï‡¶Æ‡¶æ ‡¶¶‡¶ø‡ßü‡ßá ‡¶≤‡¶ø‡¶ñ‡ßÅ‡¶®)"
                             value={newGigTags}
                             onChange={(e) => setNewGigTags(e.target.value)}
-                            className="w-full p-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
+                            className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
                           />
-                          <p className="text-xs sm:text-sm text-slate-500 font-medium">‡¶ï‡¶Æ‡¶æ (,) ‡¶¶‡¶ø‡ßü‡ßá ‡¶Ü‡¶≤‡¶æ‡¶¶‡¶æ ‡¶ï‡¶∞‡ßá ‡¶ï‡¶ø‡¶ì‡¶Ø‡¶º‡¶æ‡¶∞‡ßç‡¶° ‡¶ü‡¶æ‡¶á‡¶™ ‡¶ï‡¶∞‡ßÅ‡¶®, ‡¶Ø‡¶æ ‡¶¨‡¶æ‡ßü‡¶æ‡¶∞‡¶¶‡ßá‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö‡ßá ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ñ‡ßÅ‡¶Å‡¶ú‡ßá ‡¶™‡ßá‡¶§‡ßá ‡¶∏‡¶æ‡¶π‡¶æ‡¶Ø‡ßç‡¶Ø ‡¶ï‡¶∞‡¶¨‡ßá‡•§</p>
                         </div>
                       </div>
 
-                      {/* Step 2: 3-Tier Packages Builder */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-base sm:text-lg font-black uppercase text-[#1DB954] flex items-center gap-2">
-                            <DollarSign className="w-5 h-5" />
-                            <span>‡ß®. ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶ï‡¶®‡¶´‡¶ø‡¶ó‡¶æ‡¶∞‡ßá‡¶∂‡¶® (3 Packages Pricing & Scope)</span>
-                          </h3>
-                          <span className="text-xs sm:text-sm text-slate-500 font-bold">Basic, Standard, Premium Tiers</span>
+                      {/* SECTION 2: ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏‡¶ø‡¶Ç ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú (SIDE-BY-SIDE / STEP-BY-STEP BUILDER) */}
+                      <div className="p-3.5 sm:p-5 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 gap-2">
+                          <div>
+                            <h3 className="text-xs sm:text-sm font-black uppercase text-[#1DB954] flex items-center gap-1.5">
+                              <DollarSign className="w-4 h-4 shrink-0" />
+                              <span>‡ß®. ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏‡¶ø‡¶Ç (‡ß©‡¶ü‡¶ø)</span>
+                            </h3>
+                            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                              Basic, Standard ‡¶ì Premium ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶ï‡¶®‡¶´‡¶ø‡¶ó‡¶æ‡¶∞ ‡¶ï‡¶∞‡ßÅ‡¶®
+                            </p>
+                          </div>
+
+                          {/* Desktop Layout Switcher */}
+                          <div className="hidden md:flex items-center gap-1 bg-slate-200/80 dark:bg-slate-900 p-1 rounded-xl border border-slate-300/80 dark:border-slate-700 text-xs font-bold">
+                            <button
+                              type="button"
+                              onClick={() => setPackageLayoutMode('stepped')}
+                              className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${packageLayoutMode === 'stepped' ? 'bg-white dark:bg-slate-800 text-[#1DB954] shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                            >
+                              ‡¶∏‡ßç‡¶ü‡ßá‡¶™ ‡¶ü‡ßç‡¶Ø‡¶æ‡¶¨
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPackageLayoutMode('columns')}
+                              className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${packageLayoutMode === 'columns' ? 'bg-white dark:bg-slate-800 text-[#1DB954] shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                            >
+                              ‡ß© ‡¶ï‡¶≤‡¶æ‡¶Æ ‡¶≠‡¶ø‡¶â
+                            </button>
+                          </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          
-                          {/* BASIC PACKAGE */}
-                          <div className="bg-white dark:bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-5 space-y-4 shadow-sm hover:border-[#1DB954] transition">
-                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                              <span className="px-3 py-1 bg-emerald-500/10 text-[#1DB954] font-black text-xs sm:text-sm rounded-lg uppercase">
-                                Basic Tier
-                              </span>
-                              <span className="text-xs sm:text-sm font-bold text-slate-400">‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶Æ‡ßÇ‡¶≤‡ßç‡¶Ø</span>
-                            </div>
+                        {/* 3 Interactive Package Stepper Tabs - ALWAYS VISIBLE FOR FAST NAVIGATION */}
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 p-1 sm:p-1.5 bg-slate-200/60 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                          {/* 1. BASIC TAB */}
+                          <button
+                            type="button"
+                            onClick={() => setActivePackageStep('basic')}
+                            className={`py-2 sm:py-2.5 px-1 rounded-xl transition flex flex-col items-center justify-center gap-1 cursor-pointer text-center ${
+                              activePackageStep === 'basic'
+                                ? 'bg-white dark:bg-slate-800 text-[#1DB954] shadow-md ring-2 ring-[#1DB954] font-black'
+                                : 'hover:bg-white/50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold'
+                            }`}
+                          >
+                            <Zap className={`w-4 h-4 shrink-0 ${activePackageStep === 'basic' ? 'text-[#1DB954]' : 'text-slate-500'}`} />
+                            <span className="text-xs leading-none">‡ßß. ‡¶¨‡ßá‡¶∏‡¶ø‡¶ï</span>
+                          </button>
 
-                            <div className="space-y-3.5 text-sm">
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶®‡¶æ‡¶Æ:</label>
-                                <input
-                                  type="text"
-                                  required
-                                  placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Basic Starter"
-                                  value={newBasicTitle}
-                                  onChange={(e) => setNewBasicTitle(e.target.value)}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white"
-                                />
-                              </div>
+                          {/* 2. STANDARD TAB */}
+                          <button
+                            type="button"
+                            onClick={() => setActivePackageStep('standard')}
+                            className={`py-2 sm:py-2.5 px-1 rounded-xl transition flex flex-col items-center justify-center gap-1 cursor-pointer text-center ${
+                              activePackageStep === 'standard'
+                                ? 'bg-white dark:bg-slate-800 text-blue-500 shadow-md ring-2 ring-blue-500 font-black'
+                                : 'hover:bg-white/50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold'
+                            }`}
+                          >
+                            <Star className={`w-4 h-4 shrink-0 ${activePackageStep === 'standard' ? 'text-blue-500' : 'text-slate-500'}`} />
+                            <span className="text-xs leading-none">‡ß®. ‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶°‡¶æ‡¶∞‡ßç‡¶°</span>
+                          </button>
 
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏ (‡ß≥ BDT):</label>
-                                <input
-                                  type="number"
-                                  required
-                                  placeholder="‡ß®‡ß´‡ß¶‡ß¶"
-                                  value={newBasicPrice}
-                                  onChange={(e) => setNewBasicPrice(Number(e.target.value))}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-black text-[#1DB954]"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®):</label>
-                                  <input
-                                    type="number"
-                                    required
-                                    min={1}
-                                    placeholder="3"
-                                    value={newBasicDelivery}
-                                    onChange={(e) => setNewBasicDelivery(Number(e.target.value))}
-                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®:</label>
-                                  <input
-                                    type="text"
-                                    required
-                                    placeholder="‡ßß‡¶ü‡¶ø"
-                                    value={newBasicRevisions}
-                                    onChange={(e) => setNewBasicRevisions(e.target.value)}
-                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm"
-                                  />
-                                </div>
-                              </div>
-
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶∏‡¶Ç‡¶ï‡ßç‡¶∑‡¶ø‡¶™‡ßç‡¶§ ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£:</label>
-                                <textarea
-                                  rows={2}
-                                  placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶ï‡ßã‡¶∞ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶® ‡¶ì ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø, ‡¶∞‡ßá‡¶∏‡¶™‡¶®‡ßç‡¶∏‡¶ø‡¶≠ ‡¶≤‡ßá‡¶Ü‡¶â‡¶ü, ‡¶∏‡ßã‡¶∞‡ßç‡¶∏ ‡¶´‡¶æ‡¶á‡¶≤"
-                                  value={newBasicDesc}
-                                  onChange={(e) => setNewBasicDesc(e.target.value)}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-200"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* STANDARD PACKAGE */}
-                          <div className="bg-white dark:bg-slate-900 border-2 border-blue-500/50 rounded-2xl p-5 space-y-4 shadow-md hover:border-blue-500 transition">
-                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                              <span className="px-3 py-1 bg-blue-500/10 text-blue-500 font-black text-xs sm:text-sm rounded-lg uppercase">
-                                Standard Tier
-                              </span>
-                              <span className="text-xs sm:text-sm font-bold text-blue-500">‡¶¨‡ßá‡¶∏‡ßç‡¶ü ‡¶≠‡ßç‡¶Ø‡¶æ‡¶≤‡ßÅ</span>
-                            </div>
-
-                            <div className="space-y-3.5 text-sm">
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶®‡¶æ‡¶Æ:</label>
-                                <input
-                                  type="text"
-                                  required
-                                  placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Standard Pro"
-                                  value={newStandardTitle}
-                                  onChange={(e) => setNewStandardTitle(e.target.value)}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏ (‡ß≥ BDT):</label>
-                                <input
-                                  type="number"
-                                  required
-                                  placeholder="‡ß¨‡ß¶‡ß¶‡ß¶"
-                                  value={newStandardPrice}
-                                  onChange={(e) => setNewStandardPrice(Number(e.target.value))}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-black text-blue-500"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®):</label>
-                                  <input
-                                    type="number"
-                                    required
-                                    min={1}
-                                    placeholder="2"
-                                    value={newStandardDelivery}
-                                    onChange={(e) => setNewStandardDelivery(Number(e.target.value))}
-                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®:</label>
-                                  <input
-                                    type="text"
-                                    required
-                                    placeholder="‡ß©‡¶ü‡¶ø"
-                                    value={newStandardRevisions}
-                                    onChange={(e) => setNewStandardRevisions(e.target.value)}
-                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm"
-                                  />
-                                </div>
-                              </div>
-
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶∏‡¶Ç‡¶ï‡ßç‡¶∑‡¶ø‡¶™‡ßç‡¶§ ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£:</label>
-                                <textarea
-                                  rows={2}
-                                  placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶°‡¶≠‡¶æ‡¶®‡ßç‡¶∏ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®, ‡¶°‡¶æ‡¶ü‡¶æ‡¶¨‡ßá‡¶ú ‡¶á‡¶®‡ßç‡¶ü‡¶ø‡¶ó‡ßç‡¶∞‡ßá‡¶∂‡¶®, ‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ ‡¶¨‡ßç‡¶Ø‡¶æ‡¶ï‡¶è‡¶®‡ßç‡¶° API"
-                                  value={newStandardDesc}
-                                  onChange={(e) => setNewStandardDesc(e.target.value)}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-200"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* PREMIUM PACKAGE */}
-                          <div className="bg-white dark:bg-slate-900 border-2 border-amber-500/50 rounded-2xl p-5 space-y-4 shadow-md hover:border-amber-500 transition">
-                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                              <span className="px-3 py-1 bg-amber-500/10 text-amber-500 font-black text-xs sm:text-sm rounded-lg uppercase">
-                                Premium Tier
-                              </span>
-                              <span className="text-xs sm:text-sm font-bold text-amber-500">‡¶´‡ßÅ‡¶≤ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü</span>
-                            </div>
-
-                            <div className="space-y-3.5 text-sm">
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶®‡¶æ‡¶Æ:</label>
-                                <input
-                                  type="text"
-                                  required
-                                  placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Premium Enterprise"
-                                  value={newPremiumTitle}
-                                  onChange={(e) => setNewPremiumTitle(e.target.value)}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-900 dark:text-white"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏ (‡ß≥ BDT):</label>
-                                <input
-                                  type="number"
-                                  required
-                                  placeholder="‡ßß‡ß´‡ß¶‡ß¶‡ß¶"
-                                  value={newPremiumPrice}
-                                  onChange={(e) => setNewPremiumPrice(Number(e.target.value))}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-black text-amber-500"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®):</label>
-                                  <input
-                                    type="number"
-                                    required
-                                    min={1}
-                                    placeholder="1"
-                                    value={newPremiumDelivery}
-                                    onChange={(e) => setNewPremiumDelivery(Number(e.target.value))}
-                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®:</label>
-                                  <input
-                                    type="text"
-                                    required
-                                    placeholder="‡¶Ö‡¶∏‡ßÄ‡¶Æ (Unlimited)"
-                                    value={newPremiumRevisions}
-                                    onChange={(e) => setNewPremiumRevisions(e.target.value)}
-                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm"
-                                  />
-                                </div>
-                              </div>
-
-                              <div>
-                                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">‡¶∏‡¶Ç‡¶ï‡ßç‡¶∑‡¶ø‡¶™‡ßç‡¶§ ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£:</label>
-                                <textarea
-                                  rows={2}
-                                  placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶´‡ßÅ‡¶≤ ‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶ï ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü, AI ‡¶ö‡ßç‡¶Ø‡¶æ‡¶ü‡¶¨‡¶ü, ‡¶≤‡¶æ‡¶á‡¶´‡¶ü‡¶æ‡¶á‡¶Æ ‡¶Æ‡ßá‡¶á‡¶®‡¶ü‡ßá‡¶®‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶∏"
-                                  value={newPremiumDesc}
-                                  onChange={(e) => setNewPremiumDesc(e.target.value)}
-                                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-800 dark:text-slate-200"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
+                          {/* 3. PREMIUM TAB */}
+                          <button
+                            type="button"
+                            onClick={() => setActivePackageStep('premium')}
+                            className={`py-2 sm:py-2.5 px-1 rounded-xl transition flex flex-col items-center justify-center gap-1 cursor-pointer text-center ${
+                              activePackageStep === 'premium'
+                                ? 'bg-white dark:bg-slate-800 text-amber-500 shadow-md ring-2 ring-amber-500 font-black'
+                                : 'hover:bg-white/50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-bold'
+                            }`}
+                          >
+                            <Crown className={`w-4 h-4 shrink-0 ${activePackageStep === 'premium' ? 'text-amber-500' : 'text-slate-500'}`} />
+                            <span className="text-xs leading-none">‡ß©. ‡¶™‡ßç‡¶∞‡¶ø‡¶Æ‡¶ø‡ßü‡¶æ‡¶Æ</span>
+                          </button>
                         </div>
+
+                        {/* STEPPED VIEW OR COLUMNS VIEW */}
+                        {packageLayoutMode === 'columns' ? (
+                          /* SIDE-BY-SIDE 3 COLUMNS VIEW (FOR DESKTOP) */
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                            {/* 1. BASIC CARD */}
+                            <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-[#1DB954] rounded-2xl p-3.5 space-y-3 shadow-xs transition">
+                              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Zap className="w-4 h-4 text-[#1DB954]" />
+                                  <span className="text-xs font-black text-slate-900 dark:text-white">Basic ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú</span>
+                                </div>
+                                
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶®‡¶æ‡¶Æ</label>
+                                  <input
+                                    type="text"
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Basic Starter"
+                                    value={newBasicTitle}
+                                    onChange={(e) => setNewBasicTitle(e.target.value)}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶Æ‡ßÇ‡¶≤‡ßç‡¶Ø (‡ß≥ BDT)</label>
+                                  <input
+                                    type="number"
+                                    min="500"
+                                    step="100"
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß®‡ß´‡ß¶‡ß¶"
+                                    value={newBasicPrice}
+                                    onChange={(e) => setNewBasicPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-[#1DB954]"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®)</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      max="60"
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß©"
+                                      value={newBasicDelivery}
+                                      onChange={(e) => setNewBasicDelivery(e.target.value === '' ? '' : Number(e.target.value))}
+                                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®</label>
+                                    <select
+                                      value={newBasicRevisions}
+                                      onChange={(e) => setNewBasicRevisions(e.target.value)}
+                                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                    >
+                                      <option value="1">‡ßß ‡¶¨‡¶æ‡¶∞</option>
+                                      <option value="2">‡ß® ‡¶¨‡¶æ‡¶∞</option>
+                                      <option value="3">‡ß© ‡¶¨‡¶æ‡¶∞</option>
+                                      <option value="Unlimited">‡¶Ü‡¶®‡¶≤‡¶ø‡¶Æ‡¶ø‡¶ü‡ßá‡¶°</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ / ‡¶∏‡ßç‡¶ï‡ßã‡¶™</label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="‡¶¨‡ßá‡¶∏‡¶ø‡¶ï ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶∏‡¶Ç‡¶ï‡ßç‡¶∑‡ßá‡¶™..."
+                                    value={newBasicDesc}
+                                    onChange={(e) => setNewBasicDesc(e.target.value)}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs resize-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 2. STANDARD CARD */}
+                            <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-blue-500 rounded-2xl p-3.5 space-y-3 shadow-xs transition">
+                              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Star className="w-4 h-4 text-blue-500" />
+                                  <span className="text-xs font-black text-slate-900 dark:text-white">Standard ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú</span>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶®‡¶æ‡¶Æ</label>
+                                  <input
+                                    type="text"
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Standard Pro"
+                                    value={newStandardTitle}
+                                    onChange={(e) => setNewStandardTitle(e.target.value)}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶Æ‡ßÇ‡¶≤‡ßç‡¶Ø (‡ß≥ BDT)</label>
+                                  <input
+                                    type="number"
+                                    min="500"
+                                    step="100"
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß¨‡ß¶‡ß¶‡ß¶"
+                                    value={newStandardPrice}
+                                    onChange={(e) => setNewStandardPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-blue-500"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®)</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      max="60"
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß®"
+                                      value={newStandardDelivery}
+                                      onChange={(e) => setNewStandardDelivery(e.target.value === '' ? '' : Number(e.target.value))}
+                                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®</label>
+                                    <select
+                                      value={newStandardRevisions}
+                                      onChange={(e) => setNewStandardRevisions(e.target.value)}
+                                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                    >
+                                      <option value="2">‡ß® ‡¶¨‡¶æ‡¶∞</option>
+                                      <option value="3">‡ß© ‡¶¨‡¶æ‡¶∞</option>
+                                      <option value="5">‡ß´ ‡¶¨‡¶æ‡¶∞</option>
+                                      <option value="Unlimited">‡¶Ü‡¶®‡¶≤‡¶ø‡¶Æ‡¶ø‡¶ü‡ßá‡¶°</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ / ‡¶∏‡ßç‡¶ï‡ßã‡¶™</label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶°‡¶æ‡¶∞‡ßç‡¶° ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶∏‡¶Ç‡¶ï‡ßç‡¶∑‡ßá‡¶™..."
+                                    value={newStandardDesc}
+                                    onChange={(e) => setNewStandardDesc(e.target.value)}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs resize-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 3. PREMIUM CARD */}
+                            <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-amber-500 rounded-2xl p-3.5 space-y-3 shadow-xs transition">
+                              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Crown className="w-4 h-4 text-amber-500" />
+                                  <span className="text-xs font-black text-slate-900 dark:text-white">Premium ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú</span>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶®‡¶æ‡¶Æ</label>
+                                  <input
+                                    type="text"
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Premium VIP Enterprise"
+                                    value={newPremiumTitle}
+                                    onChange={(e) => setNewPremiumTitle(e.target.value)}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶Æ‡ßÇ‡¶≤‡ßç‡¶Ø (‡ß≥ BDT)</label>
+                                  <input
+                                    type="number"
+                                    min="500"
+                                    step="100"
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ßß‡ß´‡ß¶‡ß¶‡ß¶"
+                                    value={newPremiumPrice}
+                                    onChange={(e) => setNewPremiumPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-amber-500"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®)</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      max="60"
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ßß"
+                                      value={newPremiumDelivery}
+                                      onChange={(e) => setNewPremiumDelivery(e.target.value === '' ? '' : Number(e.target.value))}
+                                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®</label>
+                                    <select
+                                      value={newPremiumRevisions}
+                                      onChange={(e) => setNewPremiumRevisions(e.target.value)}
+                                      className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs"
+                                    >
+                                      <option value="Unlimited">‡¶Ü‡¶®‡¶≤‡¶ø‡¶Æ‡¶ø‡¶ü‡ßá‡¶°</option>
+                                      <option value="5">‡ß´ ‡¶¨‡¶æ‡¶∞</option>
+                                      <option value="10">‡ßß‡ß¶ ‡¶¨‡¶æ‡¶∞</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ / ‡¶∏‡ßç‡¶ï‡ßã‡¶™</label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="‡¶™‡ßç‡¶∞‡¶ø‡¶Æ‡¶ø‡ßü‡¶æ‡¶Æ ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶∏‡¶Ç‡¶ï‡ßç‡¶∑‡ßá‡¶™..."
+                                    value={newPremiumDesc}
+                                    onChange={(e) => setNewPremiumDesc(e.target.value)}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs resize-none"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* STEP-BY-STEP PROGRESSIVE VIEW (EASY ON MOBILE & DESKTOP) */
+                          <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xs">
+                            
+                            {/* ACTIVE STEP 1: BASIC */}
+                            {activePackageStep === 'basic' && (
+                              <div className="space-y-3.5 animate-fadeIn">
+                                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-lg bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center font-black">
+                                      <Zap className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                                        ‡ßß. Basic ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú
+                                      </h4>
+                                      <p className="text-[11px] text-slate-500">‡¶∂‡ßÅ‡¶∞‡ßÅ‡¶∞ ‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏‡¶ø‡¶Ç ‡¶ì ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                  <div className="space-y-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                      ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá‡¶∞ ‡¶®‡¶æ‡¶Æ
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Basic Starter"
+                                      value={newBasicTitle}
+                                      onChange={(e) => setNewBasicTitle(e.target.value)}
+                                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                      ‡¶Æ‡ßÇ‡¶≤‡ßç‡¶Ø (‡ß≥ BDT) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="500"
+                                      step="100"
+                                      value={newBasicPrice}
+                                      onChange={(e) => setNewBasicPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß®‡ß´‡ß¶‡ß¶"
+                                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-black text-[#1DB954] focus:ring-2 focus:ring-[#1DB954]"
+                                    />
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2 sm:col-span-2 md:col-span-1">
+                                    <div className="space-y-1">
+                                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®)</label>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="60"
+                                        placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß©"
+                                        value={newBasicDelivery}
+                                        onChange={(e) => setNewBasicDelivery(e.target.value === '' ? '' : Number(e.target.value))}
+                                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®</label>
+                                      <select
+                                        value={newBasicRevisions}
+                                        onChange={(e) => setNewBasicRevisions(e.target.value)}
+                                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm"
+                                      >
+                                        <option value="1">‡ßß ‡¶¨‡¶æ‡¶∞</option>
+                                        <option value="2">‡ß® ‡¶¨‡¶æ‡¶∞</option>
+                                        <option value="3">‡ß© ‡¶¨‡¶æ‡¶∞</option>
+                                        <option value="Unlimited">‡¶Ü‡¶®‡¶≤‡¶ø‡¶Æ‡¶ø‡¶ü‡ßá‡¶°</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ ‡¶ì ‡¶´‡¶ø‡¶ö‡¶æ‡¶∞ ‡¶∏‡ßç‡¶ï‡ßã‡¶™
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Single page responsive landing page + clean code + 3 days support..."
+                                    value={newBasicDesc}
+                                    onChange={(e) => setNewBasicDesc(e.target.value)}
+                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm resize-none focus:ring-2 focus:ring-[#1DB954]"
+                                  />
+                                </div>
+
+                                {/* Step Action Navigation Button */}
+                                <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActivePackageStep('standard')}
+                                    className="w-full sm:w-auto px-4 py-2.5 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95"
+                                  >
+                                    <span>Standard</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ACTIVE STEP 2: STANDARD */}
+                            {activePackageStep === 'standard' && (
+                              <div className="space-y-3.5 animate-fadeIn">
+                                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-500 flex items-center justify-center font-black">
+                                      <Star className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                                        ‡ß®. Standard ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú
+                                      </h4>
+                                      <p className="text-[11px] text-slate-500">‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶°‡¶æ‡¶∞‡ßç‡¶° ‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶∏‡¶ø‡¶Ç ‡¶ì ‡¶´‡¶ø‡¶ö‡¶æ‡¶∞</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                  <div className="space-y-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                      ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá‡¶∞ ‡¶®‡¶æ‡¶Æ
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Standard Pro"
+                                      value={newStandardTitle}
+                                      onChange={(e) => setNewStandardTitle(e.target.value)}
+                                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                      ‡¶Æ‡ßÇ‡¶≤‡ßç‡¶Ø (‡ß≥ BDT) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="500"
+                                      step="100"
+                                      value={newStandardPrice}
+                                      onChange={(e) => setNewStandardPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß¨‡ß¶‡ß¶‡ß¶"
+                                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-black text-blue-500 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2 sm:col-span-2 md:col-span-1">
+                                    <div className="space-y-1">
+                                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®)</label>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="60"
+                                        placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ß®"
+                                        value={newStandardDelivery}
+                                        onChange={(e) => setNewStandardDelivery(e.target.value === '' ? '' : Number(e.target.value))}
+                                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®</label>
+                                      <select
+                                        value={newStandardRevisions}
+                                        onChange={(e) => setNewStandardRevisions(e.target.value)}
+                                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm"
+                                      >
+                                        <option value="2">‡ß® ‡¶¨‡¶æ‡¶∞</option>
+                                        <option value="3">‡ß© ‡¶¨‡¶æ‡¶∞</option>
+                                        <option value="5">‡ß´ ‡¶¨‡¶æ‡¶∞</option>
+                                        <option value="Unlimited">‡¶Ü‡¶®‡¶≤‡¶ø‡¶Æ‡¶ø‡¶ü‡ßá‡¶°</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ ‡¶ì ‡¶´‡¶ø‡¶ö‡¶æ‡¶∞ ‡¶∏‡ßç‡¶ï‡ßã‡¶™
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: 3-5 page responsive web app + database + source code..."
+                                    value={newStandardDesc}
+                                    onChange={(e) => setNewStandardDesc(e.target.value)}
+                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm resize-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                </div>
+
+                                {/* Step Action Navigation Buttons */}
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActivePackageStep('basic')}
+                                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <ArrowLeft className="w-3.5 h-3.5" />
+                                    <span>Basic</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setActivePackageStep('premium')}
+                                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95"
+                                  >
+                                    <span>Premium</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ACTIVE STEP 3: PREMIUM */}
+                            {activePackageStep === 'premium' && (
+                              <div className="space-y-3.5 animate-fadeIn">
+                                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center font-black">
+                                      <Crown className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                                        ‡ß©. Premium ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú
+                                      </h4>
+                                      <p className="text-[11px] text-slate-500">‡¶´‡ßÅ‡¶≤ ‡¶è‡¶®‡ßç‡¶ü‡¶æ‡¶∞‡¶™‡ßç‡¶∞‡¶æ‡¶á‡¶ú ‡¶∏‡¶≤‡ßç‡¶Ø‡ßÅ‡¶∂‡¶®</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                  <div className="space-y-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                      ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá‡¶∞ ‡¶®‡¶æ‡¶Æ
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Premium VIP Enterprise"
+                                      value={newPremiumTitle}
+                                      onChange={(e) => setNewPremiumTitle(e.target.value)}
+                                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500"
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                      ‡¶Æ‡ßÇ‡¶≤‡ßç‡¶Ø (‡ß≥ BDT) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="500"
+                                      step="100"
+                                      value={newPremiumPrice}
+                                      onChange={(e) => setNewPremiumPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                                      placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ßß‡ß´‡ß¶‡ß¶‡ß¶"
+                                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-black text-amber-500 focus:ring-2 focus:ring-amber-500"
+                                    />
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2 sm:col-span-2 md:col-span-1">
+                                    <div className="space-y-1">
+                                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø (‡¶¶‡¶ø‡¶®)</label>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="60"
+                                        placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡ßß"
+                                        value={newPremiumDelivery}
+                                        onChange={(e) => setNewPremiumDelivery(e.target.value === '' ? '' : Number(e.target.value))}
+                                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">‡¶∞‡¶ø‡¶≠‡¶ø‡¶∂‡¶®</label>
+                                      <select
+                                        value={newPremiumRevisions}
+                                        onChange={(e) => setNewPremiumRevisions(e.target.value)}
+                                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm"
+                                      >
+                                        <option value="Unlimited">‡¶Ü‡¶®‡¶≤‡¶ø‡¶Æ‡¶ø‡¶ü‡ßá‡¶°</option>
+                                        <option value="5">‡ß´ ‡¶¨‡¶æ‡¶∞</option>
+                                        <option value="10">‡ßß‡ß¶ ‡¶¨‡¶æ‡¶∞</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ ‡¶ì ‡¶´‡¶ø‡¶ö‡¶æ‡¶∞ ‡¶∏‡ßç‡¶ï‡ßã‡¶™
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: Complete Full-Stack Solution + Payment Gateway + 30 Days VIP Support..."
+                                    value={newPremiumDesc}
+                                    onChange={(e) => setNewPremiumDesc(e.target.value)}
+                                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm resize-none focus:ring-2 focus:ring-amber-500"
+                                  />
+                                </div>
+
+                                {/* Step Action Navigation Buttons */}
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setActivePackageStep('standard')}
+                                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <ArrowLeft className="w-3.5 h-3.5" />
+                                    <span>Standard</span>
+                                  </button>
+                                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-2 rounded-xl">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    <span>‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶®</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Step 3: Media & Showcase */}
-                      <div className="p-6 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                        <h3 className="text-base sm:text-lg font-black uppercase text-[#1DB954] flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                          <ImageIcon className="w-5 h-5" />
-                          <span>‡ß©. ‡¶Æ‡¶ø‡¶°‡¶ø‡ßü‡¶æ, ‡¶•‡¶æ‡¶Æ‡ßç‡¶¨‡¶®‡ßá‡¶á‡¶≤ ‡¶ì ‡¶≠‡¶ø‡¶°‡¶ø‡¶ì ‡¶∂‡ßã‡¶ï‡ßá‡¶∏</span>
+                      {/* SECTION 3: ‡¶Æ‡¶ø‡¶°‡¶ø‡ßü‡¶æ ‡¶ì ‡¶•‡¶æ‡¶Æ‡ßç‡¶¨‡¶®‡ßá‡¶á‡¶≤ (MEDIA) */}
+                      <div className="p-3.5 sm:p-5 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                        <h3 className="text-xs sm:text-sm font-black uppercase text-[#1DB954] flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2">
+                          <ImageIcon className="w-4 h-4 shrink-0" />
+                          <span>‡ß©. ‡¶•‡¶æ‡¶Æ‡ßç‡¶¨‡¶®‡ßá‡¶á‡¶≤ ‡¶ì ‡¶Æ‡¶ø‡¶°‡¶ø‡ßü‡¶æ ‡¶≤‡¶ø‡¶ô‡ßç‡¶ï</span>
                         </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-sm">
-                          <div className="space-y-1.5">
-                            <label className="block font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶•‡¶æ‡¶Æ‡ßç‡¶¨‡¶®‡ßá‡¶á‡¶≤ ‡¶á‡¶Æ‡ßá‡¶ú URL: <span className="text-rose-500">*</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶™‡ßç‡¶∞‡¶ß‡¶æ‡¶® ‡¶•‡¶æ‡¶Æ‡ßç‡¶¨‡¶®‡ßá‡¶á‡¶≤ ‡¶á‡¶Æ‡ßá‡¶ú URL
                             </label>
                             <input
                               type="url"
-                              required
-                              placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: https://images.unsplash.com/photo-..."
+                              placeholder="https://images.unsplash.com/..."
                               value={newGigThumbnail}
                               onChange={(e) => setNewGigThumbnail(e.target.value)}
-                              className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base"
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
                             />
-                            {newGigThumbnail && (
-                              <div className="mt-2 h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900">
-                                <img src={newGigThumbnail} alt="Thumbnail Preview" className="w-full h-full object-cover" />
-                              </div>
-                            )}
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="block font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶ó‡ßç‡¶Ø‡¶æ‡¶≤‡¶æ‡¶∞‡¶ø ‡¶∏‡ßç‡¶Ø‡¶æ‡¶Æ‡ßç‡¶™‡¶≤ ‡¶õ‡¶¨‡¶ø URL:
+                          <div className="space-y-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶∏‡ßç‡¶Ø‡¶æ‡¶Æ‡ßç‡¶™‡¶≤ ‡¶ï‡¶æ‡¶ú‡ßá‡¶∞ ‡¶´‡¶ü‡ßã URL
                             </label>
                             <input
                               type="url"
-                              placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: https://images.unsplash.com/photo-..."
+                              placeholder="https://images.unsplash.com/..."
                               value={newGigGalleryPic}
                               onChange={(e) => setNewGigGalleryPic(e.target.value)}
-                              className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base"
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
                             />
-                            {newGigGalleryPic && (
-                              <div className="mt-2 h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900">
-                                <img src={newGigGalleryPic} alt="Gallery Preview" className="w-full h-full object-cover" />
-                              </div>
-                            )}
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="block font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶°‡ßá‡¶Æ‡ßá‡¶æ ‡¶≠‡¶ø‡¶°‡¶ø‡¶ì URL (YouTube/Vimeo):
+                          <div className="space-y-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶°‡ßá‡¶Æ‡ßã ‡¶≠‡¶ø‡¶°‡¶ø‡¶ì ‡¶≤‡¶ø‡¶ô‡ßç‡¶ï (‡¶ê‡¶ö‡ßç‡¶õ‡¶ø‡¶ï)
                             </label>
                             <input
                               type="url"
                               placeholder="https://youtube.com/watch?v=..."
                               value={newGigVideoUrl}
                               onChange={(e) => setNewGigVideoUrl(e.target.value)}
-                              className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base"
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
                             />
-                            <p className="text-xs sm:text-sm text-slate-500 mt-1">‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞‡¶¶‡ßá‡¶∞ ‡¶Ü‡¶ï‡ßÉ‡¶∑‡ßç‡¶ü ‡¶ï‡¶∞‡¶§‡ßá ‡¶°‡ßá‡¶Æ‡ßã ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶≠‡¶ø‡¶°‡¶ø‡¶ì ‡¶≤‡¶ø‡¶Ç‡¶ï ‡¶¶‡¶ø‡¶®</p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Step 4: Description */}
-                      <div className="p-6 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                        <h3 className="text-base sm:text-lg font-black uppercase text-[#1DB954] flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                          <FileText className="w-5 h-5" />
-                          <span>‡ß™. ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ (Full Project Description)</span>
+                      {/* SECTION 4: ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£, ‡¶∞‡¶ø‡¶ï‡ßã‡ßü‡¶æ‡¶∞‡¶Æ‡ßá‡¶®‡ßç‡¶ü ‡¶ì FAQ (DETAILS) */}
+                      <div className="p-3.5 sm:p-5 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                        <h3 className="text-xs sm:text-sm font-black uppercase text-[#1DB954] flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2">
+                          <FileText className="w-4 h-4 shrink-0" />
+                          <span>‡ß™. ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ ‡¶ì ‡¶¨‡¶æ‡ßü‡¶æ‡¶∞ ‡¶®‡¶ø‡¶∞‡ßç‡¶¶‡ßá‡¶∂‡¶ø‡¶ï‡¶æ</span>
                         </h3>
 
-                        <div className="space-y-1.5 text-sm">
-                          <label className="block font-bold text-slate-800 dark:text-slate-200">
-                            ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶ì ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ <span className="text-rose-500">*</span>
-                          </label>
-                          <textarea
-                            rows={5}
-                            required
-                            placeholder="‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶∏‡¶Æ‡ßç‡¶™‡¶∞‡ßç‡¶ï‡ßá ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ ‡¶¨‡¶∞‡ßç‡¶£‡¶®‡¶æ ‡¶≤‡¶ø‡¶ñ‡ßÅ‡¶®‡•§ ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶ï‡ßá‡¶® ‡¶Ü‡¶™‡¶®‡¶æ‡¶ï‡ßá ‡¶®‡¶ø‡¶∞‡ßç‡¶¨‡¶æ‡¶ö‡¶® ‡¶ï‡¶∞‡¶¨‡ßá, ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶ï‡¶æ‡¶ú‡ßá‡¶∞ ‡¶∏‡ßÅ‡¶¨‡¶ø‡¶ß‡¶æ ‡¶á‡¶§‡ßç‡¶Ø‡¶æ‡¶¶‡¶ø‡•§"
-                            value={newGigDesc}
-                            onChange={(e) => setNewGigDesc(e.target.value)}
-                            className="w-full p-4 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
-                          />
-                        </div>
-                      </div>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£ <span className="text-rose-500">*</span>
+                            </label>
+                            <textarea
+                              required
+                              rows={3}
+                              placeholder="‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏, ‡¶ï‡¶æ‡¶ú‡ßá‡¶∞ ‡¶Ö‡¶≠‡¶ø‡¶ú‡ßç‡¶û‡¶§‡¶æ ‡¶ì ‡¶¨‡¶æ‡ßü‡¶æ‡¶∞ ‡¶ï‡ßá‡¶® ‡¶Ü‡¶™‡¶®‡¶æ‡¶ï‡ßá ‡¶¨‡ßá‡¶õ‡ßá ‡¶®‡ßá‡¶¨‡ßá ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ ‡¶≤‡¶ø‡¶ñ‡ßÅ‡¶®..."
+                              value={newGigDesc}
+                              onChange={(e) => setNewGigDesc(e.target.value)}
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954] resize-y"
+                            />
+                          </div>
 
-                      {/* Step 5: Buyer Requirements */}
-                      <div className="p-6 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                        <h3 className="text-base sm:text-lg font-black uppercase text-[#1DB954] flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                          <CheckCircle2 className="w-5 h-5" />
-                          <span>‡ß´. ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶∞‡¶ø‡¶ï‡ßã‡ßü‡¶æ‡¶∞‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∏ (Buyer Instructions & Requirements)</span>
-                        </h3>
-
-                        <div className="space-y-1.5 text-sm">
-                          <label className="block font-bold text-slate-800 dark:text-slate-200">
-                            ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞‡ßá‡¶∞ ‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶ï‡¶∞‡¶æ‡¶∞ ‡¶ú‡¶®‡ßç‡¶Ø ‡¶¨‡¶æ‡ßü‡¶æ‡¶∞‡¶ï‡ßá ‡¶ï‡ßÄ ‡¶ï‡ßÄ ‡¶∏‡¶∞‡¶¨‡¶∞‡¶æ‡¶π ‡¶ï‡¶∞‡¶§‡ßá ‡¶π‡¶¨‡ßá?
-                          </label>
-                          <textarea
-                            rows={3}
-                            placeholder="‡¶Ø‡ßá‡¶Æ‡¶®:&#10;‡ßß. ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü‡ßá‡¶∞ ‡¶≤‡¶ó‡ßã ‡¶ì ‡¶¨‡ßç‡¶∞‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶° ‡¶ï‡¶æ‡¶≤‡¶æ‡¶∞ ‡¶®‡¶ø‡¶∞‡ßç‡¶¶‡ßá‡¶∂‡¶ø‡¶ï‡¶æ&#10;‡ß®. ‡¶™‡ßç‡¶∞‡ßü‡ßã‡¶ú‡¶®‡ßÄ‡ßü ‡¶ï‡¶®‡¶ü‡ßá‡¶®‡ßç‡¶ü ‡¶ì ‡¶á‡¶Æ‡ßá‡¶ú ‡¶´‡¶æ‡¶á‡¶≤&#10;‡ß©. ‡¶π‡ßã‡¶∏‡ßç‡¶ü‡¶ø‡¶Ç/‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶æ‡¶∞ ‡¶è‡¶ï‡ßç‡¶∏‡ßá‡¶∏ (‡¶Ø‡¶¶‡¶ø ‡¶™‡ßç‡¶∞‡ßü‡ßã‡¶ú‡¶® ‡¶π‡ßü)"
-                            value={newGigRequirements}
-                            onChange={(e) => setNewGigRequirements(e.target.value)}
-                            className="w-full p-4 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base text-slate-900 dark:text-white focus:ring-2 focus:ring-[#1DB954]"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Step 6: FAQ Setup */}
-                      <div className="p-6 bg-slate-50 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-                        <h3 className="text-base sm:text-lg font-black uppercase text-[#1DB954] flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                          <HelpCircle className="w-5 h-5" />
-                          <span>‡ß¨. ‡¶∏‡¶ö‡¶∞‡¶æ‡¶ö‡¶∞ ‡¶ú‡¶ø‡¶ú‡ßç‡¶û‡¶æ‡¶∏‡¶ø‡¶§ ‡¶™‡ßç‡¶∞‡¶∂‡ßç‡¶®‡¶æ‡¶¨‡¶≤‡¶ø (Frequently Asked Questions - FAQ)</span>
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
-                          <div className="space-y-1.5">
-                            <label className="block font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶™‡ßç‡¶∞‡¶∂‡ßç‡¶® (Question):
+                          <div className="space-y-1">
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                              ‡¶¨‡¶æ‡ßü‡¶æ‡¶∞ ‡¶∞‡¶ø‡¶ï‡ßã‡ßü‡¶æ‡¶∞‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∏
                             </label>
                             <input
                               type="text"
-                              placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø‡¶∞ ‡¶™‡¶∞ ‡¶ï‡¶ø ‡¶´‡ßç‡¶∞‡¶ø ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü ‡¶™‡¶æ‡¶¨‡ßã?"
-                              value={newGigFaqQ}
-                              onChange={(e) => setNewGigFaqQ(e.target.value)}
-                              className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base"
+                              placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶¨‡ßç‡¶∞‡¶ø‡¶´, ‡¶¨‡ßç‡¶∞‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶° ‡¶≤‡ßã‡¶ó‡ßã ‡¶¨‡¶æ ‡¶∞‡ßá‡¶´‡¶æ‡¶∞‡ßá‡¶®‡ßç‡¶∏ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶® ‡¶´‡¶æ‡¶á‡¶≤..."
+                              value={newGigRequirements}
+                              onChange={(e) => setNewGigRequirements(e.target.value)}
+                              className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
                             />
                           </div>
-                          <div className="space-y-1.5">
-                            <label className="block font-bold text-slate-800 dark:text-slate-200">
-                              ‡¶â‡¶§‡ßç‡¶§‡¶∞ (Answer):
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶π‡ßç‡¶Ø‡¶æ‡¶Å, ‡¶™‡ßç‡¶∞‡¶§‡¶ø‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú‡ßá ‡ß©‡ß¶ ‡¶¶‡¶ø‡¶® ‡¶™‡¶∞‡ßç‡¶Ø‡¶®‡ßç‡¶§ ‡¶´‡ßç‡¶∞‡¶ø ‡¶ü‡ßá‡¶ï‡¶®‡¶ø‡¶ï‡ßç‡¶Ø‡¶æ‡¶≤ ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü ‡¶™‡¶æ‡¶¨‡ßá‡¶®‡•§"
-                              value={newGigFaqA}
-                              onChange={(e) => setNewGigFaqA(e.target.value)}
-                              className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base"
-                            />
+
+                          {/* DYNAMIC MULTI-FAQ LIST (ADD/REMOVE CAPABILITY) */}
+                          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                ‡¶∏‡¶ö‡¶∞‡¶æ‡¶ö‡¶∞ ‡¶™‡ßç‡¶∞‡¶∂‡ßç‡¶® ‡¶ì ‡¶â‡¶§‡ßç‡¶§‡¶∞ (FAQ)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setNewGigFaqs(prev => [...prev, { id: Date.now().toString(), question: "", answer: "" }])}
+                                className="px-2.5 py-1 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 text-[#1DB954] font-bold text-[11px] rounded-lg transition flex items-center gap-1 cursor-pointer active:scale-95"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>‡¶™‡ßç‡¶∞‡¶∂‡ßç‡¶® ‡¶Ø‡ßã‡¶ó ‡¶ï‡¶∞‡ßÅ‡¶®</span>
+                              </button>
+                            </div>
+
+                            <div className="space-y-2">
+                              {newGigFaqs.map((faq, idx) => (
+                                <div key={faq.id} className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2 relative group">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[10px] font-bold text-slate-500">‡¶™‡ßç‡¶∞‡¶∂‡ßç‡¶® #{idx + 1}</span>
+                                    {newGigFaqs.length > 1 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setNewGigFaqs(prev => prev.filter((_, i) => i !== idx))}
+                                        className="p-1 text-slate-400 hover:text-rose-500 rounded-md transition cursor-pointer"
+                                        title="‡¶™‡ßç‡¶∞‡¶∂‡ßç‡¶® ‡¶Æ‡ßÅ‡¶õ‡ßÅ‡¶®"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                  <input
+                                    type="text"
+                                    placeholder="‡¶™‡ßç‡¶∞‡¶∂‡ßç‡¶® (‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶ï‡¶æ‡¶ú‡ßá‡¶∞ ‡¶™‡¶∞ ‡¶ï‡¶ø ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü ‡¶™‡¶æ‡¶¨‡ßã?)"
+                                    value={faq.question}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setNewGigFaqs(prev => prev.map((item, i) => i === idx ? { ...item, question: val } : item));
+                                    }}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="‡¶â‡¶§‡ßç‡¶§‡¶∞ (‡¶Ø‡ßá‡¶Æ‡¶®: ‡¶π‡ßç‡¶Ø‡¶æ‡¶Å, ‡ß©‡ß¶ ‡¶¶‡¶ø‡¶® ‡¶´‡ßç‡¶∞‡¶ø ‡¶ü‡ßá‡¶ï‡¶®‡¶ø‡¶ï‡ßç‡¶Ø‡¶æ‡¶≤ ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü ‡¶¶‡ßá‡¶ì‡ßü‡¶æ ‡¶π‡¶¨‡ßá‡•§)"
+                                    value={faq.answer}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setNewGigFaqs(prev => prev.map((item, i) => i === idx ? { ...item, answer: val } : item));
+                                    }}
+                                    className="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white"
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       {createGigSuccess && (
-                        <div className="p-4 bg-emerald-500/20 text-[#1DB954] font-black text-base rounded-2xl text-center border border-[#1DB954] animate-bounce shadow-lg">
-                          ‚úì ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶∏‡¶π ‡¶®‡¶§‡ßÅ‡¶® ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶∏‡¶´‡¶≤‡¶≠‡¶æ‡¶¨‡ßá ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ì ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá!
+                        <div className="p-3 bg-emerald-500/20 text-[#1DB954] font-bold text-xs sm:text-sm rounded-xl text-center border border-[#1DB954] animate-fadeIn">
+                          ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶ó‡¶ø‡¶ó ‡¶ì ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶∏‡¶´‡¶≤‡¶≠‡¶æ‡¶¨‡ßá ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá!
                         </div>
                       )}
 
-                      {/* ACTION FOOTER */}
-                      <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                      {/* FIXED/CLEAN ACTION FOOTER WITH GOOGLE-STYLE PREMIUM BUTTONS */}
+                      <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                         <button
                           type="button"
-                          onClick={() => setSellerSubTab('gigs')}
-                          className="px-6 py-3.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 font-extrabold text-sm sm:text-base rounded-xl transition cursor-pointer flex items-center gap-2 active:scale-95"
+                          onClick={() => {
+                            setSellerSubTab('gigs');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/30 text-slate-700 hover:text-rose-600 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-800 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                         >
-                          <X className="w-5 h-5" />
+                          <X className="w-4 h-4 text-rose-500" />
                           <span>‡¶¨‡¶æ‡¶§‡¶ø‡¶≤</span>
                         </button>
                         <button
                           type="submit"
-                          className="px-8 py-3.5 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-sm sm:text-base rounded-xl shadow-xl transition flex items-center gap-2 cursor-pointer active:scale-95"
+                          className="flex-1 sm:flex-initial px-6 sm:px-8 py-2.5 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-[#19a34a] hover:to-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-[#1DB954]/25 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                         >
-                          <CheckCircle2 className="w-5 h-5 fill-slate-950" />
-                          <span>‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ì ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶™‡¶æ‡¶¨‡¶≤‡¶ø‡¶∂ ‡¶ï‡¶∞‡ßÅ‡¶® üöÄ</span>
+                          <Sparkles className="w-4 h-4 fill-white text-white" />
+                          <span className="text-white">‡¶™‡¶æ‡¶¨‡¶≤‡¶ø‡¶∂</span>
                         </button>
                       </div>
                     </form>
@@ -4245,7 +5079,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                 <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4 font-bengali animate-fadeIn">
                   
                   {/* UNIFIED SINGLE CONTAINER: COVER BANNER + ACTIONS + PROFILE INFO */}
-                  <div className="lg:col-span-3 xl:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl text-slate-900 dark:text-white shadow-xl shadow-slate-950/5 dark:shadow-black/40 font-bengali relative z-20 overflow-visible transition-all duration-300">
+                  <div className="hidden lg:block lg:col-span-3 xl:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-3xl text-slate-900 dark:text-white shadow-xl shadow-slate-950/5 dark:shadow-black/40 font-bengali relative z-20 overflow-visible transition-all duration-300">
                     
                     {/* 1. DYNAMIC TOP COVER BANNER: Auto-expands gracefully when live offers exist */}
                     <div className={`relative w-full overflow-hidden rounded-t-3xl bg-slate-950 flex flex-col justify-between p-4 sm:p-5 transition-all duration-500 ease-in-out ${
@@ -4308,7 +5142,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                               setSelectedGig(null);
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1DB954] hover:bg-emerald-400 text-slate-950 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer shadow-md active:scale-95"
+                            className="flex items-center gap-1.5 px-3.5 py-2 bg-[#1DB954] hover:bg-emerald-400 text-white rounded-xl text-xs sm:text-sm font-black transition cursor-pointer shadow-md active:scale-95"
                             title="‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞ ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®"
                           >
                             <Store className="w-4 h-4 text-slate-950" />
@@ -4445,9 +5279,9 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         </div>
                       </div>
 
-                      {/* LIVE OFFER & ORDER NOTIFICATION BANNER (‡¶™‡ßç‡¶∞‡¶ø‡¶Æ‡¶ø‡ßü‡¶æ‡¶Æ ‡¶∏‡ßç‡¶≤‡¶ø‡¶ï ‡¶ì ‡¶Ü‡¶ï‡¶∞‡ßç‡¶∑‡¶£‡ßÄ‡ßü ‡¶¨‡ßç‡¶Ø‡¶æ‡¶Ç‡¶ï‡¶®‡ßã‡¶ü ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂-‡¶ï‡ßç‡¶∞‡ßá‡¶°‡¶ø‡¶ü ‡¶ï‡¶æ‡¶∞‡ßç‡¶°) */}
+                      {/* LIVE OFFER & ORDER NOTIFICATION BANNER (‡ß©D ‡¶∞‡¶ô‡¶ø‡¶® ‡¶™‡ßç‡¶∞‡¶´‡ßá‡¶∂‡¶®‡¶æ‡¶≤ ‡¶´‡ßã‡¶® ‡¶≠‡¶ø‡¶â ‡¶ï‡¶æ‡¶∞‡ßç‡¶°) */}
                       {activeOffersList.length > 0 && activeOffersList[activeOfferIndex % activeOffersList.length] && (
-                        <div className="relative z-20 mt-3 sm:mt-4 max-w-4xl mx-auto animate-slideUp">
+                        <div className="relative z-20 mt-1.5 sm:mt-3 w-full max-w-2xl mx-auto animate-slideUp font-bengali">
                           {(() => {
                             const currentOffer = activeOffersList[activeOfferIndex % activeOffersList.length];
                             const timerPercentage = totalOfferDuration > 0 ? (offerCountdown / totalOfferDuration) * 100 : 0;
@@ -4458,180 +5292,157 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                               <div
                                 onMouseEnter={() => setIsOfferPaused(true)}
                                 onMouseLeave={() => setIsOfferPaused(false)}
-                                className="relative overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-emerald-500/30 dark:border-emerald-500/40 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4.5 shadow-2xl text-slate-900 dark:text-white transition-all duration-300 group hover:border-emerald-500/60 font-bengali"
                               >
-                                {/* Subtle Ambient Glows */}
-                                <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full blur-3xl pointer-events-none bg-emerald-500/15 dark:bg-emerald-500/20" />
-                                <div className="absolute -left-10 -bottom-10 w-28 h-28 rounded-full blur-3xl pointer-events-none bg-teal-500/15 dark:bg-teal-500/20" />
-
-                                {/* Top Sub-Bar: Client Info, Type Badge, Show All Orders Button & Live Countdown */}
-                                <div className="relative z-10 flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800/80">
-                                  <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                    {/* Client Profile Pill */}
-                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700 shrink-0">
-                                      <img
-                                        src={currentOffer.clientAvatar}
-                                        alt={currentOffer.clientName}
-                                        className="w-4 h-4 rounded-full object-cover border border-emerald-500 shrink-0"
-                                      />
-                                      <span className="truncate max-w-[130px] sm:max-w-[180px]">{currentOffer.clientName}</span>
-                                      {currentOffer.isVerified && (
-                                        <BadgeCheck className="w-3.5 h-3.5 text-[#1DB954] shrink-0" />
-                                      )}
-                                    </div>
-
-                                    {/* Order Type Tag */}
-                                    {currentOffer.type === 'personal' ? (
-                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 rounded-full text-[11px] font-extrabold border border-amber-400/40">
-                                        <Lock className="w-3 h-3 text-amber-500" />
-                                        ‡¶°‡¶ø‡¶∞‡ßá‡¶ï‡ßç‡¶ü ‡¶™‡¶æ‡¶∞‡ßç‡¶∏‡ßã‡¶®‡¶æ‡¶≤ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞
-                                      </span>
-                                    ) : (
-                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 rounded-full text-[11px] font-extrabold border border-emerald-500/30">
-                                        <Sparkles className="w-3 h-3 text-[#1DB954]" />
-                                        {currentOffer.typeLabel.replace(/^[‚ö°üîí]\s*/, '')}
-                                      </span>
-                                    )}
-
-                                    {/* Time and location */}
-                                    <span className="hidden md:inline-flex text-[11px] text-slate-500 dark:text-slate-400 font-bold">
-                                      ‚Ä¢ {currentOffer.postedTime || '‡ßß‡ß¶ ‡¶Æ‡¶ø‡¶®‡¶ø‡¶ü ‡¶Ü‡¶ó‡ßá'}
+                                {/* 1. CENTERED AUTO-SEARCH STYLE LIVE TEXT WITH SEQUENTIAL ANIMATED DOTS (SAME FONT SIZE AS LIVE ORDER SEARCH) */}
+                                <div className="flex items-center justify-center gap-2 mb-2 px-3 py-1 w-fit mx-auto select-none">
+                                  <div className="relative flex items-center justify-center">
+                                    <Radio className="w-4 h-4 text-emerald-500 animate-pulse" />
+                                    <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-60" />
+                                  </div>
+                                  <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center justify-center tracking-tight">
+                                    <span>‡¶®‡¶§‡ßÅ‡¶® ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶è‡¶∏‡ßá‡¶õ‡ßá</span>
+                                    <span className="inline-flex items-center ml-1 font-black text-emerald-500 dark:text-[#1DB954] text-base sm:text-lg select-none">
+                                      <span className="animate-pulse inline-block" style={{ animationDelay: "0ms", animationDuration: "1.2s" }}>.</span>
+                                      <span className="animate-pulse inline-block" style={{ animationDelay: "300ms", animationDuration: "1.2s" }}>.</span>
+                                      <span className="animate-pulse inline-block" style={{ animationDelay: "600ms", animationDuration: "1.2s" }}>.</span>
                                     </span>
-                                  </div>
-
-                                  {/* Right side: 7 Orders Show Button + Live Countdown Badge */}
-                                  <div className="flex items-center gap-2 shrink-0">
-                                    {/* 7 Orders Show Button (‡¶∏‡¶ï‡¶≤ ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®) */}
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsSeeAllOffersModalOpen(true)}
-                                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-black rounded-full border border-slate-200 dark:border-slate-700 transition cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95"
-                                      title="‡¶∏‡¶ï‡¶≤ ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶ì ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶§‡¶æ‡¶≤‡¶ø‡¶ï‡¶æ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
-                                    >
-                                      <ShoppingBag className="w-3.5 h-3.5 text-[#1DB954]" />
-                                      <span className="font-mono text-[11px] text-[#1DB954]">{activeOffersList.length}</span>
-                                      <span className="hidden sm:inline">‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶∂‡ßã</span>
-                                    </button>
-
-                                    {/* Live Countdown Badge */}
-                                    <div
-                                      className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-400/60 text-amber-800 dark:text-amber-300 rounded-full text-xs font-black shrink-0 shadow-xs"
-                                      title={isOfferPaused ? "‡¶™‡¶ú ‡¶ï‡¶∞‡¶æ ‡¶Ü‡¶õ‡ßá (‡¶Æ‡¶æ‡¶â‡¶∏ ‡¶∏‡¶∞‡¶æ‡¶®‡ßã ‡¶π‡¶≤‡ßá ‡¶Ü‡¶¨‡¶æ‡¶∞ ‡¶ö‡¶≤‡¶¨‡ßá)" : "‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶ó‡ßç‡¶∞‡¶π‡¶£‡ßá‡¶∞ ‡¶∏‡¶Æ‡ßü‡¶∏‡ßÄ‡¶Æ‡¶æ"}
-                                    >
-                                      <Clock className={`w-3.5 h-3.5 text-amber-600 dark:text-amber-400 ${isOfferPaused ? '' : 'animate-spin'}`} style={{ animationDuration: '4s' }} />
-                                      <span className="font-mono font-black text-xs">
-                                        {offerCountdown}s ‡¶¨‡¶æ‡¶ï‡¶ø
-                                      </span>
-                                    </div>
-                                  </div>
+                                  </h4>
                                 </div>
 
-                                {/* Main Banner Content */}
-                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
-                                  {/* Left: Cash Credit & Net Earnings */}
-                                  <div className="flex items-center gap-3 shrink-0">
-                                    <div className="px-3.5 py-2 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/60 dark:to-teal-950/40 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 shadow-sm flex items-center gap-2.5">
-                                      <div className="w-9 h-9 rounded-xl bg-[#1DB954]/15 dark:bg-[#1DB954]/25 flex items-center justify-center shrink-0">
-                                        <Banknote className="w-5 h-5 text-[#1DB954] animate-pulse" />
+                                {/* 2. 3D COMPACT ORDER CARD (REDUCED HEIGHT, EXPANDED WIDTH, CRISP TYPOGRAPHY) */}
+                                <div className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-emerald-50/20 rounded-2xl sm:rounded-3xl border-t-2 border-l-2 border-r-2 border-b-4 border-slate-200 hover:border-emerald-300 shadow-[0_12px_28px_-8px_rgba(16,185,129,0.14),0_4px_12px_-2px_rgba(0,0,0,0.05)] p-3 sm:p-3.5 text-slate-800 transition-all font-bengali">
+                                  {/* Ambient Top Glow Line */}
+                                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400" />
+
+                                  {/* Row 1: Sender Profile & Multi-Order Switcher */}
+                                  <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 mt-0.5">
+                                    {/* Sender Info */}
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <div className="relative shrink-0">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-black text-xs flex items-center justify-center ring-2 ring-emerald-500 shadow-xs">
+                                          <User className="w-3.5 h-3.5 text-white" />
+                                        </div>
+                                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
                                       </div>
-                                      <div>
-                                        <div className="text-base sm:text-lg font-black text-emerald-900 dark:text-emerald-200 font-mono tracking-tight leading-none flex items-center gap-0.5">
-                                          <span>+‡ß≥</span>
-                                          <span>{currentOffer.budget.toLocaleString('bn-BD')}</span>
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs sm:text-[13px] font-black text-slate-900 truncate">
+                                            {currentOffer.clientName || "PTENit IT Academy"}
+                                          </span>
+                                          {currentOffer.isVerified && (
+                                            <BadgeCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                          )}
                                         </div>
-                                        <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase tracking-wider mt-0.5">
-                                          ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂ ‡¶ï‡ßç‡¶∞‡ßá‡¶°‡¶ø‡¶ü
-                                        </div>
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-700 font-bold block leading-none">
+                                          {currentOffer.type === "personal" ? "‡¶°‡¶ø‡¶∞‡ßá‡¶ï‡ßç‡¶ü ‡¶™‡¶æ‡¶∞‡ßç‡¶∏‡ßã‡¶®‡¶æ‡¶≤ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞" : "‡¶Æ‡ßá‡¶á‡¶® ‡¶è‡¶°‡¶Æ‡¶ø‡¶® ‚Ä¢ ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞"}
+                                        </span>
                                       </div>
                                     </div>
 
-                                    <div className="hidden sm:block text-left pl-1">
-                                      <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">
-                                        ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶Ü‡ßü:
-                                      </span>
-                                      <span className="text-xs font-black text-[#1DB954] font-mono">
-                                        ‡ß≥{sellerPayout.toLocaleString('bn-BD')}
-                                      </span>
+                                    {/* Right Badges: Count */}
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => setIsSeeAllOffersModalOpen(true)}
+                                        className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold transition flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
+                                        title="‡¶∏‡¶ï‡¶≤ ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶è‡¶ï‡¶∏‡¶æ‡¶•‡ßá ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
+                                      >
+                                        <span className="font-mono">{activeOffersList.length}</span>
+                                        <span>‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞</span>
+                                        <ChevronRight className="w-3 h-3 text-emerald-700" />
+                                      </button>
                                     </div>
                                   </div>
 
-                                  {/* Middle: Project Title & Deliverables / Deadlines */}
-                                  <div className="min-w-0 flex-1 space-y-1.5">
-                                    <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate" title={currentOffer.title}>
+                                  {/* Row 2: Project Title & Clean Tags (No Borders, Light Soft Backgrounds, Lucide Icons) */}
+                                  <div className="py-1.5 sm:py-2">
+                                    <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug line-clamp-1" title={currentOffer.title}>
                                       {currentOffer.title}
                                     </h4>
-
-                                    <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
-                                        ‚è±Ô∏è {currentOffer.deadline}
+                                    <div className="flex items-center gap-1.5 flex-wrap mt-1 text-[10px] sm:text-[11px] font-medium">
+                                      <span className="px-2 py-0.5 bg-sky-50/80 text-sky-700 rounded-md flex items-center gap-1">
+                                        <Clock className="w-3 h-3 text-sky-600" />
+                                        <span>{currentOffer.deadline}</span>
                                       </span>
-                                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
-                                        üíº {currentOffer.category}
-                                      </span>
-                                      <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-md border border-emerald-500/20 sm:hidden">
-                                        ‚Ä¢ ‡¶Ü‡ßü: ‡ß≥{sellerPayout.toLocaleString('bn-BD')}
+                                      <span className="px-2 py-0.5 bg-purple-50/80 text-purple-700 rounded-md flex items-center gap-1">
+                                        <Briefcase className="w-3 h-3 text-purple-600" />
+                                        <span>{currentOffer.category}</span>
                                       </span>
                                     </div>
                                   </div>
 
-                                  {/* Right: Actions (View Details, Receive Button & Switcher) */}
-                                  <div className="flex items-center justify-between md:justify-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
-                                    {/* View Details Button */}
+                                  {/* Row 3: Compact Earnings Box With Subtle Dashed Border */}
+                                  <div className="grid grid-cols-2 gap-2 p-2 rounded-xl bg-slate-50/90 border border-dashed border-slate-300 dark:border-slate-700 mb-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                                        <Banknote className="w-4 h-4 text-rose-600" />
+                                      </div>
+                                      <div>
+                                        <span className="text-[9px] text-slate-500 font-bold block leading-none">‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶¨‡¶æ‡¶ú‡ßá‡¶ü</span>
+                                        <span className="text-xs sm:text-sm font-black font-mono text-slate-800 leading-tight">
+                                          ‡ß≥{currentOffer.budget.toLocaleString("bn-BD")}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="border-l border-dashed border-slate-300 dark:border-slate-700 pl-2.5 flex items-center justify-between">
+                                      <div>
+                                        <span className="text-[9px] text-rose-600 font-bold block leading-none">‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶Ü‡ßü (‡ßØ‡ß¶%)</span>
+                                        <span className="text-sm sm:text-base font-black font-mono text-emerald-700 leading-tight">
+                                          ‡ß≥{sellerPayout.toLocaleString("bn-BD")}
+                                        </span>
+                                      </div>
+                                      <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-600 text-white text-[8px] font-black rounded">
+                                        ‡¶á‡¶®‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶ü
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Row 4: 2 Action Buttons With Countdown in the Middle */}
+                                  <div className="flex items-center gap-2">
+                                    {/* ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ Button */}
                                     <button
                                       type="button"
                                       onClick={() => setSelectedOfferForModal(currentOffer)}
-                                      className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shrink-0"
-                                      title="‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞‡ßá‡¶∞ ‡¶¨‡¶ø‡¶¨‡¶∞‡¶£‡ßÄ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
+                                      className="flex-1 py-2 px-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
                                     >
-                                      <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                                      <span>‡¶≠‡¶ø‡¶â ‡¶°‡¶ø‡¶ü‡ßá‡¶á‡¶≤‡¶∏</span>
+                                      <Info className="w-3.5 h-3.5 text-slate-500" />
+                                      <span>‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§</span>
                                     </button>
 
-                                    {/* Receive Button (‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶®) */}
-                                    {isBeingActioned && offerActionType === 'received' ? (
+                                    {/* Center Countdown Badge */}
+                                    <div className="flex items-center gap-1 font-mono text-[11px] text-amber-700 font-black bg-amber-50 px-2 py-1.5 rounded-xl shrink-0 select-none">
+                                      <Clock className="w-3 h-3 text-amber-500 animate-spin" style={{ animationDuration: "4s" }} />
+                                      <span>{offerCountdown}s</span>
+                                    </div>
+
+                                    {/* ‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶® Button */}
+                                    {isBeingActioned && offerActionType === "received" ? (
                                       <button
                                         disabled
-                                        className="px-4 py-2 bg-emerald-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-emerald-500/30 animate-pulse shrink-0"
+                                        className="flex-1 py-2 px-2.5 bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-500/20 flex items-center justify-center gap-1 animate-pulse"
                                       >
-                                        <CheckCircle2 className="w-4 h-4 text-slate-950" />
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                                         <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠‡¶°!</span>
                                       </button>
                                     ) : (
                                       <button
                                         type="button"
                                         onClick={() => handleReceiveLiveOffer(currentOffer)}
-                                        className="px-4 py-2 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black rounded-xl text-xs sm:text-sm flex items-center gap-1.5 shadow-lg shadow-emerald-500/25 active:scale-95 transition cursor-pointer shrink-0"
+                                        className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-600/20 transition flex items-center justify-center gap-1 cursor-pointer"
                                       >
-                                        <Zap className="w-4 h-4 fill-slate-950 text-slate-950" />
-                                        <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠</span>
-                                        {activeOffersList.length > 0 && (
-                                          <span className="ml-1 px-1.5 py-0.5 bg-slate-950 text-[#1DB954] text-[10px] font-black rounded-full leading-none">
-                                            ({activeOffersList.length})
-                                          </span>
-                                        )}
-                                      </button>
-                                    )}
-
-                                    {/* Multi Offer Switcher */}
-                                    {activeOffersList.length > 1 && (
-                                      <button
-                                        type="button"
-                                        onClick={() => setActiveOfferIndex((curr) => (curr + 1) % activeOffersList.length)}
-                                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer active:scale-95 shrink-0"
-                                        title="‡¶™‡¶∞‡¶¨‡¶∞‡ßç‡¶§‡ßÄ ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
-                                      >
-                                        <ChevronRight className="w-4 h-4" />
+                                        <Zap className="w-3.5 h-3.5 fill-white text-white" />
+                                        <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶®</span>
                                       </button>
                                     )}
                                   </div>
-                                </div>
 
-                                {/* Micro Animated Progress Line */}
-                                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
-                                  <div
-                                    className="bg-gradient-to-r from-teal-400 via-[#1DB954] to-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
-                                    style={{ width: `${timerPercentage}%` }}
-                                  />
+                                  {/* Micro Animated Progress Line */}
+                                  <div className="w-full bg-slate-100 rounded-full h-1 mt-2.5 overflow-hidden">
+                                    <div
+                                      className="bg-gradient-to-r from-amber-500 via-rose-500 to-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
+                                      style={{ width: `${timerPercentage}%` }}
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -4640,7 +5451,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                       )}
                     </div>
 
-                    {/* 2. BOTTOM PROFILE INFO AREA OVERLAPPING COVER BANNER WITH GENEROUS SPACING */}
+                    {/*                     {/*                     {/*                     {/*                     {/*                     {/*                     {/*                     {/*                     {/*                     {/*                     {/*                     {/* 2. BOTTOM PROFILE INFO AREA OVERLAPPING COVER BANNER WITH GENEROUS SPACING */}
                     <div className="px-5 sm:px-8 pb-6 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800/50">
                       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                         
@@ -4925,11 +5736,9 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
                     {/* Modal Header */}
                     <div className="flex items-start gap-3.5 pr-8">
-                      <img
-                        src={selectedOfferForModal.clientAvatar}
-                        alt={selectedOfferForModal.clientName}
-                        className="w-12 h-12 rounded-2xl object-cover border-2 border-[#1DB954] shrink-0"
-                      />
+                      <div className="w-12 h-12 rounded-2xl bg-slate-800 text-emerald-400 flex items-center justify-center border-2 border-[#1DB954] shrink-0 shadow-md">
+                        <User className="w-6 h-6" />
+                      </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           {selectedOfferForModal.type === 'personal' ? (
@@ -5073,7 +5882,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         <button
                           type="button"
                           onClick={() => handleReceiveLiveOffer(selectedOfferForModal)}
-                          className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-[#1DB954] to-emerald-400 hover:from-emerald-400 hover:to-[#1DB954] text-slate-950 font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#1DB954]/25 hover:scale-105 active:scale-95 transition cursor-pointer"
+                          className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-[#1DB954] to-emerald-400 hover:from-emerald-400 hover:to-[#1DB954] text-white font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#1DB954]/25 hover:scale-105 active:scale-95 transition cursor-pointer"
                         >
                           <Zap className="w-4 h-4 fill-slate-950 text-slate-950" />
                           <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶® (‡ß≥{selectedOfferForModal.budget.toLocaleString()})</span>
@@ -5121,11 +5930,9 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-                                <img
-                                  src={offer.clientAvatar}
-                                  alt={offer.clientName}
-                                  className="w-10 h-10 rounded-full object-cover border-2 border-[#1DB954] shrink-0"
-                                />
+                                <div className="w-10 h-10 rounded-full bg-slate-900 text-emerald-400 flex items-center justify-center border-2 border-[#1DB954] shrink-0">
+                                  <User className="w-5 h-5" />
+                                </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-xs font-black text-white truncate">{offer.clientName}</span>
@@ -5195,7 +6002,10 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                   </div>
                 </div>
               )}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 text-slate-900 dark:text-white shadow-sm font-bengali space-y-4">
+
+
+              {/* DESKTOP SIDEBAR (HIDDEN ON MOBILE) */}
+              <div className="hidden lg:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 text-slate-900 dark:text-white shadow-sm font-bengali space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                   <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] animate-pulse" />
@@ -5431,15 +6241,15 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
             <div className="lg:col-span-2 xl:col-span-3 space-y-6">
 
               {/* SPECIALIST DYNAMIC SUB-TABS STRIP */}
-              <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-3xl shadow-xl space-y-3 font-bengali text-white animate-fadeIn">
+              <div className={`bg-slate-900 border border-slate-800 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-xl space-y-3 font-bengali text-white animate-fadeIn ${specialistMainTab === 'marketplace' ? 'hidden lg:block' : ''}`}>
                 {/* Header Info Strip */}
                 <div className="flex items-center justify-between text-xs sm:text-sm pb-3 border-b border-slate-800">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] animate-pulse" />
                     <span className="uppercase tracking-wider text-xs sm:text-sm font-black text-[#1DB954] flex items-center gap-2">
-                      {specialistMainTab === 'marketplace' && <><Briefcase className="w-4 h-4" /><span>‡ßß. ‡¶∏‡ßá‡¶≤‡¶æ‡¶∞ ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏</span></>}
-                      {specialistMainTab === 'mentor' && <><GraduationCap className="w-4 h-4" /><span>‡ß®. ‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏</span></>}
-                      {specialistMainTab === 'payments' && <><Wallet className="w-4 h-4" /><span>‡ß©. ‡¶è‡¶ï‡¶æ‡¶â‡¶®‡ßç‡¶ü ‡¶∏‡ßç‡¶ü‡ßá‡¶ü‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span></>}
+                      {specialistMainTab === 'marketplace' && <><Briefcase className="w-4 h-4" /><span><span className="sm:hidden">‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞‡¶∏</span><span className="hidden sm:inline">‡ßß. ‡¶∏‡ßá‡¶≤‡¶æ‡¶∞ ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏</span></span></>}
+                      {specialistMainTab === 'mentor' && <><GraduationCap className="w-4 h-4" /><span><span className="sm:hidden">‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏</span><span className="hidden sm:inline">‡ß®. ‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏</span></span></>}
+                      {specialistMainTab === 'payments' && <><Wallet className="w-4 h-4" /><span><span className="sm:hidden">‡¶∏‡ßç‡¶ü‡ßá‡¶ü‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span><span className="hidden sm:inline">‡ß©. ‡¶è‡¶ï‡¶æ‡¶â‡¶®‡ßç‡¶ü ‡¶∏‡ßç‡¶ü‡ßá‡¶ü‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span></span></>}
                       {specialistMainTab === 'ai_toolkit' && <><Sparkles className="w-4 h-4" /><span>‡ß™. ‡¶´‡ßç‡¶∞‡¶ø ‡¶ü‡ßÅ‡¶≤‡¶∏</span></>}
                     </span>
                   </div>
@@ -5455,7 +6265,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           onClick={() => setSellerSubTab('orders')}
                           className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                             sellerSubTab === 'orders'
-                              ? 'bg-[#1DB954] text-white shadow-md font-black'
+                              ? 'bg-[#1DB954] text-white shadow-md'
                               : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                           }`}
                         >
@@ -5467,7 +6277,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           onClick={() => setSellerSubTab('gigs')}
                           className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                             sellerSubTab === 'gigs'
-                              ? 'bg-[#1DB954] text-white shadow-md font-black'
+                              ? 'bg-[#1DB954] text-white shadow-md'
                               : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                           }`}
                         >
@@ -5481,7 +6291,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         className={`px-4 py-2 text-xs sm:text-sm font-black rounded-xl shadow-md transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                           sellerSubTab === 'create_gig'
                             ? 'bg-white text-slate-950'
-                            : 'bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 hover:opacity-90'
+                            : 'bg-gradient-to-r from-[#1DB954] to-emerald-400 text-white hover:opacity-90'
                         }`}
                       >
                         <PlusCircle className="w-4 h-4" />
@@ -5497,49 +6307,52 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
                           <button
                             onClick={() => setSellerSubTab('courses')}
-                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                            className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
                               sellerSubTab === 'courses'
                                 ? 'bg-teal-400 text-slate-950 shadow-md'
                                 : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                             }`}
                           >
-                            <BookOpen className="w-4 h-4" />
-                            <span>‡¶Ü‡¶Æ‡¶æ‡¶∞ ‡¶™‡¶∞‡¶ø‡¶ö‡¶æ‡¶≤‡¶ø‡¶§ ‡¶ï‡ßã‡¶∞‡ßç‡¶∏</span>
+                            <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span className="sm:hidden">‡¶ï‡ßã‡¶∞‡ßç‡¶∏</span>
+                            <span className="hidden sm:inline">‡¶Ü‡¶Æ‡¶æ‡¶∞ ‡¶™‡¶∞‡¶ø‡¶ö‡¶æ‡¶≤‡¶ø‡¶§ ‡¶ï‡ßã‡¶∞‡ßç‡¶∏</span>
                           </button>
 
                           <button
                             onClick={() => setSellerSubTab('assignments')}
-                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                            className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
                               sellerSubTab === 'assignments'
                                 ? 'bg-teal-400 text-slate-950 shadow-md'
                                 : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                             }`}
                           >
-                            <FileCheck className="w-4 h-4" />
-                            <span>‡¶Ö‡ßç‡¶Ø‡¶æ‡¶∏‡¶æ‡¶á‡¶®‡¶Æ‡ßá‡¶®‡ßç‡¶ü ‡¶ì ‡¶ï‡ßç‡¶≤‡¶æ‡¶∏‡¶∞‡ßÅ‡¶Æ</span>
+                            <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span className="sm:hidden">‡¶Ö‡ßç‡¶Ø‡¶æ‡¶∏‡¶æ‡¶á‡¶®‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span>
+                            <span className="hidden sm:inline">‡¶Ö‡ßç‡¶Ø‡¶æ‡¶∏‡¶æ‡¶á‡¶®‡¶Æ‡ßá‡¶®‡ßç‡¶ü ‡¶ì ‡¶ï‡ßç‡¶≤‡¶æ‡¶∏‡¶∞‡ßÅ‡¶Æ</span>
                           </button>
 
                           <button
                             onClick={() => setSellerSubTab('students')}
-                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                            className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
                               sellerSubTab === 'students'
                                 ? 'bg-teal-400 text-slate-950 shadow-md'
                                 : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                             }`}
                           >
-                            <Users className="w-4 h-4" />
-                            <span>‡¶∂‡¶ø‡¶ï‡ßç‡¶∑‡¶æ‡¶∞‡ßç‡¶•‡ßÄ‡¶¨‡ßÉ‡¶®‡ßç‡¶¶ (3)</span>
+                            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span className="sm:hidden">‡¶™‡ßç‡¶∞‡¶∂‡¶ø‡¶ï‡ßç‡¶∑‡¶®‡¶æ‡¶∞‡ßç‡¶•‡ßÄ (3)</span>
+                            <span className="hidden sm:inline">‡¶∂‡¶ø‡¶ï‡ßç‡¶∑‡¶æ‡¶∞‡ßç‡¶•‡ßÄ‡¶¨‡ßÉ‡¶®‡ßç‡¶¶ (3)</span>
                           </button>
 
                           <button
                             onClick={() => setSellerSubTab('certificates')}
-                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                            className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
                               sellerSubTab === 'certificates'
                                 ? 'bg-teal-400 text-slate-950 shadow-md'
                                 : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                             }`}
                           >
-                            <Award className="w-4 h-4" />
+                            <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             <span>‡¶∏‡¶æ‡¶∞‡ßç‡¶ü‡¶ø‡¶´‡¶ø‡¶ï‡ßá‡¶ü (1)</span>
                           </button>
                         </div>
@@ -5549,10 +6362,11 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                             setSellerSubTab('assignments');
                             setIsCreateAssignmentModalOpen(true);
                           }}
-                          className="px-4 py-2 bg-gradient-to-r from-teal-400 to-emerald-400 hover:opacity-90 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer flex items-center gap-2 whitespace-nowrap"
+                          className="px-3.5 sm:px-4 py-2 bg-gradient-to-r from-teal-400 to-emerald-400 hover:opacity-90 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0"
                         >
-                          <PlusCircle className="w-4 h-4" />
-                          <span>+ ‡¶®‡¶§‡ßÅ‡¶® ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶∏‡¶æ‡¶á‡¶®‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span>
+                          <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="sm:hidden">+ ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶∏‡¶æ‡¶á‡¶®‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span>
+                          <span className="hidden sm:inline">+ ‡¶®‡¶§‡ßÅ‡¶® ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶∏‡¶æ‡¶á‡¶®‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span>
                         </button>
                       </>
                     ) : (
@@ -5584,26 +6398,28 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                       <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
                         <button
                           onClick={() => setPayoutSubTab('overview')}
-                          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                          className={`px-3.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
                             payoutSubTab === 'overview' || payoutSubTab === 'sources'
-                              ? 'bg-[#1DB954] text-white shadow-md font-black'
+                              ? 'bg-[#1DB954] text-white shadow-md'
                               : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                           }`}
                         >
-                          <BarChart2 className="w-4 h-4" />
-                          <span>‡¶∏‡¶æ‡¶Æ‡¶æ‡¶∞‡¶ø ‡¶ì ‡¶¨‡ßç‡¶Ø‡¶æ‡¶≤‡ßá‡¶®‡ßç‡¶∏</span>
+                          <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="sm:hidden">‡¶∏‡¶æ‡¶Æ‡¶æ‡¶∞‡¶ø</span>
+                          <span className="hidden sm:inline">‡¶∏‡¶æ‡¶Æ‡¶æ‡¶∞‡¶ø ‡¶ì ‡¶¨‡ßç‡¶Ø‡¶æ‡¶≤‡ßá‡¶®‡ßç‡¶∏</span>
                         </button>
 
                         <button
                           onClick={() => setPayoutSubTab('history')}
-                          className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                          className={`px-3.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap ${
                             payoutSubTab === 'history'
-                              ? 'bg-[#1DB954] text-white shadow-md font-black'
+                              ? 'bg-[#1DB954] text-white shadow-md'
                               : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
                           }`}
                         >
-                          <Receipt className="w-4 h-4" />
-                          <span>‡¶â‡¶á‡¶•‡¶°‡ßç‡¶∞ ‡¶π‡¶ø‡¶∏‡ßç‡¶ü‡ßã‡¶∞‡¶ø</span>
+                          <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="sm:hidden">‡¶π‡¶ø‡¶∏‡ßç‡¶ü‡ßã‡¶∞‡¶ø</span>
+                          <span className="hidden sm:inline">‡¶â‡¶á‡¶•‡¶°‡ßç‡¶∞ ‡¶π‡¶ø‡¶∏‡ßç‡¶ü‡ßã‡¶∞‡¶ø</span>
                         </button>
                       </div>
 
@@ -5612,9 +6428,9 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           setWithdrawSuccess(false);
                           setIsWithdrawModalOpen(true);
                         }}
-                        className="px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 whitespace-nowrap bg-gradient-to-r from-[#1DB954] to-emerald-400 text-slate-950 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#1DB954]/20 border border-emerald-400 shrink-0"
+                        className="px-3.5 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap bg-gradient-to-r from-[#1DB954] to-emerald-400 text-white hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#1DB954]/20 border border-emerald-400 shrink-0"
                       >
-                        <Wallet className="w-4 h-4" />
+                        <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span>‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü</span>
                       </button>
                     </div>
@@ -5776,7 +6592,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                         <button
                           onClick={handleGenerateProposal}
                           disabled={isGeneratingProposal || !proposalJobTopic.trim()}
-                          className="px-6 py-3 bg-[#1DB954] hover:bg-[#19a34a] disabled:opacity-50 text-slate-950 font-black text-sm rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md shrink-0 active:scale-95"
+                          className="px-6 py-3 bg-[#1DB954] hover:bg-[#19a34a] disabled:opacity-50 text-white font-black text-sm rounded-2xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md shrink-0 active:scale-95"
                         >
                           <Sparkles className="w-5 h-5 text-slate-950" />
                           <span>{isGeneratingProposal ? '‡¶ú‡ßá‡¶®‡¶æ‡¶∞‡ßá‡¶ü ‡¶π‡¶ö‡ßç‡¶õ‡ßá...' : 'AI Proposal ‡¶§‡ßà‡¶∞‡¶ø ‡¶ï‡¶∞‡ßÅ‡¶®'}</span>
@@ -5951,6 +6767,166 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                   {/* SUBTAB: Active Client Orders Workspace */}
                   {specialistMainTab === 'marketplace' && sellerSubTab === 'orders' && (
                     <div id="seller-orders-section" className="space-y-6 animate-fadeIn font-bengali">
+                      {/* INCOMING LIVE ORDERS & OFFERS SHOWCASE (GIG CARD STYLE) */}
+                      {activeOffersList.length > 0 && (
+                        <div className="hidden lg:block bg-gradient-to-br from-emerald-950/20 via-slate-900/60 to-slate-950/80 border-2 border-emerald-500/30 dark:border-[#1DB954]/40 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-lg space-y-3.5 sm:space-y-4">
+                          <div className="flex items-center justify-between gap-2 border-b border-emerald-500/20 pb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="relative flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1DB954] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#1DB954]"></span>
+                              </span>
+                              <div>
+                                <h3 className="text-xs sm:text-base font-black text-white flex items-center gap-1.5 sm:gap-2">
+                                  <span>‡¶á‡¶®‡¶ï‡¶æ‡¶Æ‡¶ø‡¶Ç ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶ì ‡¶Ö‡¶´‡¶æ‡¶∞</span>
+                                  <span className="text-[10px] sm:text-xs bg-[#1DB954] text-white px-2 py-0.5 rounded-full font-black">
+                                    {activeOffersList.length}‡¶ü‡¶ø ‡¶≤‡¶æ‡¶á‡¶≠
+                                  </span>
+                                </h3>
+                                <p className="text-[10px] sm:text-xs text-slate-400 font-medium">
+                                  ‡¶∏‡¶∞‡¶æ‡¶∏‡¶∞‡¶ø ‡¶ó‡¶ø‡¶ó ‡¶ï‡¶æ‡¶∞‡ßç‡¶°‡ßá ‡¶ï‡ßç‡¶≤‡¶ø‡¶ï ‡¶ï‡¶∞‡ßá ‡¶¨‡¶æ '‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠' ‡¶¨‡¶æ‡¶ü‡¶®‡ßá ‡¶ö‡ßá‡¶™‡ßá ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶ó‡ßç‡¶∞‡¶π‡¶£ ‡¶ï‡¶∞‡ßÅ‡¶®
+                                </p>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setIsSeeAllOffersModalOpen(true)}
+                              className="text-[11px] sm:text-xs font-black text-[#1DB954] hover:text-emerald-300 hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+                            >
+                              <span>‡¶∏‡¶¨‡¶ó‡ßÅ‡¶≤‡ßã ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Responsive 2-column mobile, 3-column desktop Gig Card Grid */}
+                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+                            {activeOffersList.map((offer) => {
+                              const isReceived = receivedOfferIds.includes(offer.id);
+                              const thumbnailImg = getOfferThumbnail(offer);
+                              return (
+                                <div
+                                  key={offer.id}
+                                  onClick={() => setSelectedOfferForModal(offer)}
+                                  className={`group relative bg-white dark:bg-slate-900/90 rounded-2xl sm:rounded-3xl border transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer ${
+                                    isReceived
+                                      ? "border-emerald-500/50 opacity-80"
+                                      : "border-slate-200 dark:border-slate-800 hover:border-[#1DB954] hover:shadow-xl hover:scale-[1.01]"
+                                  }`}
+                                >
+                                  <div>
+                                    {/* Thumbnail Image with Badges */}
+                                    <div className="relative aspect-[16/10] sm:aspect-[16/10] w-full overflow-hidden bg-slate-950">
+                                      <img
+                                        src={thumbnailImg}
+                                        alt={offer.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
+
+                                      {/* Top Left Badge: Type */}
+                                      <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 flex flex-col gap-1">
+                                        {offer.type === "personal" ? (
+                                          <span className="bg-amber-500/90 backdrop-blur-md text-slate-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md sm:rounded-lg shadow-sm flex items-center gap-1">
+                                            <Lock className="w-2.5 h-2.5" />
+                                            <span>‡¶°‡¶ø‡¶∞‡ßá‡¶ï‡ßç‡¶ü ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞</span>
+                                          </span>
+                                        ) : offer.type === "course" || offer.typeLabel?.includes("‡¶ï‡ßã‡¶∞‡ßç‡¶∏") ? (
+                                          <span className="bg-teal-400/90 backdrop-blur-md text-slate-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md sm:rounded-lg shadow-sm flex items-center gap-1">
+                                            <Sparkles className="w-2.5 h-2.5" />
+                                            <span>‡¶ï‡ßã‡¶∞‡ßç‡¶∏ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü</span>
+                                          </span>
+                                        ) : (
+                                          <span className="bg-[#1DB954]/90 backdrop-blur-md text-slate-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md sm:rounded-lg shadow-sm flex items-center gap-1">
+                                            <Zap className="w-2.5 h-2.5 fill-slate-950" />
+                                            <span>‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Ö‡¶´‡¶æ‡¶∞</span>
+                                          </span>
+                                        )}
+
+                                        <span className="bg-slate-950/80 backdrop-blur-md text-[#1DB954] text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-[#1DB954]/30 w-fit">
+                                          {offer.category}
+                                        </span>
+                                      </div>
+
+                                      {/* Top Right Deadline Badge */}
+                                      <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-10">
+                                        <span className="bg-slate-950/85 backdrop-blur-md text-amber-300 text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-full border border-amber-400/40 shadow-xs flex items-center gap-1">
+                                          <Clock className="w-2.5 h-2.5 text-amber-400" />
+                                          <span>{offer.deadline}</span>
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Content Body */}
+                                    <div className="p-2.5 sm:p-3.5 space-y-2">
+                                      {/* Client Info Bar */}
+                                      <div className="flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800/80 pb-2">
+                                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-slate-200 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-[#1DB954] shrink-0">
+                                          <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                                              {offer.clientName}
+                                            </span>
+                                            {offer.isVerified && (
+                                              <BadgeCheck className="w-3 h-3 text-[#1DB954] shrink-0" />
+                                            )}
+                                          </div>
+                                          <span className="text-[8px] sm:text-[10px] text-slate-400 block truncate">
+                                            {offer.clientLocation || "‡¶¨‡¶æ‡¶Ç‡¶≤‡¶æ‡¶¶‡ßá‡¶∂"}
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* Offer Title */}
+                                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#1DB954] transition-colors min-h-[2rem] sm:min-h-[2.5rem]">
+                                        {offer.title}
+                                      </h4>
+
+                                      {/* Requirements Snippet */}
+                                      <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-medium">
+                                        {offer.requirements}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Footer: Price & Accept/View Button */}
+                                  <div className="p-2.5 sm:p-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-1.5 bg-slate-50/80 dark:bg-slate-950/50 rounded-b-2xl sm:rounded-b-3xl">
+                                    <div className="min-w-0">
+                                      <span className="text-[8px] sm:text-[10px] text-slate-400 font-bold block leading-none">
+                                        ‡¶¨‡¶æ‡¶ú‡ßá‡¶ü/‡¶∏‡¶Æ‡ßç‡¶Æ‡¶æ‡¶®‡ßÄ
+                                      </span>
+                                      <span className="text-xs sm:text-base font-black text-[#1DB954] block font-mono mt-0.5">
+                                        ‡ß≥{offer.budget.toLocaleString("bn-BD")}
+                                      </span>
+                                    </div>
+
+                                    {isReceived ? (
+                                      <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-[#1DB954] font-black text-[10px] sm:text-xs border border-emerald-500/30 flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠‡¶°</span>
+                                      </span>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleReceiveLiveOffer(offer);
+                                        }}
+                                        className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-[#1DB954] hover:bg-emerald-400 text-white text-[10px] sm:text-xs font-black rounded-lg sm:rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer active:scale-95 shrink-0"
+                                      >
+                                        <Zap className="w-3 h-3 fill-slate-950" />
+                                        <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                       {/* Filter Header & Stats */}
                       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 sm:p-4 rounded-xl shadow-xs space-y-3">
                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-2.5">
@@ -5965,17 +6941,15 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
                         </div>
 
-                        {/* Status Filter Tabs - Single Line Layout */}
-                        <div className="grid grid-cols-5 gap-1 sm:gap-2 pt-1">
+                        {/* Status Filter Tabs - 4 Responsive Columns Layout (Removed '‡¶∏‡¶ï‡¶≤ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞') */}
+                        <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 pt-1">
                           {(() => {
                             const pendingOrdersCount = marketplaceOrders.filter(o => o.status === 'pending' || o.status === 'pending_approval').length;
                             const inProgressCount = marketplaceOrders.filter(o => o.status === 'in_progress').length;
                             const inReviewCount = marketplaceOrders.filter(o => o.status === 'in_review' || o.status === 'revision_requested').length;
                             const completedCount = marketplaceOrders.filter(o => o.status === 'completed').length;
-                            const totalCount = marketplaceOrders.length;
 
                             return [
-                              { id: 'all', label: '‡¶∏‡¶ï‡¶≤ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞', count: totalCount, icon: Package, color: 'text-[#1DB954]' },
                               { id: 'pending', label: '‡¶®‡¶§‡ßÅ‡¶® ‡¶™‡ßá‡¶®‡ßç‡¶°‡¶ø‡¶Ç', count: pendingOrdersCount, icon: Clock, color: 'text-amber-500' },
                               { id: 'in_progress', label: '‡¶ö‡¶≤‡¶Æ‡¶æ‡¶® ‡¶ï‡¶æ‡¶ú', count: inProgressCount, icon: Zap, color: 'text-blue-500' },
                               { id: 'in_review', label: '‡¶∞‡¶ø‡¶≠‡¶ø‡¶â ‡¶Ö‡¶™‡ßá‡¶ï‡ßç‡¶∑‡¶æ‡¶Ø‡¶º', count: inReviewCount, icon: FileText, color: 'text-purple-500' },
@@ -5987,15 +6961,15 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                                 <button
                                   key={tab.id}
                                   onClick={() => setSellerOrderFilter(tab.id as any)}
-                                  className={`py-2 px-1 sm:px-2.5 rounded-xl sm:rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 min-w-0 ${
+                                  className={`py-2 px-1 sm:px-2 rounded-xl sm:rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 min-w-0 ${
                                     isSelected
                                       ? 'bg-slate-100 dark:bg-slate-800 border-[#1DB954] text-slate-950 dark:text-white shadow-xs font-black ring-1 sm:ring-2 ring-[#1DB954]/30'
                                       : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
                                   }`}
                                 >
                                   <div className="flex items-center justify-center gap-1 max-w-full">
-                                    <TabIcon className={`w-3 h-3 sm:w-4 sm:h-4 shrink-0 ${tab.color}`} />
-                                    <span className="text-[10px] sm:text-xs font-black leading-tight truncate">{tab.label}</span>
+                                    <TabIcon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${tab.color}`} />
+                                    <span className="text-[9px] min-[360px]:text-[10px] sm:text-xs font-black leading-tight truncate">{tab.label}</span>
                                   </div>
                                   <span className={`text-xs sm:text-sm lg:text-base font-black leading-tight ${
                                     isSelected ? 'text-[#1DB954]' : 'text-slate-800 dark:text-slate-200'
@@ -6008,7 +6982,7 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                           })()}
                         </div>
 
-                        {/* Filtered Order List */}
+                        {/* Filtered Order List - Beautiful Home Card Style (3D Compact, Responsive on Phone, White Text Buttons) */}
                         {(() => {
                           const filtered = marketplaceOrders.filter(o => {
                             if (sellerOrderFilter === 'all') return true;
@@ -6021,15 +6995,15 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
                           if (filtered.length === 0) {
                             return (
-                              <div className="p-8 text-center text-slate-400 space-y-2">
+                              <div className="p-8 text-center text-slate-400 space-y-2 font-bengali">
                                 <Package className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
-                                <p className="text-xs font-bold">‡¶è‡¶á ‡¶´‡¶ø‡¶≤‡ßç‡¶ü‡¶æ‡¶∞‡ßá ‡¶ï‡ßã‡¶®‡ßã ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶™‡¶æ‡¶ì‡ßü‡¶æ ‡¶Ø‡¶æ‡ßü‡¶®‡¶ø</p>
+                                <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">‡¶è‡¶á ‡¶´‡¶ø‡¶≤‡ßç‡¶ü‡¶æ‡¶∞‡ßá ‡¶ï‡ßã‡¶®‡ßã ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶™‡¶æ‡¶ì‡ßü‡¶æ ‡¶Ø‡¶æ‡ßü‡¶®‡¶ø</p>
                               </div>
                             );
                           }
 
                           return (
-                            <div className="space-y-4">
+                            <div className="space-y-3 sm:space-y-3.5 font-bengali">
                               {filtered.map(ord => {
                                 const isPendingApproval = ord.status === 'pending_approval';
                                 const isPending = ord.status === 'pending';
@@ -6038,222 +7012,351 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                                 const isCompleted = ord.status === 'completed';
                                 const isExpanded = !!expandedSellerOrders[ord.id];
 
-                                let cardStatusClasses = "border-l-8 border-l-blue-500 bg-gradient-to-r from-blue-500/10 via-slate-50/50 to-white dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
-                                let badgeClasses = "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30";
-                                let statusLabel = "‡¶ï‡¶æ‡¶ú ‡¶ö‡¶≤‡¶õ‡ßá";
-                                let StatusIcon = Clock;
+                                let glowGradient = "from-blue-500 via-indigo-400 to-cyan-400";
+                                let leftAccentBorder = "border-l-[6px] border-l-blue-500";
+                                let badgeClasses = "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+                                let statusLabel = "‡¶ö‡¶≤‡¶Æ‡¶æ‡¶®";
+                                let StatusIcon = Zap;
 
                                 if (isPendingApproval) {
-                                  cardStatusClasses = "border-l-8 border-l-amber-500 bg-gradient-to-r from-amber-500/15 via-slate-50/50 to-white dark:from-amber-950/40 dark:via-slate-900 dark:to-slate-900 border-amber-500/30 shadow-md";
-                                  badgeClasses = "bg-amber-500 text-slate-950 font-black border-amber-500";
-                                  statusLabel = "üì© ‡¶®‡¶§‡ßÅ‡¶® ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶Ö‡¶´‡¶æ‡¶∞";
+                                  glowGradient = "from-amber-400 via-amber-300 to-yellow-400";
+                                  leftAccentBorder = "border-l-[6px] border-l-amber-500";
+                                  badgeClasses = "bg-amber-500 text-white border-amber-500";
+                                  statusLabel = "‡¶®‡¶§‡ßÅ‡¶® ‡¶Ö‡¶´‡¶æ‡¶∞";
                                   StatusIcon = Clock;
                                 } else if (isPending) {
-                                  cardStatusClasses = "border-l-8 border-l-amber-400 bg-gradient-to-r from-amber-500/10 via-slate-50/50 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
-                                  badgeClasses = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30 font-bold";
-                                  statusLabel = "‡¶™‡ßá‡¶®‡ßç‡¶°‡¶ø‡¶Ç ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü (‡¶ï‡¶æ‡¶ú ‡¶ï‡¶∞‡ßÅ‡¶®)";
+                                  glowGradient = "from-amber-400 via-orange-300 to-amber-500";
+                                  leftAccentBorder = "border-l-[6px] border-l-amber-400";
+                                  badgeClasses = "bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+                                  statusLabel = "‡¶™‡ßá‡¶®‡ßç‡¶°‡¶ø‡¶Ç";
                                   StatusIcon = Clock;
                                 } else if (isInReview) {
-                                  cardStatusClasses = "border-l-8 border-l-purple-500 bg-gradient-to-r from-purple-500/10 via-slate-50/50 to-white dark:from-purple-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
-                                  badgeClasses = "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30";
-                                  statusLabel = "‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø ‡¶∞‡¶ø‡¶≠‡¶ø‡¶â‡¶ß‡ßÄ‡¶®";
+                                  glowGradient = "from-purple-500 via-fuchsia-400 to-pink-400";
+                                  leftAccentBorder = "border-l-[6px] border-l-purple-500";
+                                  badgeClasses = "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800";
+                                  statusLabel = "‡¶∞‡¶ø‡¶≠‡¶ø‡¶â‡¶ß‡ßÄ‡¶®";
                                   StatusIcon = FileText;
                                 } else if (isCompleted) {
-                                  cardStatusClasses = "border-l-8 border-l-[#1DB954] bg-gradient-to-r from-emerald-500/10 via-slate-50/50 to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
-                                  badgeClasses = "bg-emerald-500/10 text-emerald-700 dark:text-[#1DB954] border-emerald-500/30";
-                                  statusLabel = "‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶® ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü";
-                                  StatusIcon = ShieldCheck;
+                                  glowGradient = "from-emerald-400 via-teal-300 to-[#1DB954]";
+                                  leftAccentBorder = "border-l-[6px] border-l-[#1DB954]";
+                                  badgeClasses = "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-[#1DB954] border-emerald-200 dark:border-emerald-800";
+                                  statusLabel = "‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶®";
+                                  StatusIcon = CheckCircle2;
                                 } else if (ord.status === 'cancelled') {
-                                  cardStatusClasses = "border-l-8 border-l-rose-500 bg-gradient-to-r from-rose-500/10 via-slate-50/50 to-white dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900 border-slate-200 dark:border-slate-800";
-                                  badgeClasses = "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30";
-                                  statusLabel = "‡¶¨‡¶æ‡¶§‡¶ø‡¶≤‡¶ï‡ßÉ‡¶§ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü";
+                                  glowGradient = "from-rose-400 via-red-400 to-pink-400";
+                                  leftAccentBorder = "border-l-[6px] border-l-rose-500";
+                                  badgeClasses = "bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800";
+                                  statusLabel = "‡¶¨‡¶æ‡¶§‡¶ø‡¶≤";
                                   StatusIcon = ShieldAlert;
                                 }
+
+                                const sellerPayout = ord.sellerPayout || Math.round(ord.amount * 0.9);
+                                const unreadCount = ord.unreadMessageCount !== undefined ? ord.unreadMessageCount : (ord.status === "in_progress" ? 2 : ord.status === "pending" ? 3 : 0);
+
+                                let currentStepIndex = 0;
+                                if (isPendingApproval || isPending) currentStepIndex = 0;
+                                else if (isInProgress) currentStepIndex = 1;
+                                else if (isInReview) currentStepIndex = 2;
+                                else if (isCompleted) currentStepIndex = 3;
+
+                                const timelineSteps = [
+                                  { label: "‡¶®‡¶§‡ßÅ‡¶® ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞", icon: Clock },
+                                  { label: "‡¶ö‡¶≤‡¶Æ‡¶æ‡¶® ‡¶ï‡¶æ‡¶ú", icon: Play },
+                                  { label: "‡¶∞‡¶ø‡¶≠‡¶ø‡¶â", icon: UploadCloud },
+                                  { label: "‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶®", icon: CheckCircle2 },
+                                ];
 
                                 return (
                                   <div
                                     key={ord.id}
-                                    className={`border rounded-2xl p-3.5 sm:p-5 shadow-xs transition-all duration-200 space-y-3 hover:shadow-md font-bengali ${cardStatusClasses}`}
+                                    className={`relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-emerald-50/20 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md transition-all p-3 sm:p-3.5 text-slate-800 dark:text-slate-100 ${leftAccentBorder}`}
                                   >
-                                    {/* Top Main Details Bar */}
-                                    <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-                                      <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
-                                        <span className="px-2.5 py-1 bg-slate-900 text-white dark:bg-slate-800 dark:text-slate-200 font-mono text-xs font-black rounded-lg shrink-0 border border-slate-700 shadow-2xs">
-                                          #{ord.id.slice(-8).toUpperCase()}
-                                        </span>
-                                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate max-w-[260px] sm:max-w-[360px]" title={ord.title}>
-                                          {ord.title}
-                                        </h3>
-                                        <span className="hidden sm:inline-block px-3 py-1 bg-[#1DB954]/15 text-[#1DB954] text-xs font-black rounded-full border border-[#1DB954]/30 shrink-0">
-                                          {ord.category}
-                                        </span>
-                                      </div>
 
-                                      <div className="flex items-center gap-3 shrink-0 ml-auto">
-                                        <div className="text-right">
-                                          <span className="text-base sm:text-lg font-black text-[#1DB954] block leading-none">
-                                            ‡ß≥{ord.amount.toLocaleString('bn-BD')}
-                                          </span>
-                                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
-                                            ‡¶Ü‡ßü: ‡ß≥{ord.sellerPayout ? ord.sellerPayout.toLocaleString('bn-BD') : Math.round(ord.amount * 0.9).toLocaleString('bn-BD')}
+
+                                    {/* Row 1: Sender Profile, Order ID & Status Badge */}
+                                    <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 dark:border-slate-800/80 mt-0.5">
+                                      {/* Sender Info */}
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <div className="relative shrink-0">
+                                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-black text-xs flex items-center justify-center ring-2 ring-emerald-500 shadow-xs">
+                                            <User className="w-3.5 h-3.5 text-white" />
+                                          </div>
+                                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900" />
+                                        </div>
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-xs sm:text-[13px] font-black text-slate-900 dark:text-white truncate">
+                                              {ord.buyerName || "‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞"}
+                                            </span>
+                                            <BadgeCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-[#1DB954] shrink-0" />
+                                          </div>
+                                          <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-bold block leading-none">
+                                            ‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞ ‚Ä¢ {getTimeAgoBengali(ord.createdAt)}
                                           </span>
                                         </div>
+                                      </div>
 
-                                        {/* Simple Status Badge */}
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${badgeClasses}`}>
-                                          <StatusIcon className="w-3.5 h-3.5 shrink-0" />
+                                      {/* Right Badges: ID & Status */}
+                                      <div className="flex items-center gap-1.5 shrink-0">
+                                        <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-[9px] sm:text-[10px] font-bold rounded-md border border-slate-200 dark:border-slate-700">
+                                          #{ord.id.slice(-6).toUpperCase()}
+                                        </span>
+                                        <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black border flex items-center gap-1 shadow-2xs ${badgeClasses}`}>
+                                          <StatusIcon className="w-3 h-3 shrink-0" />
                                           <span>{statusLabel}</span>
                                         </span>
                                       </div>
                                     </div>
 
-                                    {/* Progress Bar, Order Time & Buyer Info Row */}
-                                    <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200/80 dark:border-slate-800/80 text-sm flex-wrap sm:flex-nowrap">
-                                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-wrap sm:flex-nowrap">
-                                        {/* Buyer Avatar & Name */}
-                                        <div className="flex items-center gap-2 shrink-0">
-                                          <div className="w-7 h-7 rounded-full bg-slate-900 text-white dark:bg-slate-800 flex items-center justify-center font-bold text-xs shrink-0 border-2 border-[#1DB954]">
-                                            <User className="w-4 h-4 text-[#1DB954]" />
-                                          </div>
-                                          <div className="min-w-0">
-                                            <span className="text-[10px] text-slate-400 font-bold block leading-none">‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞</span>
-                                            <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate max-w-[120px]">
-                                              {ord.buyerName}
-                                            </span>
-                                          </div>
-                                        </div>
-
-                                        {/* Clean Simple Order Time */}
-                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold shrink-0 flex items-center gap-1.5 px-1 py-0.5">
-                                          <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                          <span>{getTimeAgoBengali(ord.createdAt)}</span>
+                                    {/* Row 2: Project Title & Clean Concise Tags */}
+                                    <div className="py-1.5 sm:py-2">
+                                      <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-snug line-clamp-1" title={ord.title}>
+                                        {ord.title}
+                                      </h4>
+                                      <div className="flex items-center gap-1.5 flex-wrap mt-1 text-[10px] sm:text-[11px] font-medium">
+                                        <span className="px-2 py-0.5 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 rounded-md flex items-center gap-1">
+                                          <Briefcase className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                                          <span>{ord.category}</span>
+                                        </span>
+                                        <span className="px-2 py-0.5 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 rounded-md flex items-center gap-1">
+                                          <Clock className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+                                          <span>‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø ‡ß© ‡¶¶‡¶ø‡¶®</span>
                                         </span>
                                       </div>
+                                    </div>
 
-                                      {/* Action Buttons for Seller: Green Message, Red Details, Primary Action */}
-                                      <div className="flex items-center gap-2 shrink-0 ml-auto">
-                                        {/* Buyer Chat Button (Vibrant Green - ‡¶∏‡¶¨‡ßÅ‡¶ú) with dynamic unread count */}
-                                        {(() => {
-                                          const unreadCount = ord.unreadMessageCount !== undefined ? ord.unreadMessageCount : (ord.status === 'in_progress' ? 2 : ord.status === 'pending' ? 3 : 0);
-                                          return (
-                                            <button
-                                              onClick={() => {
-                                                openChatWindow({
-                                                  id: `chat-order-${ord.id}`,
-                                                  orderId: ord.id,
-                                                  senderName: ord.buyerName,
-                                                  senderRole: 'customer',
-                                                  initialMessage: `‡¶Ü‡¶∏‡¶∏‡¶æ‡¶≤‡¶æ‡¶Æ‡ßÅ ‡¶Ü‡¶≤‡¶æ‡¶á‡¶ï‡ßÅ‡¶Æ ${ord.buyerName}! ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü #${ord.id.slice(-6)} ("${ord.title}") ‡¶®‡¶ø‡ßü‡ßá ‡¶ï‡¶•‡¶æ ‡¶¨‡¶≤‡¶æ‡¶∞ ‡¶ú‡¶®‡ßç‡¶Ø ‡¶Ü‡¶™‡¶®‡¶æ‡¶ï‡ßá ‡¶Æ‡ßá‡¶∏‡ßá‡¶ú ‡¶™‡¶æ‡¶†‡¶æ‡¶ö‡ßç‡¶õ‡¶ø‡•§`
-                                                });
-                                              }}
-                                              className="relative px-3.5 py-1.5 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
-                                              title="‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞‡¶ï‡ßá ‡¶Æ‡ßá‡¶∏‡ßá‡¶ú ‡¶¶‡¶ø‡¶® (‡¶™‡¶™‡¶Ü‡¶™ ‡¶ö‡ßç‡¶Ø‡¶æ‡¶ü ‡¶ñ‡ßÅ‡¶≤‡ßÅ‡¶®)"
-                                            >
-                                              <div className="relative">
-                                                <MessageCircle className="w-4 h-4 text-slate-950" />
-                                                {unreadCount > 0 && (
-                                                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full animate-ping" />
-                                                )}
-                                              </div>
-                                              <span>‡¶Æ‡ßá‡¶∏‡ßá‡¶ú</span>
-                                              {unreadCount > 0 && (
-                                                <span className="ml-0.5 px-1.5 py-0.5 bg-rose-600 text-white text-[11px] font-black rounded-full shadow-2xs leading-none flex items-center justify-center min-w-[18px]">
-                                                  {unreadCount}
-                                                </span>
-                                              )}
-                                            </button>
-                                          );
-                                        })()}
-
-                                        {/* Primary Action Button depending on status */}
-                                        {isPendingApproval && (
-                                          <button
-                                            onClick={() => {
-                                              stopOfferNotificationSound();
-                                              updateMarketplaceOrderStatus(ord.id, 'in_progress', '‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá ‡¶è‡¶¨‡¶Ç ‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá‡•§');
-                                              updateMarketplaceOrder(ord.id, { unreadMessageCount: 3 });
-                                            }}
-                                            className="px-3.5 py-1.5 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
-                                          >
-                                            <CheckCircle2 className="w-4 h-4 text-slate-950" />
-                                            <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶®</span>
-                                          </button>
-                                        )}
-
-                                        {isPending && (
-                                          <button
-                                            onClick={() => {
-                                              stopOfferNotificationSound();
-                                              updateMarketplaceOrderStatus(ord.id, 'in_progress', '‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá‡•§');
-                                            }}
-                                            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
-                                          >
-                                            <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
-                                            <span>‡¶ï‡¶æ‡¶ú ‡¶ï‡¶∞‡ßÅ‡¶®</span>
-                                          </button>
-                                        )}
-
-                                        {isInProgress && (
-                                          <button
-                                            onClick={() => {
-                                              setDeliveringOrder(ord);
-                                              setDeliveryNote(`‡¶™‡ßç‡¶∞‡¶ø‡ßü ${ord.buyerName}, ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü‡¶ü‡¶ø ‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶ï‡¶∞‡ßá‡¶õ‡¶ø‡•§ ‡¶Ö‡¶®‡ßÅ‡¶ó‡ßç‡¶∞‡¶π ‡¶ï‡¶∞‡ßá ‡¶´‡¶æ‡¶á‡¶≤ ‡¶∞‡¶ø‡¶≠‡¶ø‡¶ì ‡¶ï‡¶∞‡ßÅ‡¶®‡•§`);
-                                              setDeliveryFileUrl(`https://github.com/example/project-${ord.id}.zip`);
-                                              setDeliveryFileName(`project-release-${ord.id}.zip`);
-                                            }}
-                                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                                          >
-                                            <UploadCloud className="w-4 h-4 text-white" />
-                                            <span>‡¶´‡¶æ‡¶á‡¶®‡¶æ‡¶≤ ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø</span>
-                                          </button>
-                                        )}
-
-                                        {isInReview && (
-                                          <button
-                                            onClick={() => {
-                                              setDeliveringOrder(ord);
-                                              setDeliveryNote(ord.deliveryNote || '');
-                                              setDeliveryFileUrl(ord.deliveryFileUrl || '');
-                                              setDeliveryFileName(ord.deliveryFileName || 'delivered-file.zip');
-                                            }}
-                                            className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                                          >
-                                            <Eye className="w-4 h-4 text-white" />
-                                            <span>‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                                          </button>
-                                        )}
-
-                                        {/* Expand Toggle Button (Red - ‡¶≤‡¶æ‡¶≤) */}
-                                        <button
-                                          onClick={() => setExpandedSellerOrders(prev => ({ ...prev, [ord.id]: !prev[ord.id] }))}
-                                          className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs sm:text-sm rounded-xl transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-                                        >
-                                          <span>{isExpanded ? '‡¶∏‡¶Ç‡¶ï‡ßç‡¶∑‡ßá‡¶™' : '‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§'}</span>
-                                          {isExpanded ? <ChevronUp className="w-4 h-4 text-white" /> : <ChevronDown className="w-4 h-4 text-white" />}
-                                        </button>
+                                    {/* Row 3: Compact 2-Column Earnings Box With Subtle Dashed Border (Like Home) */}
+                                    <div className="grid grid-cols-2 gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700 mb-2.5">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                                          <Banknote className="w-4 h-4 text-rose-600" />
+                                        </div>
+                                        <div>
+                                          <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold block leading-none">‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶¨‡¶æ‡¶ú‡ßá‡¶ü</span>
+                                          <span className="text-xs sm:text-sm font-black font-mono text-slate-800 dark:text-slate-200 leading-tight">
+                                            ‡ß≥{ord.amount.toLocaleString("bn-BD")}
+                                          </span>
+                                        </div>
                                       </div>
+                                      <div className="border-l border-dashed border-slate-300 dark:border-slate-700 pl-2.5 flex items-center justify-between">
+                                        <div>
+                                          <span className="text-[9px] text-rose-600 dark:text-rose-400 font-bold block leading-none">‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶Ü‡ßü (‡ßØ‡ß¶%)</span>
+                                          <span className="text-xs sm:text-sm font-black font-mono text-emerald-700 dark:text-[#1DB954] leading-tight">
+                                            ‡ß≥{sellerPayout.toLocaleString("bn-BD")}
+                                          </span>
+                                        </div>
+                                        <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-600 text-white text-[8px] font-black rounded">
+                                          ‡¶á‡¶®‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶ü
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Row 3.5: Order Live Status Timeline & Tracking Time Box */}
+                                    {(() => {
+                                      const orderCountdown = getOrderCountdown(ord, nowTimestamp);
+                                      return (
+                                        <div className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 mb-2.5 space-y-1.5">
+                                          <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-bold">
+                                            <div className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                                              <Clock className="w-3.5 h-3.5 text-[#1DB954]" />
+                                              <span>‡¶ï‡¶æ‡¶ú‡ßá‡¶∞ ‡¶ü‡¶æ‡¶á‡¶Æ‡¶≤‡¶æ‡¶á‡¶®</span>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-md font-mono text-[9px] sm:text-[10px] font-black flex items-center gap-1 ${orderCountdown?.badgeColor || "bg-blue-100 text-blue-700"}`}>
+                                              <Clock className="w-3 h-3 shrink-0" />
+                                              <span>{orderCountdown?.text || "‡¶∏‡¶Æ‡ßü ‡¶ö‡¶æ‡¶≤‡ßÅ"}</span>
+                                            </span>
+                                          </div>
+
+                                          {/* 4-Step Interactive Timeline Visual Bar */}
+                                          <div className="relative pt-1 pb-0.5">
+                                            {/* Background Track Line */}
+                                            <div className="absolute top-[13px] left-4 right-4 h-1 bg-slate-200 dark:bg-slate-700 z-0 rounded-full" />
+
+                                            {/* Active Colored Progress Line */}
+                                            <div
+                                              className="absolute top-[13px] left-4 h-1 bg-[#1DB954] z-0 rounded-full transition-all duration-300"
+                                              style={{ width: `${Math.max(4, (currentStepIndex / 3) * 88)}%` }}
+                                            />
+
+                                            {/* 4 Steps Indicator */}
+                                            <div className="grid grid-cols-4 relative z-10">
+                                              {timelineSteps.map((step, idx) => {
+                                                const isDone = idx < currentStepIndex;
+                                                const isCurrent = idx === currentStepIndex;
+                                                const StepIcon = step.icon;
+
+                                                return (
+                                                  <div key={idx} className="flex flex-col items-center text-center">
+                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border transition-all ${
+                                                      isDone
+                                                        ? "bg-[#1DB954] text-white border-[#1DB954]"
+                                                        : isCurrent
+                                                        ? "bg-white dark:bg-slate-900 text-[#1DB954] border-2 border-[#1DB954] ring-2 ring-[#1DB954]/30 shadow-xs"
+                                                        : "bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-300 dark:border-slate-700"
+                                                    }`}>
+                                                      {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : <StepIcon className="w-2.5 h-2.5" />}
+                                                    </div>
+                                                    <span className={`text-[8px] sm:text-[9px] font-bold mt-1 leading-none truncate max-w-full ${
+                                                      isCurrent ? "text-[#1DB954] font-black" : isDone ? "text-slate-800 dark:text-slate-200" : "text-slate-400"
+                                                    }`}>
+                                                      {step.label}
+                                                    </span>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+
+                                          {/* 5% Penalty & 3% Bonus Notice (No Border, Compact, Clean) */}
+                                          <div className="pt-1 flex items-center justify-center text-center">
+                                            <div className="inline-flex items-center justify-center gap-1 font-bold text-[10px] sm:text-[11px] text-amber-700 dark:text-amber-300">
+                                              <Zap className="w-3 h-3 shrink-0 text-amber-500 fill-amber-500/30" />
+                                              <span>‡¶∏‡¶Æ‡ßü‡¶Æ‡¶§‡ßã ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ú‡¶Æ‡¶æ ‡¶®‡¶æ ‡¶¶‡¶ø‡¶≤‡ßá ‡ß´% ‡¶ú‡¶∞‡¶ø‡¶Æ‡¶æ‡¶®‡¶æ</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
+
+                                    {/* Row 4: Responsive Action Buttons (All White Text) */}
+                                    <div className="flex items-center gap-1.5 sm:gap-2">
+                                      {/* 1. Chat Message Button */}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          openChatWindow({
+                                            id: `chat-order-${ord.id}`,
+                                            orderId: ord.id,
+                                            senderName: ord.buyerName,
+                                            senderRole: "customer",
+                                            initialMessage: `‡¶Ü‡¶∏‡¶∏‡¶æ‡¶≤‡¶æ‡¶Æ‡ßÅ ‡¶Ü‡¶≤‡¶æ‡¶á‡¶ï‡ßÅ‡¶Æ ${ord.buyerName}! ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü #${ord.id.slice(-6)} ("${ord.title}") ‡¶®‡¶ø‡ßü‡ßá ‡¶ï‡¶•‡¶æ ‡¶¨‡¶≤‡¶æ‡¶∞ ‡¶ú‡¶®‡ßç‡¶Ø ‡¶Ü‡¶™‡¶®‡¶æ‡¶ï‡ßá ‡¶Æ‡ßá‡¶∏‡ßá‡¶ú ‡¶™‡¶æ‡¶†‡¶æ‡¶ö‡ßç‡¶õ‡¶ø‡•§`
+                                          });
+                                        }}
+                                        className="flex-1 py-1.5 sm:py-2 px-2 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-[10px] sm:text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95 whitespace-nowrap"
+                                        title="‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞‡¶ï‡ßá ‡¶Æ‡ßá‡¶∏‡ßá‡¶ú ‡¶¶‡¶ø‡¶®"
+                                      >
+                                        <div className="relative shrink-0">
+                                          <MessageSquare className="w-3.5 h-3.5 text-white fill-white/20" />
+                                          {unreadCount > 0 && (
+                                            <span className="absolute -top-2 -right-2 min-w-[15px] h-[15px] px-1 bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-white dark:border-slate-900 animate-pulse">
+                                              {unreadCount}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <span>‡¶Æ‡ßá‡¶∏‡ßá‡¶ú</span>
+                                      </button>
+
+                                      {/* 2. Primary Status Action Button */}
+                                      {isPendingApproval && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            stopOfferNotificationSound();
+                                            updateMarketplaceOrderStatus(ord.id, "in_progress", "‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá ‡¶è‡¶¨‡¶Ç ‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá‡•§");
+                                            updateMarketplaceOrder(ord.id, { unreadMessageCount: 3 });
+                                          }}
+                                          className="flex-1 py-1.5 sm:py-2 px-2 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-[10px] sm:text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95 whitespace-nowrap"
+                                        >
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                          <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠</span>
+                                        </button>
+                                      )}
+
+                                      {isPending && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            stopOfferNotificationSound();
+                                            updateMarketplaceOrderStatus(ord.id, "in_progress", "‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá‡•§");
+                                          }}
+                                          className="flex-1 py-1.5 sm:py-2 px-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-[10px] sm:text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95 whitespace-nowrap"
+                                        >
+                                          <Play className="w-3.5 h-3.5 fill-white text-white" />
+                                          <span>‡¶ï‡¶æ‡¶ú ‡¶∂‡ßÅ‡¶∞‡ßÅ</span>
+                                        </button>
+                                      )}
+
+                                      {isInProgress && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setDeliveringOrder(ord);
+                                            setDeliveryNote(`‡¶™‡ßç‡¶∞‡¶ø‡ßü ${ord.buyerName}, ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü‡¶ü‡¶ø ‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶ï‡¶∞‡ßá‡¶õ‡¶ø‡•§ ‡¶Ö‡¶®‡ßÅ‡¶ó‡ßç‡¶∞‡¶π ‡¶ï‡¶∞‡ßá ‡¶´‡¶æ‡¶á‡¶≤ ‡¶∞‡¶ø‡¶≠‡¶ø‡¶ì ‡¶ï‡¶∞‡ßÅ‡¶®‡•§`);
+                                            setDeliveryFileUrl(`https://github.com/example/project-${ord.id}.zip`);
+                                            setDeliveryFileName(`project-release-${ord.id}.zip`);
+                                          }}
+                                          className="flex-1 py-1.5 sm:py-2 px-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-[10px] sm:text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95 whitespace-nowrap"
+                                        >
+                                          <UploadCloud className="w-3.5 h-3.5 text-white" />
+                                          <span>‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø</span>
+                                        </button>
+                                      )}
+
+                                      {isInReview && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setDeliveringOrder(ord);
+                                            setDeliveryNote(ord.deliveryNote || "");
+                                            setDeliveryFileUrl(ord.deliveryFileUrl || "");
+                                            setDeliveryFileName(ord.deliveryFileName || "delivered-file.zip");
+                                          }}
+                                          className="flex-1 py-1.5 sm:py-2 px-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-[10px] sm:text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95 whitespace-nowrap"
+                                        >
+                                          <Eye className="w-3.5 h-3.5 text-white" />
+                                          <span>‡¶∞‡¶ø‡¶≠‡¶ø‡¶â ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
+                                        </button>
+                                      )}
+
+                                      {isCompleted && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setDeliveringOrder(ord);
+                                            setDeliveryNote(ord.deliveryNote || "");
+                                            setDeliveryFileUrl(ord.deliveryFileUrl || "");
+                                            setDeliveryFileName(ord.deliveryFileName || "delivered-file.zip");
+                                          }}
+                                          className="flex-1 py-1.5 sm:py-2 px-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-[10px] sm:text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-xs active:scale-95 whitespace-nowrap"
+                                        >
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                          <span>‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶® ‡¶´‡¶æ‡¶á‡¶≤</span>
+                                        </button>
+                                      )}
+
+                                      {/* 3. Details Pop Button */}
+                                      <button
+                                        type="button"
+                                        onClick={() => setViewingOrderDetails(ord)}
+                                        className="py-1.5 sm:py-2 px-2.5 bg-slate-700 hover:bg-slate-800 active:scale-95 text-white font-black text-[10px] sm:text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1 shadow-xs whitespace-nowrap"
+                                        title="‡¶ï‡¶æ‡¶ú‡ßá‡¶∞ ‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶§‡¶•‡ßç‡¶Ø ‡¶ì ‡¶¨‡ßç‡¶∞‡¶ø‡¶´ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
+                                      >
+                                        <Info className="w-3.5 h-3.5 text-white" />
+                                        <span>‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§</span>
+                                        <ExternalLink className="w-2.5 h-2.5 text-white/80" />
+                                      </button>
                                     </div>
 
                                     {/* Expandable Seller Details Section */}
                                     {isExpanded && (
-                                      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3 animate-fadeIn text-xs sm:text-sm">
-                                        <div className="bg-slate-50 dark:bg-slate-950 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                                          <h4 className="font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                                            <FileText className="w-4 h-4 text-[#1DB954]" />
+                                      <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2 animate-fadeIn text-xs sm:text-sm mt-2.5">
+                                        <div className="bg-slate-50/90 dark:bg-slate-950 p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1">
+                                          <h4 className="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
+                                            <FileText className="w-3.5 h-3.5 text-[#1DB954]" />
                                             <span>‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞‡ßá‡¶∞ ‡¶∞‡¶ø‡¶ï‡ßã‡ßü‡¶æ‡¶∞‡¶Æ‡ßá‡¶®‡ßç‡¶ü & ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶®‡ßã‡¶ü:</span>
                                           </h4>
-                                          <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                                          <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed text-[10px] sm:text-xs">
                                             {ord.requirements || "‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞ ‡¶•‡ßá‡¶ï‡ßá ‡¶™‡ßç‡¶∞‡¶æ‡¶™‡ßç‡¶§ ‡¶®‡¶ø‡¶∞‡ßç‡¶¶‡¶ø‡¶∑‡ßç‡¶ü ‡¶™‡ßç‡¶∞‡ßü‡ßã‡¶ú‡¶®‡ßÄ‡ßü ‡¶®‡¶ø‡¶∞‡ßç‡¶¶‡ßá‡¶∂‡¶®‡¶æ ‡¶Ö‡¶®‡ßÅ‡¶Ø‡¶æ‡ßü‡ßÄ ‡¶°‡ßá‡¶≠‡ßá‡¶≤‡¶™‡¶Æ‡ßá‡¶®‡ßç‡¶ü ‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶® ‡¶ï‡¶∞‡¶æ ‡¶π‡¶ö‡ßç‡¶õ‡ßá‡•§"}
                                           </p>
                                         </div>
 
                                         {ord.deliveryNote && (
-                                          <div className="bg-emerald-50 dark:bg-emerald-950/30 p-3.5 rounded-xl border border-emerald-500/30 space-y-1.5">
-                                            <h4 className="font-black text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
-                                              <CheckCircle2 className="w-4 h-4 text-[#1DB954]" />
+                                          <div className="bg-emerald-50/90 dark:bg-emerald-950/30 p-2.5 sm:p-3 rounded-xl border border-emerald-500/30 space-y-1">
+                                            <h4 className="font-black text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5 text-xs">
+                                              <CheckCircle2 className="w-3.5 h-3.5 text-[#1DB954]" />
                                               <span>‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶™‡ßç‡¶∞‡ßá‡¶∞‡¶ø‡¶§ ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡¶ø ‡¶¨‡¶æ‡¶∞‡ßç‡¶§‡¶æ:</span>
                                             </h4>
-                                            <p className="text-emerald-900 dark:text-emerald-200 font-medium">
+                                            <p className="text-emerald-900 dark:text-emerald-200 font-medium text-[10px] sm:text-xs">
                                               {ord.deliveryNote}
                                             </p>
                                           </div>
@@ -6272,183 +7375,565 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
 
                   {/* SUBTAB 1: Active Uploaded Orders */}
                   {specialistMainTab === 'marketplace' && sellerSubTab === 'gigs' && (
-                    <div className="space-y-4">
-                      {sellerGigs.length === 0 ? (
-                        <div className="p-8 sm:p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl text-center space-y-4 font-bengali">
-                          <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-[#1DB954] flex items-center justify-center mx-auto">
-                            <UploadCloud className="w-8 h-8" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="text-base font-black text-slate-900 dark:text-white">
-                              ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶è‡¶ñ‡¶® ‡¶™‡¶∞‡ßç‡¶Ø‡¶®‡ßç‡¶§ ‡¶ï‡ßã‡¶®‡ßã ‡¶Ü‡¶™‡¶≤‡ßã‡¶°‡¶ï‡ßÉ‡¶§ ‡¶ó‡¶ø‡¶ó/‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶®‡ßá‡¶á
-                            </h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                              ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏, ‡¶∏‡ßç‡¶ï‡¶ø‡¶≤ ‡¶¨‡¶æ ‡¶™‡ßç‡¶∞‡ßã‡¶°‡¶æ‡¶ï‡ßç‡¶ü ‡¶®‡¶ø‡ßü‡ßá ‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶∏‡¶π ‡¶®‡¶§‡ßÅ‡¶® ‡¶ó‡¶ø‡¶ó ‡¶§‡ßà‡¶∞‡¶ø ‡¶ï‡¶∞‡ßÅ‡¶® ‡¶è‡¶¨‡¶Ç ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü‡¶¶‡ßá‡¶∞ ‡¶•‡ßá‡¶ï‡ßá ‡¶∏‡¶∞‡¶æ‡¶∏‡¶∞‡¶ø ‡¶ï‡¶æ‡¶ú ‡¶™‡¶æ‡¶®‡•§
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setSellerSubTab('create_gig')}
-                            className="px-5 py-2.5 bg-[#1DB954] hover:bg-[#19a34a] text-white font-extrabold text-xs rounded-2xl shadow-lg transition cursor-pointer inline-flex items-center gap-2"
+                    <div className="space-y-3.5 sm:space-y-6">
+                      {/* üåü SELLER MODE COMPACT ACTION CARDS (TIGHT SPACING & SHORT TEXT) */}
+                      <div className="space-y-1.5 sm:space-y-2.5">
+                        <h1 className="text-xs sm:text-sm md:text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 flex-wrap">
+                          <span>Welcome back,</span>
+                          <span className="text-[#1DB954]">
+                            {(activeAccount.name || currentUser?.name || 'Mds Kazi Sohag')
+                              .replace(/\s*\((?:‡¶´‡ßç‡¶∞‡¶ø‡¶≤‡¶æ‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶∏‡¶æ‡¶∞\s*)?‡¶∏‡ßá‡¶≤‡¶æ‡¶∞\)/gi, '')
+                              .replace(/\s*\((?:‡¶ó‡ßç‡¶∞‡¶æ‡¶π‡¶ï\s*)?‡¶¨‡¶æ‡ßü‡¶æ‡¶∞\)/gi, '')
+                              .replace(/\s*\(Student\s*\/\s*Buyer\)/gi, '')
+                              .trim()}
+                          </span>{' '}
+                          <span className="text-amber-600 dark:text-amber-400 font-bold text-xs sm:text-sm">
+                            (‡¶∏‡ßá‡¶≤‡¶æ‡¶∞)
+                          </span>
+                        </h1>
+
+                        {/* TWO COMPACT RECOMMENDED ACTION CARDS FOR SELLER (POST A GIG + BUYER MODE) */}
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          
+                          {/* CARD 1: POST A GIG (Original clean button color) */}
+                          <div 
+                            onClick={() => {
+                              setViewMode('selling');
+                              setSellerSubTab('create_gig');
+                              setSelectedGig(null);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="p-2.5 sm:p-3 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-2.5 shadow-2xs hover:border-[#1DB954] dark:hover:border-[#1DB954] transition cursor-pointer group"
                           >
-                            <PlusCircle className="w-4 h-4" />
-                            <span>‡¶™‡ßç‡¶∞‡¶•‡¶Æ ‡¶ó‡¶ø‡¶ó ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®</span>
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                          {sellerGigs.map(g => (
-                            <div key={g.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-[#1DB954] transition-all duration-200 shadow-sm flex flex-col group">
-                              {/* Card Image Header */}
-                              <div className="relative h-40 overflow-hidden bg-slate-800">
-                                <img src={g.thumbnail} alt={g.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                <div className="absolute top-2.5 left-2.5 bg-slate-950/80 backdrop-blur-md text-[#1DB954] text-[10px] font-black px-2.5 py-1 rounded-full border border-[#1DB954]/30 shadow-sm">
-                                  {g.category}
-                                </div>
-                                 {/* 3-Dot Options Menu */}
-                                 <div className="absolute top-2.5 right-2.5 z-20">
-                                   <button
-                                     onClick={(e) => {
-                                       e.stopPropagation();
-                                       setActiveGigMenuId(activeGigMenuId === g.id ? null : g.id);
-                                     }}
-                                     className="p-1.5 rounded-full bg-slate-950/80 backdrop-blur-md text-white hover:bg-[#1DB954] hover:text-slate-950 transition cursor-pointer border border-white/20 shadow-md flex items-center justify-center"
-                                     title="‡¶ó‡¶ø‡¶ó ‡¶Ö‡¶™‡¶∂‡¶® (3 Dots)"
-                                   >
-                                     <MoreVertical className="w-4 h-4" />
-                                   </button>
-
-                                   {activeGigMenuId === g.id && (
-                                     <>
-                                       <div
-                                         className="fixed inset-0 z-30 cursor-default"
-                                         onClick={(e) => {
-                                           e.stopPropagation();
-                                           setActiveGigMenuId(null);
-                                         }}
-                                       />
-
-                                       <div
-                                         className="absolute right-0 top-full mt-1.5 w-[160px] bg-white dark:bg-slate-900 border border-rose-500 rounded-xl shadow-xl z-40 p-2 space-y-1.5 animate-fadeIn font-bengali text-center"
-                                         onClick={(e) => e.stopPropagation()}
-                                       >
-                                         <div className="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
-                                           <span className="text-[10px] font-bold text-rose-500 flex items-center gap-0.5">
-                                             <Trash2 className="w-3 h-3" />
-                                             ‡¶°‡¶ø‡¶≤‡ßá‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®?
-                                           </span>
-                                           <button
-                                             onClick={() => setActiveGigMenuId(null)}
-                                             className="p-0.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition cursor-pointer"
-                                             title="‡¶¨‡¶®‡ßç‡¶ß ‡¶ï‡¶∞‡ßÅ‡¶®"
-                                           >
-                                             <X className="w-3 h-3" />
-                                           </button>
-                                         </div>
-
-                                         <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 py-0.5 leading-tight">
-                                           ‡¶Ü‡¶™‡¶®‡¶ø ‡¶ï‡¶ø ‡¶∏‡¶§‡ßç‡¶Ø‡¶ø‡¶á ‡¶°‡¶ø‡¶≤‡ßá‡¶ü ‡¶ï‡¶∞‡¶¨‡ßá‡¶®?
-                                         </p>
-
-                                         <div className="flex items-center justify-center gap-1.5 pt-0.5">
-                                           <button
-                                             onClick={() => {
-                                               handleDeleteGig(g.id, g.title);
-                                               setActiveGigMenuId(null);
-                                             }}
-                                             className="flex-1 py-1 px-2 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-[11px] font-bold transition cursor-pointer shadow-sm text-center"
-                                           >
-                                             ‡¶π‡ßç‡¶Ø‡¶æ‡¶Å
-                                           </button>
-                                           <button
-                                             onClick={() => setActiveGigMenuId(null)}
-                                             className="flex-1 py-1 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md text-[11px] font-bold transition cursor-pointer text-center"
-                                           >
-                                             ‡¶®‡¶æ
-                                           </button>
-                                         </div>
-                                       </div>
-                                     </>
-                                   )}
-                                 </div>
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#1DB954]/15 dark:bg-[#1DB954]/25 text-[#1DB954] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <PlusCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                               </div>
-
-                              {/* Card Details Body */}
-                              <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                                <div>
-                                  <h4 className="text-xs font-black text-slate-900 dark:text-white line-clamp-2 leading-relaxed">
-                                    {g.title}
-                                  </h4>
-                                  <div className="mt-2 flex items-center justify-between">
-                                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">‡¶∂‡ßÅ‡¶∞‡ßÅ ‡ß≥</span>
-                                    <span className="text-sm font-black text-[#1DB954]">
-                                      ‡ß≥{(g.packages?.basic?.price ?? g.price ?? 2500).toLocaleString('bn-BD')}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Performance Stats Box */}
-                                <div className="p-2.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 grid grid-cols-2 gap-2 text-[10px]">
-                                  <div>
-                                    <span className="text-slate-400 block text-[9px]">üëÅÔ∏è ‡¶≠‡¶ø‡¶â</span>
-                                    <span className="font-extrabold text-slate-900 dark:text-white">
-                                      {((g.salesCount || 1) * 120 + 85).toLocaleString('bn-BD')}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-400 block text-[9px]">üìà ‡¶á‡¶Æ‡¶™‡ßç‡¶∞‡ßá‡¶∂‡¶®</span>
-                                    <span className="font-extrabold text-slate-900 dark:text-white">
-                                      {((g.salesCount || 1) * 450 + 320).toLocaleString('bn-BD')}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-400 block text-[9px]">üì¶ ‡¶Æ‡ßã‡¶ü ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞</span>
-                                    <span className="font-extrabold text-emerald-600 dark:text-[#1DB954]">
-                                      {(g.salesCount || 12).toLocaleString('bn-BD')}‡¶ü‡¶ø
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="text-slate-400 block text-[9px]">üí∞ ‡¶Ö‡¶∞‡ßç‡¶ú‡¶ø‡¶§ ‡¶Ü‡ßü</span>
-                                    <span className="font-extrabold text-emerald-600 dark:text-[#1DB954]">
-                                      ‡ß≥{((g.price || g.packages?.basic?.price || 2500) * (g.salesCount || 12)).toLocaleString('bn-BD')}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1.5">
-                                  <button
-                                    onClick={() => handleOpenEditGig(g)}
-                                    className="flex-1 py-1.5 px-2 bg-emerald-500/10 hover:bg-[#1DB954] text-emerald-700 dark:text-[#1DB954] hover:text-slate-950 font-bold text-[11px] rounded-lg transition border border-[#1DB954]/30 flex items-center justify-center gap-1 cursor-pointer"
-                                    title="‡¶ó‡¶ø‡¶ó ‡¶è‡¶°‡¶ø‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®"
-                                  >
-                                    <Edit className="w-3.5 h-3.5" />
-                                    <span>‡¶è‡¶°‡¶ø‡¶ü</span>
-                                  </button>
-
-                                  <button
-                                    onClick={() => setPerformanceGig(g)}
-                                    className="flex-1 py-1.5 px-2 bg-blue-500/10 hover:bg-blue-600 text-blue-700 dark:text-blue-400 hover:text-white font-bold text-[11px] rounded-lg transition border border-blue-500/30 flex items-center justify-center gap-1 cursor-pointer"
-                                    title="‡¶™‡¶æ‡¶∞‡¶´‡¶∞‡¶Æ‡ßá‡¶®‡ßç‡¶∏ ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶®‡¶æ‡¶≤‡¶ø‡¶ü‡¶ø‡¶ï‡ßç‡¶∏ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
-                                  >
-                                    <BarChart2 className="w-3.5 h-3.5" />
-                                    <span>‡¶™‡¶æ‡¶∞‡¶´‡¶∞‡¶Æ‡ßá‡¶®‡ßç‡¶∏</span>
-                                  </button>
-
-                                  <button
-                                    onClick={() => setSelectedGig(g)}
-                                    className="flex-1 py-1.5 px-2 bg-amber-500/10 hover:bg-amber-500 text-amber-700 dark:text-amber-400 hover:text-slate-950 font-bold text-[11px] rounded-lg transition border border-amber-500/30 flex items-center justify-center gap-1 cursor-pointer"
-                                    title="‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞ ‡¶Æ‡ßã‡¶°‡ßá ‡¶™‡ßç‡¶∞‡¶ø‡¶≠‡¶ø‡¶â ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
-                                  >
-                                    <Eye className="w-3.5 h-3.5" />
-                                    <span>‡¶™‡ßç‡¶∞‡¶ø‡¶≠‡¶ø‡¶â</span>
-                                  </button>
-                                </div>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight truncate">‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ó‡¶ø‡¶ó</h3>
+                                <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium truncate">‡ß©‡¶ü‡¶ø ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú</p>
                               </div>
                             </div>
-                          ))}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewMode('selling');
+                                setSellerSubTab('create_gig');
+                                setSelectedGig(null);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="w-full sm:w-auto px-2 py-0.5 sm:px-3 sm:py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-[#1DB954] dark:hover:border-[#1DB954] text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs font-bold rounded-lg transition cursor-pointer whitespace-nowrap text-center shadow-2xs group-hover:bg-[#1DB954] group-hover:text-white group-hover:border-[#1DB954]"
+                            >
+                              Get started
+                            </button>
+                          </div>
+
+                          {/* CARD 2: BUYER MODE (SWITCH TO BUYER - Blue Theme, Blue Icon & Text, Blue Button with White Text) */}
+                          <div 
+                            onClick={() => {
+                              setViewMode('buying');
+                              setActiveSubTab('gigs');
+                              setSelectedGig(null);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="p-2.5 sm:p-3 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-2.5 shadow-2xs hover:border-blue-500 dark:hover:border-blue-500 transition cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/15 dark:bg-blue-500/25 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <Store className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-xs sm:text-sm font-black text-blue-600 dark:text-blue-400 leading-tight truncate">‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞ ‡¶Æ‡ßã‡¶°</h3>
+                                <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium truncate">‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶ì ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü</p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewMode('buying');
+                                setActiveSubTab('gigs');
+                                setSelectedGig(null);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className="w-full sm:w-auto px-2.5 py-1 sm:px-3.5 sm:py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:from-blue-800 active:to-indigo-800 text-white text-[10px] sm:text-xs font-black rounded-lg transition cursor-pointer whitespace-nowrap text-center shadow-xs active:scale-95"
+                            >
+                              ‡¶∏‡ßÅ‡¶á‡¶ö ‡¶ï‡¶∞‡ßÅ‡¶®
+                            </button>
+                          </div>
+
                         </div>
-                      )}
-                    </div>
+                      </div>
+                      {/* ‚ö° LIVE OFFER & ORDER NOTIFICATION BANNER / LIVE SEARCH (TOP HEADER ON HOME) */}
+                      <div className="font-bengali space-y-3">
+                        {activeOffersList.length > 0 && activeOffersList[activeOfferIndex % activeOffersList.length] ? (
+                          (() => {
+                            const currentOffer = activeOffersList[activeOfferIndex % activeOffersList.length];
+                            const timerPercentage = totalOfferDuration > 0 ? (offerCountdown / totalOfferDuration) * 100 : 0;
+                            const isBeingActioned = justActionedOfferId === currentOffer.id;
+                            const sellerPayout = Math.round(currentOffer.budget * 0.9);
+
+                            return (
+                              <div
+                                onMouseEnter={() => setIsOfferPaused(true)}
+                                onMouseLeave={() => setIsOfferPaused(false)}
+                                className="w-full max-w-2xl mx-auto font-bengali"
+                              >
+                                {/* 1. CENTERED AUTO-SEARCH STYLE LIVE TEXT WITH SEQUENTIAL ANIMATED DOTS (SAME FONT SIZE AS LIVE ORDER SEARCH) */}
+                                <div className="flex items-center justify-center gap-2 mb-2 px-3 py-1 w-fit mx-auto select-none">
+                                  <div className="relative flex items-center justify-center">
+                                    <Radio className="w-4 h-4 text-emerald-500 animate-pulse" />
+                                    <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-60" />
+                                  </div>
+                                  <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center justify-center tracking-tight">
+                                    <span>‡¶®‡¶§‡ßÅ‡¶® ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶è‡¶∏‡ßá‡¶õ‡ßá</span>
+                                    <span className="inline-flex items-center ml-1 font-black text-emerald-500 dark:text-[#1DB954] text-base sm:text-lg select-none">
+                                      <span className="animate-pulse inline-block" style={{ animationDelay: "0ms", animationDuration: "1.2s" }}>.</span>
+                                      <span className="animate-pulse inline-block" style={{ animationDelay: "300ms", animationDuration: "1.2s" }}>.</span>
+                                      <span className="animate-pulse inline-block" style={{ animationDelay: "600ms", animationDuration: "1.2s" }}>.</span>
+                                    </span>
+                                  </h4>
+                                </div>
+
+                                {/* 2. 3D COMPACT ORDER CARD (REDUCED HEIGHT, EXPANDED WIDTH, CRISP TYPOGRAPHY) */}
+                                <div className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-emerald-50/20 rounded-2xl sm:rounded-3xl border-t-2 border-l-2 border-r-2 border-b-4 border-slate-200 hover:border-emerald-300 shadow-[0_12px_28px_-8px_rgba(16,185,129,0.14),0_4px_12px_-2px_rgba(0,0,0,0.05)] p-3 sm:p-3.5 text-slate-800 transition-all font-bengali">
+                                  {/* Ambient Top Glow Line */}
+                                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400" />
+
+                                  {/* Row 1: Sender Profile & Multi-Order Switcher */}
+                                  <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 mt-0.5">
+                                    {/* Sender Info */}
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <div className="relative shrink-0">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-black text-xs flex items-center justify-center ring-2 ring-emerald-500 shadow-xs">
+                                          <User className="w-3.5 h-3.5 text-white" />
+                                        </div>
+                                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs sm:text-[13px] font-black text-slate-900 truncate">
+                                            {currentOffer.clientName || "PTENit IT Academy"}
+                                          </span>
+                                          {currentOffer.isVerified && (
+                                            <BadgeCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                          )}
+                                        </div>
+                                        <span className="text-[9px] sm:text-[10px] text-emerald-700 font-bold block leading-none">
+                                          {currentOffer.type === "personal" ? "‡¶°‡¶ø‡¶∞‡ßá‡¶ï‡ßç‡¶ü ‡¶™‡¶æ‡¶∞‡ßç‡¶∏‡ßã‡¶®‡¶æ‡¶≤ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞" : "‡¶Æ‡ßá‡¶á‡¶® ‡¶è‡¶°‡¶Æ‡¶ø‡¶® ‚Ä¢ ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞"}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Right Badges: Count */}
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => setIsSeeAllOffersModalOpen(true)}
+                                        className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold transition flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs"
+                                        title="‡¶∏‡¶ï‡¶≤ ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶è‡¶ï‡¶∏‡¶æ‡¶•‡ßá ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
+                                      >
+                                        <span className="font-mono">{activeOffersList.length}</span>
+                                        <span>‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞</span>
+                                        <ChevronRight className="w-3 h-3 text-emerald-700" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Row 2: Project Title & Clean Tags (No Borders, Light Soft Backgrounds, Lucide Icons) */}
+                                  <div className="py-1.5 sm:py-2">
+                                    <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug line-clamp-1" title={currentOffer.title}>
+                                      {currentOffer.title}
+                                    </h4>
+                                    <div className="flex items-center gap-1.5 flex-wrap mt-1 text-[10px] sm:text-[11px] font-medium">
+                                      <span className="px-2 py-0.5 bg-sky-50/80 text-sky-700 rounded-md flex items-center gap-1">
+                                        <Clock className="w-3 h-3 text-sky-600" />
+                                        <span>{currentOffer.deadline}</span>
+                                      </span>
+                                      <span className="px-2 py-0.5 bg-purple-50/80 text-purple-700 rounded-md flex items-center gap-1">
+                                        <Briefcase className="w-3 h-3 text-purple-600" />
+                                        <span>{currentOffer.category}</span>
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Row 3: Compact Earnings Box With Subtle Dashed Border */}
+                                  <div className="grid grid-cols-2 gap-2 p-2 rounded-xl bg-slate-50/90 border border-dashed border-slate-300 dark:border-slate-700 mb-2.5">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                                        <Banknote className="w-4 h-4 text-rose-600" />
+                                      </div>
+                                      <div>
+                                        <span className="text-[9px] text-slate-500 font-bold block leading-none">‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞ ‡¶¨‡¶æ‡¶ú‡ßá‡¶ü</span>
+                                        <span className="text-xs sm:text-sm font-black font-mono text-slate-800 leading-tight">
+                                          ‡ß≥{currentOffer.budget.toLocaleString("bn-BD")}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="border-l border-dashed border-slate-300 dark:border-slate-700 pl-2.5 flex items-center justify-between">
+                                      <div>
+                                        <span className="text-[9px] text-rose-600 font-bold block leading-none">‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶Ü‡ßü (‡ßØ‡ß¶%)</span>
+                                        <span className="text-sm sm:text-base font-black font-mono text-emerald-700 leading-tight">
+                                          ‡ß≥{sellerPayout.toLocaleString("bn-BD")}
+                                        </span>
+                                      </div>
+                                      <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-600 text-white text-[8px] font-black rounded">
+                                        ‡¶á‡¶®‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶ü
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Row 4: 2 Action Buttons With Countdown in the Middle */}
+                                  <div className="flex items-center gap-2">
+                                    {/* ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedOfferForModal(currentOffer)}
+                                      className="flex-1 py-2 px-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-2xs"
+                                    >
+                                      <Info className="w-3.5 h-3.5 text-slate-500" />
+                                      <span>‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§</span>
+                                    </button>
+
+                                    {/* Center Countdown Badge */}
+                                    <div className="flex items-center gap-1 font-mono text-[11px] text-amber-700 font-black bg-amber-50 px-2 py-1.5 rounded-xl shrink-0 select-none">
+                                      <Clock className="w-3 h-3 text-amber-500 animate-spin" style={{ animationDuration: "4s" }} />
+                                      <span>{offerCountdown}s</span>
+                                    </div>
+
+                                    {/* ‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶® Button */}
+                                    {isBeingActioned && offerActionType === "received" ? (
+                                      <button
+                                        disabled
+                                        className="flex-1 py-2 px-2.5 bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-500/20 flex items-center justify-center gap-1 animate-pulse"
+                                      >
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                        <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠‡¶°!</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleReceiveLiveOffer(currentOffer)}
+                                        className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-bold shadow-sm shadow-emerald-600/20 transition flex items-center justify-center gap-1 cursor-pointer"
+                                      >
+                                        <Zap className="w-3.5 h-3.5 fill-white text-white" />
+                                        <span>‡¶∞‡¶ø‡¶∏‡¶ø‡¶≠ ‡¶ï‡¶∞‡ßÅ‡¶®</span>
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {/* Micro Animated Progress Line */}
+                                  <div className="w-full bg-slate-100 rounded-full h-1 mt-2.5 overflow-hidden">
+                                    <div
+                                      className="bg-gradient-to-r from-amber-500 via-rose-500 to-emerald-500 h-full rounded-full transition-all duration-1000 ease-linear"
+                                      style={{ width: `${timerPercentage}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()
+                        ) : (
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          /* SEARCHING STATE WHEN NO LIVE OFFERS ACTIVE */
+                          <div className="p-4 sm:p-5 bg-emerald-50/25 dark:bg-emerald-950/20 border border-dashed border-emerald-500/30 rounded-2xl sm:rounded-3xl text-center space-y-2 relative overflow-hidden shadow-2xs font-bengali">
+                            {/* Animated Radio Radar Icon */}
+                            <div className="relative w-10 h-10 mx-auto flex items-center justify-center">
+                              <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+                              <div className="w-9 h-9 rounded-full bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/40 flex items-center justify-center relative z-10">
+                                <Radio className="w-4 h-4 animate-pulse" />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center justify-center tracking-tight">
+                                <span>Live order ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶π‡¶ö‡ßç‡¶õ‡ßá</span>
+                                <span className="inline-flex items-center ml-1 font-black text-emerald-500 dark:text-[#1DB954] text-base sm:text-lg select-none">
+                                  <span className="animate-pulse inline-block" style={{ animationDelay: '0ms', animationDuration: '1.2s' }}>.</span>
+                                  <span className="animate-pulse inline-block" style={{ animationDelay: '300ms', animationDuration: '1.2s' }}>.</span>
+                                  <span className="animate-pulse inline-block" style={{ animationDelay: '600ms', animationDuration: '1.2s' }}>.</span>
+                                </span>
+                              </h4>
+                              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed font-medium">
+                                ‡¶®‡¶§‡ßÅ‡¶® ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞‡ßá‡¶∞ ‡¶ú‡¶®‡ßç‡¶Ø ‡¶∏‡¶ø‡¶∏‡ßç‡¶ü‡ßá‡¶Æ ‡¶∏‡ßç‡¶ï‡ßç‡¶Ø‡¶æ‡¶® ‡¶ï‡¶∞‡¶õ‡ßá<br />
+                                ‡¶Ö‡¶´‡¶æ‡¶∞ ‡¶Ü‡¶∏‡¶æ‡¶Æ‡¶æ‡¶§‡ßç‡¶∞‡¶á ‡¶∏‡¶æ‡¶â‡¶®‡ßç‡¶° ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶≤‡¶æ‡¶∞‡ßç‡¶ü ‡¶∏‡¶π ‡¶∂‡ßã ‡¶ï‡¶∞‡¶¨‡ßá
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {/* ‚ö° ‚ö° ‡¶Ü‡¶™‡¶≤‡ßã‡¶°‡¶ï‡ßÉ‡¶§ ‡¶ó‡¶ø‡¶ó‡¶∏‡¶Æ‡ßÇ‡¶π SHOWCASE (HEADER + 2 COLUMNS 2-3 ROWS) */}
+                        <div className="pt-2 sm:pt-3 space-y-3 font-bengali">
+                          {/* Header: Title on Left, See All & Add Buttons on Right */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-xl bg-emerald-500/10 text-[#1DB954] flex items-center justify-center shrink-0">
+                                <Package className="w-4 h-4" />
+                              </div>
+                              <h3 className="text-xs sm:text-sm md:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                                <span>‡¶Ü‡¶™‡¶≤‡ßã‡¶°‡¶ï‡ßÉ‡¶§ ‡¶ó‡¶ø‡¶ó‡¶∏‡¶Æ‡ßÇ‡¶π</span>
+                                <span className="px-2 py-0.5 bg-emerald-500/10 text-[#1DB954] text-[10px] font-black rounded-full">
+                                  {sellerGigs.length}‡¶ü‡¶ø
+                                </span>
+                              </h3>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              {/* ‡¶∏‡¶¨‡¶ó‡ßÅ‡¶≤‡ßã ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶® Button that takes to the full gigs page */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setViewMode('selling');
+                                  setSpecialistMainTab('marketplace');
+                                  setSellerSubTab('gigs');
+                                  setSelectedGig(null);
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#1DB954] hover:bg-emerald-500 text-white text-[10px] sm:text-xs font-black rounded-lg shadow-xs transition flex items-center gap-1 cursor-pointer active:scale-95 whitespace-nowrap border-0"
+                              >
+                                <span>‡¶∏‡¶¨‡¶ó‡ßÅ‡¶≤‡ßã ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* 2-Column Responsive Gigs Grid (2 to 3 rows) */}
+                          {sellerGigs.length === 0 ? (
+                            <div className="p-6 sm:p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center space-y-2.5 font-bengali shadow-sm">
+                              <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-[#1DB954] flex items-center justify-center mx-auto ring-4 ring-emerald-500/5">
+                                <UploadCloud className="w-6 h-6" />
+                              </div>
+                              <div className="space-y-0.5">
+                                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                                  ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶è‡¶ñ‡¶® ‡¶™‡¶∞‡ßç‡¶Ø‡¶®‡ßç‡¶§ ‡¶ï‡ßã‡¶®‡ßã ‡¶Ü‡¶™‡¶≤‡ßã‡¶°‡¶ï‡ßÉ‡¶§ ‡¶ó‡¶ø‡¶ó ‡¶®‡ßá‡¶á
+                                </h4>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+                                  ‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏ ‡¶ì ‡¶∏‡ßç‡¶ï‡¶ø‡¶≤ ‡¶®‡¶ø‡ßü‡ßá ‡¶Ü‡¶ï‡¶∞‡ßç‡¶∑‡¶£‡ßÄ‡ßü ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú ‡¶∏‡¶π ‡¶®‡¶§‡ßÅ‡¶® ‡¶ó‡¶ø‡¶ó ‡¶Ü‡¶™‡¶≤‡ßã‡¶° ‡¶ï‡¶∞‡ßÅ‡¶®‡•§
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setViewMode('selling');
+                                  setSellerSubTab('create_gig');
+                                  setSelectedGig(null);
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="px-4 py-2 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition cursor-pointer inline-flex items-center gap-1.5 active:scale-95"
+                              >
+                                <PlusCircle className="w-3.5 h-3.5" />
+                                <span>‡¶™‡ßç‡¶∞‡¶•‡¶Æ ‡¶ó‡¶ø‡¶ó ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3.5">
+                              {(showAllSellerGigs ? sellerGigs : sellerGigs.slice(0, 6)).map(g => (
+                                <div
+                                  key={g.id}
+                                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-[#1DB954] transition-all duration-200 shadow-2xs hover:shadow-lg flex flex-col justify-between group relative"
+                                >
+                                  {/* Thumbnail & Badges */}
+                                  <div className="relative h-28 sm:h-36 overflow-hidden bg-slate-900">
+                                    <img
+                                      src={g.thumbnail}
+                                      alt={g.title}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20 pointer-events-none" />
+
+                                    {/* Top Left: Category & Active Badge */}
+                                    <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1">
+                                      <span className="bg-slate-950/85 backdrop-blur-md text-[#1DB954] text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-full border border-[#1DB954]/30 shadow-xs truncate max-w-[80px]">
+                                        {g.category}
+                                      </span>
+                                      <span className="bg-emerald-500/90 text-white text-[7px] sm:text-[8px] font-black px-1 py-0.2 rounded-full shadow-xs flex items-center gap-0.5">
+                                        <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                                        <span>‡¶≤‡¶æ‡¶á‡¶≠</span>
+                                      </span>
+                                    </div>
+
+                                    {/* Top Right: 3-Dot Options Dropdown */}
+                                    <div className="absolute top-1.5 right-1.5 z-20">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setActiveGigMenuId(activeGigMenuId === g.id ? null : g.id);
+                                        }}
+                                        className="w-6 h-6 rounded-full bg-slate-950/80 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition cursor-pointer active:scale-95"
+                                        title="‡¶Ö‡¶™‡¶∂‡¶®"
+                                      >
+                                        <MoreVertical className="w-3 h-3" />
+                                      </button>
+
+                                      {activeGigMenuId === g.id && (
+                                        <>
+                                          <div
+                                            className="fixed inset-0 z-20 cursor-default"
+                                            onClick={() => setActiveGigMenuId(null)}
+                                          />
+                                          <div
+                                            className="absolute right-0 top-7 z-30 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-1.5 space-y-1 font-bengali animate-fadeIn"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                handleOpenEditGig(g);
+                                                setActiveGigMenuId(null);
+                                              }}
+                                              className="w-full flex items-center gap-2 px-2 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:bg-emerald-500/10 hover:text-[#1DB954] rounded-lg transition text-left cursor-pointer"
+                                            >
+                                              <Edit className="w-3 h-3" />
+                                              <span>‡¶ó‡¶ø‡¶ó ‡¶è‡¶°‡¶ø‡¶ü</span>
+                                            </button>
+
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setPerformanceGig(g);
+                                                setActiveGigMenuId(null);
+                                              }}
+                                              className="w-full flex items-center gap-2 px-2 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-500/10 hover:text-blue-500 rounded-lg transition text-left cursor-pointer"
+                                            >
+                                              <BarChart2 className="w-3 h-3" />
+                                              <span>‡¶∞‡¶ø‡¶ö/‡¶≠‡¶ø‡¶â</span>
+                                            </button>
+
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setSelectedGig(g);
+                                                setActiveGigMenuId(null);
+                                              }}
+                                              className="w-full flex items-center gap-2 px-2 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-500 rounded-lg transition text-left cursor-pointer"
+                                            >
+                                              <Eye className="w-3 h-3" />
+                                              <span>‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞ ‡¶™‡ßç‡¶∞‡¶ø‡¶≠‡¶ø‡¶â</span>
+                                            </button>
+
+                                            <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                handleDeleteGig(g.id, g.title);
+                                                setActiveGigMenuId(null);
+                                              }}
+                                              className="w-full flex items-center gap-2 px-2 py-1 text-[11px] font-bold text-rose-600 hover:bg-rose-500/10 rounded-lg transition text-left cursor-pointer"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                              <span>‡¶°‡¶ø‡¶≤‡¶ø‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®</span>
+                                            </button>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Card Content & Details */}
+                                  <div className="p-2 sm:p-3 flex-1 flex flex-col justify-between space-y-2">
+                                    <div>
+                                      <h4 className="text-[11px] sm:text-xs md:text-sm font-black text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-[#1DB954] transition-colors min-h-[1.9rem] sm:min-h-[2.2rem]">
+                                        {g.title}
+                                      </h4>
+                                      <div className="mt-1 flex items-center justify-between">
+                                        <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-bold">‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶Æ‡¶æ‡¶§‡ßç‡¶∞</span>
+                                        <span className="text-[11px] sm:text-xs font-black text-[#1DB954] font-mono">
+                                          ‡ß≥{(g.packages?.basic?.price ?? g.price ?? 2500).toLocaleString('bn-BD')}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Performance & Reach Mini Grid */}
+                                    <div className="p-1.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200/70 dark:border-slate-700/70 grid grid-cols-2 gap-1 text-[8px] sm:text-[9px]">
+                                      <div>
+                                        <span className="text-slate-400 block text-[7px] sm:text-[8px]">üëÅÔ∏è ‡¶≠‡¶ø‡¶â</span>
+                                        <span className="font-extrabold text-slate-900 dark:text-white">
+                                          {((g.salesCount || 1) * 120 + 85).toLocaleString('bn-BD')}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-slate-400 block text-[7px] sm:text-[8px]">üìà ‡¶∞‡¶ø‡¶ö</span>
+                                        <span className="font-extrabold text-slate-900 dark:text-white">
+                                          {((g.salesCount || 1) * 450 + 320).toLocaleString('bn-BD')}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-slate-400 block text-[7px] sm:text-[8px]">üì¶ ‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞</span>
+                                        <span className="font-extrabold text-emerald-600 dark:text-[#1DB954]">
+                                          {(g.salesCount || 12).toLocaleString('bn-BD')}‡¶ü‡¶ø
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-slate-400 block text-[7px] sm:text-[8px]">üí∞ ‡¶Ü‡ßü</span>
+                                        <span className="font-extrabold text-emerald-600 dark:text-[#1DB954] truncate block">
+                                          ‡ß≥{((g.price || g.packages?.basic?.price || 2500) * (g.salesCount || 12)).toLocaleString('bn-BD')}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Mobile-Friendly Quick Interactive Action Buttons */}
+                                    <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenEditGig(g)}
+                                        className="flex-1 py-1 px-1 bg-emerald-500/10 hover:bg-[#1DB954] text-emerald-700 dark:text-[#1DB954] hover:text-white font-black text-[9px] sm:text-[10px] rounded-lg transition border border-[#1DB954]/30 flex items-center justify-center gap-0.5 cursor-pointer active:scale-95"
+                                        title="‡¶ó‡¶ø‡¶ó ‡¶è‡¶°‡¶ø‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®"
+                                      >
+                                        <Edit className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                        <span>‡¶è‡¶°‡¶ø‡¶ü</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => setPerformanceGig(g)}
+                                        className="flex-1 py-1 px-1 bg-blue-500/10 hover:bg-blue-600 text-blue-700 dark:text-blue-400 hover:text-white font-black text-[9px] sm:text-[10px] rounded-lg transition border border-blue-500/30 flex items-center justify-center gap-0.5 cursor-pointer active:scale-95"
+                                        title="‡¶∞‡¶ø‡¶ö ‡¶ì ‡¶™‡¶æ‡¶∞‡¶´‡¶∞‡¶Æ‡ßá‡¶®‡ßç‡¶∏ ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®"
+                                      >
+                                        <BarChart2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                        <span>‡¶∞‡¶ø‡¶ö</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedGig(g)}
+                                        className="flex-1 py-1 px-1 bg-amber-500/10 hover:bg-amber-500 text-amber-700 dark:text-amber-400 hover:text-slate-950 font-black text-[9px] sm:text-[10px] rounded-lg transition border border-amber-500/30 flex items-center justify-center gap-0.5 cursor-pointer active:scale-95"
+                                        title="‡¶¨‡¶æ‡¶Ø‡¶º‡¶æ‡¶∞ ‡¶Æ‡ßã‡¶°‡ßá ‡¶™‡ßç‡¶∞‡¶ø‡¶≠‡¶ø‡¶â"
+                                      >
+                                        <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                        <span>‡¶™‡ßç‡¶∞‡¶ø‡¶≠‡¶ø‡¶â</span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          handleDeleteGig(g.id, g.title);
+                                        }}
+                                        className="p-1 bg-rose-500/10 hover:bg-rose-600 text-rose-600 dark:text-rose-400 hover:text-white font-black rounded-lg transition border border-rose-500/30 flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+                                        title="‡¶ó‡¶ø‡¶ó ‡¶°‡¶ø‡¶≤‡¶ø‡¶ü"
+                                      >
+                                        <Trash2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                   )}
 
                   {/* SUBTAB 4: Bill Cashout / Earnings Management */}
@@ -6715,1592 +8200,344 @@ export const MarketplaceSection: React.FC<MarketplaceSectionProps> = ({ setActiv
                                           key={`mkt-${orderId}`}
                                           className={`p-3 sm:p-3.5 rounded-xl border transition flex flex-col justify-between gap-2.5 shadow-xs ${
                                             isCompleted
-                                              ? 'border-l-4 border-l-[#1DB954] bg-emerald-500/5 dark:bg-emerald-950/20 border-slate-200 dark:border-slate-800'
-                                              : 'border-l-4 border-l-purple-500 bg-purple-500/5 dark:bg-purple-950/20 border-slate-200 dark:border-slate-800'
-                                          }`}
-                                        >
-                                          {/* Title, Badge & Tag */}
-                                          <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                              <div className="flex items-center gap-1.5 mb-1">
-                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                                                  üõçÔ∏è ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏
-                                                </span>
-                                              </div>
-                                              <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
-                                                {title}
-                                              </h4>
-                                              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
-                                                ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü: {clientName} ‚Ä¢ #{orderId}
-                                              </p>
-                                            </div>
-                                            <span
-                                              className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
-                                                isCompleted
-                                                  ? 'bg-emerald-500/15 text-[#1DB954] border border-[#1DB954]/30'
-                                                  : 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
-                                              }`}
-                                            >
-                                              {isCompleted ? '‚úì ‡¶°‡ßá‡¶≤‡¶ø‡¶≠‡¶æ‡¶∞‡ßç‡¶°' : `${progressPct}% ‡¶ï‡¶æ‡¶ú`}
-                                            </span>
-                                          </div>
-
-                                          {/* Progress bar & Amount */}
-                                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                                            <div className="flex items-center gap-2">
-                                              <div className="w-20 bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                                                <div
-                                                  className={`h-full rounded-full ${isCompleted ? 'bg-[#1DB954]' : 'bg-purple-500'}`}
-                                                  style={{ width: `${progressPct}%` }}
-                                                />
-                                              </div>
-                                              <span className="text-[10px] text-slate-400 font-bold">{progressPct}%</span>
-                                            </div>
-                                            <span className="text-xs sm:text-sm font-black text-purple-400">
-                                              ‡ß≥{amount.toLocaleString('bn-BD')}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* TAB 3: WITHDRAW */}
-                            {payoutSubTab === 'withdraw' && (
-                              <div className="space-y-4 animate-fadeIn">
-                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 space-y-5 shadow-sm">
-                                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                                    <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                      <CreditCard className="w-5 h-5 text-[#1DB954]" />
-                                      <span>‡¶¨‡¶ø‡¶≤ ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü ‡¶â‡¶á‡¶•‡¶°‡ßç‡¶∞‡ßü‡¶æ‡¶≤ ‡¶´‡¶∞‡¶Æ</span>
-                                    </h3>
-                                    <span className="text-[10px] font-bold px-2.5 py-0.5 bg-emerald-500/10 text-[#1DB954] rounded-full border border-[#1DB954]/30">
-                                      ‡¶á‡¶®‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶ü ‡¶™‡ßá‡¶Ü‡¶â‡¶ü
-                                    </span>
-                                  </div>
-
-                                  <form onSubmit={handleCashoutSubmit} className="space-y-4">
-                                    <div className="space-y-2">
-                                      <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                                        ‡¶Æ‡ßá‡¶•‡¶° ‡¶∏‡¶ø‡¶≤‡ßá‡¶ï‡ßç‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®:
-                                      </label>
-                                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                        {[
-                                          { id: 'bKash', label: '‡¶¨‡¶ø‡¶ï‡¶æ‡¶∂', icon: <Smartphone className="w-4 h-4 shrink-0" /> },
-                                          { id: 'Nagad', label: '‡¶®‡¶ó‡¶¶', icon: <Wallet className="w-4 h-4 shrink-0" /> },
-                                          { id: 'Rocket', label: '‡¶∞‡¶ï‡ßá‡¶ü', icon: <Zap className="w-4 h-4 shrink-0" /> },
-                                          { id: 'Bank', label: '‡¶¨‡ßç‡¶Ø‡¶æ‡¶Ç‡¶ï ‡¶ü‡ßç‡¶∞‡¶æ‡¶®‡ßç‡¶∏‡¶´‡¶æ‡¶∞', icon: <Building2 className="w-4 h-4 shrink-0" /> }
-                                        ].map(m => (
-                                          <button
-                                            type="button"
-                                            key={m.id}
-                                            onClick={() => setCashoutMethod(m.id as any)}
-                                            className={`p-2.5 rounded-xl border font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                                              cashoutMethod === m.id
-                                                ? 'bg-[#1DB954] text-white border-[#1DB954] shadow-sm'
-                                                : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
-                                            }`}
-                                          >
-                                            {m.icon}
-                                            <span>{m.label}</span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                                      <div>
-                                        <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
-                                          ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶ï‡¶æ‡¶â‡¶®‡ßç‡¶ü ‡¶®‡¶Æ‡ßç‡¶¨‡¶∞:
-                                        </label>
-                                        <input
-                                          type="text"
-                                          required
-                                          placeholder="01700000000"
-                                          value={cashoutAccountNumber}
-                                          onChange={(e) => setCashoutAccountNumber(e.target.value)}
-                                          className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-white"
-                                        />
-                                      </div>
-
-                                      <div>
-                                        <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
-                                          ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶ï‡¶æ‡¶â‡¶®‡ßç‡¶ü ‡¶π‡ßã‡¶≤‡ßç‡¶°‡¶æ‡¶∞ ‡¶®‡¶æ‡¶Æ:
-                                        </label>
-                                        <input
-                                          type="text"
-                                          required
-                                          placeholder="‡¶®‡¶æ‡¶Æ ‡¶≤‡¶ø‡¶ñ‡ßÅ‡¶®"
-                                          value={cashoutAccountName}
-                                          onChange={(e) => setCashoutAccountName(e.target.value)}
-                                          className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
-                                        />
-                                      </div>
-
-                                      <div>
-                                        <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
-                                          ‡¶™‡¶∞‡¶ø‡¶Æ‡¶æ‡¶£ (‡ß≥):
-                                        </label>
-                                        <input
-                                          type="number"
-                                          required
-                                          min={500}
-                                          max={availableBalance}
-                                          value={cashoutAmount}
-                                          onChange={(e) => setCashoutAmount(Number(e.target.value))}
-                                          className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl font-black text-[#1DB954]"
-                                        />
-                                        <div className="flex gap-1 mt-1.5">
-                                          {[1000, 5000, 10000, availableBalance].map((amt, idx) => (
-                                            <button
-                                              key={idx}
-                                              type="button"
-                                              onClick={() => setCashoutAmount(amt)}
-                                              className="px-2 py-0.5 bg-slate-100 hover:bg-[#1DB954] dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-950 text-[10px] font-bold rounded transition"
-                                            >
-                                              ‡ß≥{amt.toLocaleString('bn-BD')} {amt === availableBalance ? '(Max)' : ''}
-                                            </button>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1 text-xs">
-                                        ‡¶¨‡¶ø‡¶∂‡ßá‡¶∑ ‡¶Æ‡ßá‡¶Æ‡ßã / ‡¶®‡ßã‡¶ü (‡¶ê‡¶ö‡ßç‡¶õ‡¶ø‡¶ï):
-                                      </label>
-                                      <input
-                                        type="text"
-                                        placeholder="‡¶ú‡¶∞‡ßÅ‡¶∞‡ßÄ ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü ‡¶∞‡¶ø‡¶ï‡ßã‡ßü‡ßá‡¶∏‡ßç‡¶ü..."
-                                        value={cashoutNote}
-                                        onChange={(e) => setCashoutNote(e.target.value)}
-                                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white"
-                                      />
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-2 pt-2">
-                                      <button
-                                        type="submit"
-                                        className="px-6 py-2.5 bg-[#1DB954] hover:bg-[#19a34a] text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
-                                      >
-                                        <Send className="w-4 h-4 fill-slate-950" />
-                                        <span>‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü ‡¶∞‡¶ø‡¶ï‡ßã‡ßü‡ßá‡¶∏‡ßç‡¶ü ‡¶∏‡¶æ‡¶¨‡¶Æ‡¶ø‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®</span>
-                                      </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* TAB 4: HISTORY (WITH 4 COMPACT COMBINED STAT CARDS AND FILTERS) */}
-                            {payoutSubTab === 'history' && (
-                              <div className="space-y-5 animate-fadeIn font-bengali">
-                                {/* 5 COMPACT COMBINED STAT CARDS */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                                  {/* CARD 1: MARKETPLACE EARNINGS */}
-                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
-                                        <ShoppingBag className="w-3.5 h-3.5 text-purple-400 shrink-0" /> ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏ ‡¶Ü‡ßü
-                                      </span>
-                                      <span className="text-[9px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">‡¶ó‡¶ø‡¶ó</span>
-                                    </div>
-                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                                      ‡ß≥{mktEarned.toLocaleString('bn-BD')}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 font-bold truncate">‡¶ó‡¶ø‡¶ó ‡¶ì ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶Ü‡ßü</div>
-                                  </div>
-
-                                  {/* CARD 2: MENTOR & COURSE EARNINGS */}
-                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
-                                        <GraduationCap className="w-3.5 h-3.5 text-teal-400 shrink-0" /> ‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞ ‡¶ì ‡¶ï‡ßã‡¶∞‡ßç‡¶∏
-                                      </span>
-                                      <span className="text-[9px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">‡¶ï‡ßã‡¶∞‡ßç‡¶∏ ‡¶´‡¶ø</span>
-                                    </div>
-                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                                      ‡ß≥{mntEarned.toLocaleString('bn-BD')}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 font-bold truncate">‡¶∏‡ßç‡¶ü‡ßÅ‡¶°‡ßá‡¶®‡ßç‡¶ü ‡¶è‡¶®‡¶∞‡ßã‡¶≤‡¶Æ‡ßá‡¶®‡ßç‡¶ü</div>
-                                  </div>
-
-                                  {/* CARD 3: CASHOUT READY BALANCE */}
-                                  <div className="p-3.5 sm:p-4 bg-emerald-500/10 dark:bg-emerald-950/30 border-2 border-[#1DB954] rounded-2xl space-y-1 shadow-xs">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs font-black text-emerald-800 dark:text-[#1DB954] flex items-center gap-1.5 truncate">
-                                        <Wallet className="w-3.5 h-3.5 text-[#1DB954] shrink-0" /> ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü ‡¶¨‡ßç‡¶Ø‡¶æ‡¶≤‡ßá‡¶®‡ßç‡¶∏
-                                      </span>
-                                      <span className="text-[9px] text-[#1DB954] bg-[#1DB954]/20 px-1.5 py-0.5 rounded font-black shrink-0">‡¶∞‡ßá‡¶°‡¶ø</span>
-                                    </div>
-                                    <div className="text-lg sm:text-xl font-black text-[#1DB954] tracking-tight">
-                                      ‡ß≥{availableBalance.toLocaleString('bn-BD')}
-                                    </div>
-                                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold truncate">‡¶â‡¶á‡¶•‡¶°‡ßç‡¶∞ ‡¶ï‡¶∞‡¶æ‡¶∞ ‡¶ú‡¶®‡ßç‡¶Ø ‡¶™‡ßç‡¶∞‡¶∏‡ßç‡¶§‡ßÅ‡¶§</div>
-                                  </div>
-
-                                  {/* CARD 4: SUCCESSFUL CASHOUTS (WITH LAST CASHOUT) */}
-                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-[#1DB954] shrink-0" /> ‡¶∏‡¶´‡¶≤ ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü
-                                      </span>
-                                      <span className="text-[9px] text-emerald-600 dark:text-[#1DB954] bg-emerald-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">
-                                        {approvedPayouts.length}‡¶ü‡¶ø ‡¶∏‡¶´‡¶≤
-                                      </span>
-                                    </div>
-                                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                                      ‡ß≥{totalApprovedPaid.toLocaleString('bn-BD')}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 font-bold truncate">
-                                      {lastCashout ? `‡¶∏‡¶∞‡ßç‡¶¨‡¶∂‡ßá‡¶∑: ‡ß≥${lastCashout.amount.toLocaleString('bn-BD')} (${lastCashout.paymentMethod})` : '‡¶™‡¶∞‡¶ø‡¶∂‡ßã‡¶ß‡¶ø‡¶§ ‡¶™‡ßá‡¶Ü‡¶â‡¶ü'}
-                                    </div>
-                                  </div>
-
-                                  {/* CARD 5: PENDING REQUESTS */}
-                                  <div className="p-3.5 sm:p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 shadow-xs col-span-2 sm:col-span-1">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
-                                        <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" /> ‡¶™‡ßç‡¶∞‡¶∏‡ßá‡¶∏‡¶ø‡¶Ç ‡¶∞‡¶ø‡¶ï‡ßã‡ßü‡ßá‡¶∏‡ßç‡¶ü
-                                      </span>
-                                      <span className="text-[9px] text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded font-bold shrink-0">‡¶™‡ßá‡¶®‡ßç‡¶°‡¶ø‡¶Ç</span>
-                                    </div>
-                                    <div className="text-lg sm:text-xl font-black text-amber-500 tracking-tight">
-                                      ‡ß≥{sellerPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.amount, 0).toLocaleString('bn-BD')}
-                                    </div>
-                                    <div className="text-[10px] text-amber-600/80 dark:text-amber-400/80 font-bold truncate">
-                                      {sellerPayouts.filter(p => p.status === 'Pending').length}‡¶ü‡¶ø ‡¶Ü‡¶¨‡ßá‡¶¶‡¶® ‡¶Ö‡¶™‡ßá‡¶ï‡ßç‡¶∑‡¶Æ‡¶æ‡¶£
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* FILTER & SEARCH BAR */}
-                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 space-y-3 shadow-sm">
-                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                    {/* STATUS FILTER PILLS */}
-                                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-xs font-bold">
-                                      {[
-                                        { id: 'All', label: '‡¶∏‡¶¨‡¶ó‡ßÅ‡¶≤‡ßã' },
-                                        { id: 'Approved', label: '‚úì ‡¶™‡¶∞‡¶ø‡¶∂‡ßã‡¶ß‡¶ø‡¶§' },
-                                        { id: 'Pending', label: '‚è≥ ‡¶™‡ßá‡¶®‡ßç‡¶°‡¶ø‡¶Ç' },
-                                        { id: 'Rejected', label: '‚úï ‡¶¨‡¶æ‡¶§‡¶ø‡¶≤' }
-                                      ].map(btn => (
-                                        <button
-                                          key={btn.id}
-                                          onClick={() => setPayoutStatusFilter(btn.id as any)}
-                                          className={`px-3 py-1.5 rounded-xl transition cursor-pointer text-xs shrink-0 ${
-                                            payoutStatusFilter === btn.id
-                                              ? 'bg-[#1DB954] text-white font-black shadow-sm'
-                                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                          }`}
-                                        >
-                                          {btn.label}
-                                        </button>
-                                      ))}
-                                    </div>
-
-                                    {/* MIN AMOUNT & SEARCH INPUTS */}
-                                    <div className="flex items-center gap-2 text-xs">
-                                      <select
-                                        value={payoutMinAmount}
-                                        onChange={(e) => setPayoutMinAmount(Number(e.target.value))}
-                                        className="p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
-                                      >
-                                        <option value={0}>‡¶∏‡¶ï‡¶≤ ‡¶™‡¶∞‡¶ø‡¶Æ‡¶æ‡¶£</option>
-                                        <option value={1000}>‡ß≥‡ßß,‡ß¶‡ß¶‡ß¶+</option>
-                                        <option value={10000}>‡ß≥‡ßß‡ß¶,‡ß¶‡ß¶‡ß¶+</option>
-                                        <option value={50000}>‡ß≥‡ß´‡ß¶,‡ß¶‡ß¶‡ß¶+</option>
-                                      </select>
-
-                                      <div className="relative flex-1 sm:w-48">
-                                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-                                        <input
-                                          type="text"
-                                          placeholder="‡¶ñ‡ßÅ‡¶Å‡¶ú‡ßÅ‡¶® (‡¶Æ‡ßá‡¶•‡¶°/‡¶®‡¶Æ‡ßç‡¶¨‡¶∞)..."
-                                          value={payoutSearchQuery}
-                                          onChange={(e) => setPayoutSearchQuery(e.target.value)}
-                                          className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white"
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* HISTORY TABLE */}
-                                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                                    {filteredPayouts.length === 0 ? (
-                                      <div className="text-center py-8 space-y-2">
-                                        <p className="text-slate-400 text-xs font-bold">‡¶™‡ßç‡¶∞‡¶¶‡¶§‡ßç‡¶§ ‡¶´‡¶ø‡¶≤‡ßç‡¶ü‡¶æ‡¶∞‡ßá ‡¶ï‡ßã‡¶®‡ßã ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü ‡¶á‡¶§‡¶ø‡¶π‡¶æ‡¶∏ ‡¶™‡¶æ‡¶ì‡ßü‡¶æ ‡¶Ø‡¶æ‡ßü‡¶®‡¶ø</p>
-                                        <button
-                                          onClick={() => {
-                                            setPayoutStatusFilter('All');
-                                            setPayoutMinAmount(0);
-                                            setPayoutSearchQuery('');
-                                          }}
-                                          className="text-xs text-[#1DB954] font-bold underline"
-                                        >
-                                          ‡¶´‡¶ø‡¶≤‡ßç‡¶ü‡¶æ‡¶∞ ‡¶∞‡¶ø‡¶∏‡ßá‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      <div className="overflow-x-auto">
-                                        <table className="w-full text-left text-xs">
-                                          <thead>
-                                            <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 text-[10px] uppercase font-bold">
-                                              <th className="pb-2.5">ID</th>
-                                              <th className="pb-2.5">‡¶§‡¶æ‡¶∞‡¶ø‡¶ñ</th>
-                                              <th className="pb-2.5">‡¶Æ‡ßá‡¶•‡¶° ‡¶ì ‡¶®‡¶Æ‡ßç‡¶¨‡¶∞</th>
-                                              <th className="pb-2.5">‡¶®‡ßã‡¶ü/‡¶¨‡¶ø‡¶¨‡¶∞‡¶£</th>
-                                              <th className="pb-2.5 text-right">‡¶™‡¶∞‡¶ø‡¶Æ‡¶æ‡¶£</th>
-                                              <th className="pb-2.5 text-center">‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶ü‡¶æ‡¶∏</th>
-                                              <th className="pb-2.5 text-right">‡¶Ö‡ßç‡¶Ø‡¶æ‡¶ï‡¶∂‡¶®</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-bold">
-                                            {filteredPayouts.map((p, idx) => {
-                                              const isPending = p.status === 'Pending';
-                                              const isPaid = p.status === 'Approved' || p.status === 'Paid';
-                                              const openUpward = idx >= filteredPayouts.length - 2 && filteredPayouts.length > 2;
-
-                                              return (
-                                                <tr
-                                                  key={p.id}
-                                                  className={`transition ${
-                                                    isPending
-                                                      ? 'bg-amber-500/5 hover:bg-amber-500/10 dark:bg-amber-950/20 dark:hover:bg-amber-950/30'
-                                                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                                                  }`}
-                                                >
-                                                  <td className="py-3 font-mono text-slate-500">{p.id}</td>
-                                                  <td className="py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">{p.requestedAt}</td>
-                                                  <td className="py-3 text-slate-900 dark:text-white whitespace-nowrap">
-                                                    <span className="font-bold">{p.paymentMethod}</span> <span className="font-mono text-slate-500">({p.accountNumber})</span>
-                                                  </td>
-                                                  <td className="py-3 text-slate-500 dark:text-slate-400 line-clamp-1 max-w-[200px]">
-                                                    {p.note || '‡¶á‡¶®‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶ü ‡¶™‡ßá‡¶Ü‡¶â‡¶ü'}
-                                                  </td>
-                                                  <td className="py-3 text-right text-[#1DB954] font-black text-sm whitespace-nowrap">
-                                                    ‡ß≥{p.amount.toLocaleString('bn-BD')}
-                                                  </td>
-                                                  <td className="py-3 text-center whitespace-nowrap">
-                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
-                                                      isPaid
-                                                        ? 'bg-emerald-500/20 text-[#1DB954]'
-                                                        : isPending
-                                                        ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                                                        : 'bg-rose-500/20 text-rose-500'
-                                                    }`}>
-                                                      {isPaid ? '‚úì ‡¶™‡¶∞‡¶ø‡¶∂‡ßã‡¶ß‡¶ø‡¶§' : isPending ? '‚è≥ ‡¶™‡ßá‡¶®‡ßç‡¶°‡¶ø‡¶Ç' : p.status}
-                                                    </span>
-                                                  </td>
-                                                  <td className="py-3 text-right whitespace-nowrap relative">
-                                                    <div className="relative inline-block text-left">
-                                                      <button
-                                                        onClick={(e) => {
-                                                          e.stopPropagation();
-                                                          setOpenPayoutMenuId(openPayoutMenuId === p.id ? null : p.id);
-                                                        }}
-                                                        title="‡¶Æ‡ßá‡¶®‡ßÅ ‡¶Ö‡¶™‡¶∂‡¶® (‡¶è‡¶°‡¶ø‡¶ü / ‡¶¨‡¶æ‡¶§‡¶ø‡¶≤)"
-                                                        className={`p-1.5 rounded-lg border transition cursor-pointer flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 ${
-                                                          isPending
-                                                            ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
-                                                            : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                                                        }`}
-                                                      >
-                                                        <MoreVertical className="w-4 h-4" />
-                                                      </button>
-
-                                                      {openPayoutMenuId === p.id && (
-                                                        <div
-                                                          onClick={(e) => e.stopPropagation()}
-                                                          className={`absolute right-0 z-50 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 shadow-2xl backdrop-blur-xl animate-fadeIn space-y-1 text-left font-sans ${
-                                                            openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
-                                                          }`}
-                                                        >
-                                                          {isPending ? (
-                                                            <>
-                                                              <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-[10px] font-bold text-amber-500">
-                                                                <Clock className="w-3 h-3 animate-pulse" />
-                                                                <span>‡¶™‡ßç‡¶∞‡¶ï‡ßç‡¶∞‡¶ø‡ßü‡¶æ‡¶ß‡ßÄ‡¶® ‡¶Ü‡¶¨‡ßá‡¶¶‡¶®</span>
-                                                              </div>
-                                                              <button
-                                                                onClick={() => {
-                                                                  setOpenPayoutMenuId(null);
-                                                                  setEditPendingAmount(p.amount);
-                                                                  setEditPendingMethod((p.paymentMethod || 'bKash') as any);
-                                                                  setEditPendingAccount(p.accountNumber);
-                                                                  setIsEditPendingModalOpen(true);
-                                                                }}
-                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-500/15 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
-                                                              >
-                                                                <Pencil className="w-3.5 h-3.5 text-blue-500" />
-                                                                <span>‡¶è‡¶°‡¶ø‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®</span>
-                                                              </button>
-                                                              <button
-                                                                onClick={() => {
-                                                                  setOpenPayoutMenuId(null);
-                                                                  if (confirm(`‡¶Ü‡¶™‡¶®‡¶ø ‡¶ï‡¶ø ‡ß≥${p.amount.toLocaleString('bn-BD')} ‡¶è‡¶∞ ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü ‡¶Ü‡¶¨‡ßá‡¶¶‡¶®‡¶ü‡¶ø ‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ ‡¶ï‡¶∞‡¶§‡ßá ‡¶ö‡¶æ‡¶®?`)) {
-                                                                    setAvailableBalance(prev => prev + p.amount);
-                                                                    setActivePendingPayout(null);
-                                                                    alert('‡¶Ü‡¶™‡¶®‡¶æ‡¶∞ ‡¶ï‡ßç‡¶Ø‡¶æ‡¶∂‡¶Ü‡¶â‡¶ü ‡¶Ü‡¶¨‡ßá‡¶¶‡¶®‡¶ü‡¶ø ‡¶∏‡¶´‡¶≤‡¶≠‡¶æ‡¶¨‡ßá ‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ ‡¶ï‡¶∞‡¶æ ‡¶π‡ßü‡ßá‡¶õ‡ßá‡•§');
-                                                                  }
-                                                                }}
-                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition cursor-pointer"
-                                                              >
-                                                                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                                                                <span>‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ ‡¶ï‡¶∞‡ßÅ‡¶®</span>
-                                                              </button>
-                                                            </>
-                                                          ) : (
-                                                            <>
-                                                              <div className="px-2 py-1 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 text-[10px] font-bold text-emerald-500">
-                                                                <CheckCircle2 className="w-3 h-3" />
-                                                                <span>{isPaid ? '‡¶™‡¶∞‡¶ø‡¶∂‡ßã‡¶ß‡¶ø‡¶§' : '‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶ü‡¶æ‡¶∏ ‡¶ö‡ßÇ‡ßú‡¶æ‡¶®‡ßç‡¶§'}</span>
-                                                              </div>
-                                                              <div
-                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed select-none"
-                                                                title="‡¶™‡¶∞‡¶ø‡¶∂‡ßã‡¶ß‡¶ø‡¶§ ‡¶π‡¶ì‡ßü‡¶æ‡ßü ‡¶è‡¶°‡¶ø‡¶ü ‡¶ï‡¶∞‡¶æ ‡¶Ø‡¶æ‡¶¨‡ßá ‡¶®‡¶æ"
-                                                              >
-                                                                <Lock className="w-3.5 h-3.5" />
-                                                                <span>‡¶è‡¶°‡¶ø‡¶ü (‡¶≤‡¶ï‡¶°)</span>
-                                                              </div>
-                                                              <div
-                                                                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed select-none"
-                                                                title="‡¶™‡¶∞‡¶ø‡¶∂‡ßã‡¶ß‡¶ø‡¶§ ‡¶π‡¶ì‡ßü‡¶æ‡ßü ‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ ‡¶ï‡¶∞‡¶æ ‡¶Ø‡¶æ‡¶¨‡ßá ‡¶®‡¶æ"
-                                                              >
-                                                                <Lock className="w-3.5 h-3.5" />
-                                                                <span>‡¶¨‡¶æ‡¶§‡¶ø‡¶≤ (‡¶≤‡¶ï‡¶°)</span>
-                                                              </div>
-                                                              <p className="px-2 pb-0.5 text-[9px] text-slate-400 font-normal leading-tight">
-                                                                ‡¶ü‡¶æ‡¶ï‡¶æ ‡¶™‡¶∞‡¶ø‡¶∂‡ßã‡¶ß ‡¶∏‡¶Æ‡ßç‡¶™‡¶®‡ßç‡¶® ‡¶π‡¶ì‡ßü‡¶æ‡ßü ‡¶è‡¶ü‡¶ø ‡¶™‡¶∞‡¶ø‡¶¨‡¶∞‡ßç‡¶§‡¶®‡¶Ø‡ßã‡¶ó‡ßç‡¶Ø ‡¶®‡ßü‡•§
-                                                              </p>
-                                                            </>
-                                                          )}
-                                                        </div>
-                                                      )}
-                                                    </div>
-                                                  </td>
-                                                </tr>
-                                              );
-                                            })}
-                                          </tbody>
-                                        </table>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          );
-        })()}
-      </div>
-      ) : (
-        /* BUYER MARKETPLACE VIEW ‚Äî MODERN FIVERR DESIGN */
-        <div className="space-y-10 animate-fadeIn font-english">
-          
-          {/* MESSENGER VIEW (STANDALONE / EMBEDDED IN BROWSE MODE) */}
-          {activeSubTab === 'messenger' && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 sm:rounded-3xl rounded-none overflow-hidden shadow-md sm:my-4 my-0">
-              <MarketplaceMessengerView
-                isEmbedded={true}
-                initialCategory={messengerSubTabFilter}
-                externalSearchQuery={messengerSearchQuery}
-                onSearchQueryChange={setMessengerSearchQuery}
-                onClose={() => setActiveSubTab('gigs')}
-              />
-            </div>
-          )}
-
-          {/* CATALOG SECTION (HERO + CATEGORY SECTIONS + FULL PAGE CATEGORY VIEWS) */}
-          {(activeSubTab === 'gigs' || activeSubTab === 'ptenit-services' || activeSubTab === 'courses' || activeSubTab === 'jobs') && (
-            <div className="space-y-4 sm:space-y-8 px-3 sm:px-0 pt-3 sm:pt-4">
-              {/* WELCOME BACK USER HERO BANNER (COMPACT SIZING) */}
-              {activeSubTab === 'gigs' && selectedCategory === 'All' && !searchQuery.trim() && (
-                <div className="space-y-2.5">
-                <h1 className="text-xs sm:text-sm md:text-base font-bold text-slate-900 dark:text-white tracking-tight">
-                  Welcome back, <span className="text-[#1DB954]">{currentUser?.name || 'Mds Kazi Sohag'}</span>
-                </h1>
-
-                {/* TWO RECOMMENDED ACTION CARDS - COMPACT TYPOGRAPHY */}
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  {/* CARD 1: POST A PROJECT BRIEF */}
-                  <div className="p-2.5 sm:p-3.5 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition">
-                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#1DB954]/10 dark:bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center shrink-0">
-                        <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-[11px] sm:text-xs font-bold text-slate-900 dark:text-white leading-tight truncate">Post project brief</h3>
-                        <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">Get tailored offers.</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsPostProjectModalOpen(true)}
-                      className="w-full sm:w-auto px-2 py-0.5 sm:px-3 sm:py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-[#1DB954] dark:hover:border-[#1DB954] text-slate-800 dark:text-slate-200 text-[9px] sm:text-[11px] font-bold rounded-md transition cursor-pointer whitespace-nowrap text-center shadow-2xs"
-                    >
-                      Get started
-                    </button>
-                  </div>
-
-                  {/* CARD 2: TAILOR PTENit TO YOUR NEEDS */}
-                  <div className="p-2.5 sm:p-3.5 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition">
-                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                        <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-[11px] sm:text-xs font-bold text-slate-900 dark:text-white leading-tight truncate">Tailor to needs</h3>
-                        <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">Better recommendations.</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setIsEditProfileModalOpen(true)}
-                      className="w-full sm:w-auto px-2 py-0.5 sm:px-3 sm:py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-[#1DB954] dark:hover:border-[#1DB954] text-slate-800 dark:text-slate-200 text-[9px] sm:text-[11px] font-bold rounded-md transition cursor-pointer whitespace-nowrap text-center shadow-2xs"
-                    >
-                      Add info
-                    </button>
-                  </div>
-                </div>
-              </div>
-              )}
-
-              {/* VIEW 1: ACTIVE SEARCH QUERY RESULTS */}
-              {searchQuery.trim() && activeSubTab === 'gigs' && (
-                <div className="space-y-4 font-bengali animate-fadeIn">
-                  <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800/80 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-2">
-                      <Search className="w-4 h-4 text-[#1DB954]" />
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                        "<strong>{searchQuery}</strong>" ‡¶è‡¶∞ ‡¶ú‡¶®‡ßç‡¶Ø {filteredGigs.length}‡¶ü‡¶ø ‡¶´‡¶≤‡¶æ‡¶´‡¶≤ ‡¶™‡¶æ‡¶ì‡¶Ø‡¶º‡¶æ ‡¶ó‡ßá‡¶õ‡ßá
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="text-xs text-rose-500 hover:underline font-bold cursor-pointer"
-                    >
-                      ‡¶∏‡¶æ‡¶∞‡ßç‡¶ö ‡¶∞‡¶ø‡¶∏‡ßá‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶® ‚úï
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                    {filteredGigs.map(gig => (
-                      <GigCard
-                        key={gig.id}
-                        gig={gig}
-                        onClick={() => {
-                          setSelectedGig(gig);
-                          setSelectedPackage('standard');
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        currentUser={currentUser}
-                        savedGigIds={savedGigIds}
-                        toggleFavorite={toggleFavorite}
-                        deleteGig={deleteGig}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* VIEW 2: DEDICATED FULL-PAGE CATEGORY VIEW (WHEN A CATEGORY IS SELECTED) */}
-              {!searchQuery.trim() && activeSubTab === 'gigs' && selectedCategory !== 'All' && (
-                <div className="space-y-3 sm:space-y-4 font-bengali animate-fadeIn pb-8 bg-white dark:bg-slate-900 sm:bg-transparent p-2.5 sm:p-0 rounded-2xl sm:rounded-none border border-slate-200/80 dark:border-slate-800 sm:border-0 shadow-xs sm:shadow-none">
-                  {/* Mobile View Category Return Bar - Clean White */}
-                  <div className="flex sm:hidden items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCategory('All');
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs shrink-0 active:scale-95 transition cursor-pointer"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5 text-[#1DB954]" />
-                        <span>‡¶∏‡¶ï‡¶≤ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏</span>
-                      </button>
-                      <h2 className="text-xs font-black text-slate-900 dark:text-white truncate">
-                        {selectedCategory}
-                      </h2>
-                    </div>
-                    <span className="text-[10px] font-black text-[#1DB954] bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full shrink-0">
-                      {filteredGigs.length}‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó
-                    </span>
-                  </div>
-                  {/* Desktop view category return button and title */}
-                  <div className="hidden sm:flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedCategory('All');
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700 active:scale-95 shadow-xs"
-                      >
-                        <ArrowLeft className="w-4 h-4 text-[#1DB954]" />
-                        <span>‡¶∏‡¶ï‡¶≤ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®</span>
-                      </button>
-                      <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                        {selectedCategory === 'Digital Marketing' ? 'Digital Marketing' :
-                         selectedCategory === 'Programming & Tech' ? 'Programming & Tech' :
-                         selectedCategory === 'Graphics & Design' ? 'Graphics & Design' :
-                         selectedCategory === 'AI Services' ? 'AI & Automation' :
-                         selectedCategory === 'Video & Animation' ? 'Video & Animation' :
-                         selectedCategory === 'SEO & Growth' ? 'SEO & Growth' :
-                         selectedCategory === 'Education & Training' ? 'Education & Training' : selectedCategory} ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏
-                      </h2>
-                    </div>
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                      ‡¶Æ‡ßã‡¶ü {filteredGigs.length}‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó ‡¶™‡¶æ‡¶ì‡ßü‡¶æ ‡¶ó‡ßá‡¶õ‡ßá
-                    </span>
-                  </div>
-
-                  {/* FULL CATEGORY GIGS GRID - 2 COLUMNS ON PHONE, RESPONSIVE ON PC */}
-                  {filteredGigs.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                      {filteredGigs.map(gig => (
-                        <GigCard
-                          key={gig.id}
-                          gig={gig}
-                          onClick={() => {
-                            setSelectedGig(gig);
-                            setSelectedPackage('standard');
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          currentUser={currentUser}
-                          savedGigIds={savedGigIds}
-                          toggleFavorite={toggleFavorite}
-                          deleteGig={deleteGig}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center space-y-3">
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                        ‡¶è‡¶á ‡¶ï‡ßç‡¶Ø‡¶æ‡¶ü‡¶æ‡¶ó‡¶∞‡¶ø‡¶§‡ßá ‡¶´‡¶ø‡¶≤‡ßç‡¶ü‡¶æ‡¶∞‡ßá‡¶∞ ‡¶∏‡¶æ‡¶•‡ßá ‡¶Æ‡¶ø‡¶≤ ‡¶∞‡ßá‡¶ñ‡ßá ‡¶ï‡ßã‡¶®‡ßã ‡¶ó‡¶ø‡¶ó ‡¶™‡¶æ‡¶ì‡ßü‡¶æ ‡¶Ø‡¶æ‡ßü‡¶®‡¶ø‡•§
-                      </p>
-                      <button
-                        onClick={() => {
-                          setSelectedCategory('All');
-                          setPriceRangeFilter('all');
-                          setDeliveryFilter('any');
-                        }}
-                        className="px-4 py-2 bg-[#1DB954] text-white rounded-xl font-black text-xs cursor-pointer shadow-md"
-                      >
-                        ‡¶∏‡¶ï‡¶≤ ‡¶ó‡¶ø‡¶ó ‡¶¨‡ßç‡¶∞‡¶æ‡¶â‡¶ú ‡¶ï‡¶∞‡ßÅ‡¶®
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-              {/* VIEW 3: MAIN MULTI-CATEGORY MARKETPLACE VIEW (2 COLUMNS X 2 ROWS PER CATEGORY WITH "‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®") */}
-              {!searchQuery.trim() && activeSubTab === 'gigs' && selectedCategory === 'All' && (
-                <div className="space-y-10 font-bengali">
-
-                  {/* 1. DIGITAL MARKETING CATEGORY BLOCK (‡ß®‡¶ü‡¶æ ‡¶ï‡¶≤‡¶æ‡¶Æ ‡ß®‡¶ü‡¶æ ‡¶∞‡ßã = ‡ß™‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó) */}
-                  {(() => {
-                    const marketingGigs = gigs.filter(g =>
-                      ['digital marketing', 'social media', 'marketing', 'facebook', 'ads'].some(k =>
-                        g.category.toLowerCase().includes(k) || g.title.toLowerCase().includes(k)
-                      )
-                    );
-                    const displayGigs = marketingGigs.length > 0 ? marketingGigs : gigs.slice(0, 4);
-
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                          <div className="min-w-0">
-                            <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                              <TrendingUp className="w-4 h-4 text-[#1DB954] shrink-0" />
-                              <span>‡¶°‡¶ø‡¶ú‡¶ø‡¶ü‡¶æ‡¶≤ ‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶ø‡¶Ç ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏</span>
-                            </h2>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('Digital Marketing');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                          >
-                            <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                            <span>‚Üí</span>
-                          </button>
-                        </div>
-
-                        {/* 2x2 Grid (4 items) on Phone */}
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                          {displayGigs.slice(0, 4).map(gig => (
-                            <GigCard
-                              key={gig.id}
-                              gig={gig}
-                              onClick={() => {
-                                setSelectedGig(gig);
-                                setSelectedPackage('standard');
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }}
-                              currentUser={currentUser}
-                              savedGigIds={savedGigIds}
-                              toggleFavorite={toggleFavorite}
-                              deleteGig={deleteGig}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* 2. PROGRAMMING & WEB DEV CATEGORY BLOCK (‡ß®‡¶ü‡¶æ ‡¶ï‡¶≤‡¶æ‡¶Æ ‡ß®‡¶ü‡¶æ ‡¶∞‡ßã = ‡ß™‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó) */}
-                  {(() => {
-                    const devGigs = gigs.filter(g =>
-                      ['web', 'development', 'programming', 'software', 'app', 'react', 'node'].some(k =>
-                        g.category.toLowerCase().includes(k) || g.title.toLowerCase().includes(k)
-                      )
-                    );
-                    const displayGigs = devGigs.length > 0 ? devGigs : gigs.slice(4, 8);
-
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                          <div className="min-w-0">
-                            <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                              <Code className="w-4 h-4 text-blue-500 shrink-0" />
-                              <span>‡¶ì‡¶Ø‡¶º‡ßá‡¶¨ ‡¶ì ‡¶Æ‡ßã‡¶¨‡¶æ‡¶á‡¶≤ ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶™ ‡¶°‡ßá‡¶≠‡ßá‡¶≤‡¶™‡¶Æ‡ßá‡¶®‡ßç‡¶ü</span>
-                            </h2>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('Programming & Tech');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                          >
-                            <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                            <span>‚Üí</span>
-                          </button>
-                        </div>
-
-                        {/* 2x2 Grid (4 items) on Phone */}
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                          {displayGigs.slice(0, 4).map(gig => (
-                            <GigCard
-                              key={gig.id}
-                              gig={gig}
-                              onClick={() => {
-                                setSelectedGig(gig);
-                                setSelectedPackage('standard');
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }}
-                              currentUser={currentUser}
-                              savedGigIds={savedGigIds}
-                              toggleFavorite={toggleFavorite}
-                              deleteGig={deleteGig}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* 3. GRAPHICS & CREATIVE DESIGN BLOCK (‡ß®‡¶ü‡¶æ ‡¶ï‡¶≤‡¶æ‡¶Æ ‡ß®‡¶ü‡¶æ ‡¶∞‡ßã = ‡ß™‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó) */}
-                  {(() => {
-                    const designGigs = gigs.filter(g =>
-                      ['graphic', 'design', 'ui/ux', 'logo', 'banner', 'creative'].some(k =>
-                        g.category.toLowerCase().includes(k) || g.title.toLowerCase().includes(k)
-                      )
-                    );
-                    const displayGigs = designGigs.length > 0 ? designGigs : gigs.slice(8, 12);
-
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                          <div className="min-w-0">
-                            <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                              <Palette className="w-4 h-4 text-pink-500 shrink-0" />
-                              <span>‡¶ó‡ßç‡¶∞‡¶æ‡¶´‡¶ø‡¶ï‡ßç‡¶∏ ‡¶ì ‡¶ï‡ßç‡¶∞‡¶ø‡¶Ø‡¶º‡ßá‡¶ü‡¶ø‡¶≠ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®</span>
-                            </h2>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('Graphics & Design');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                          >
-                            <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                            <span>‚Üí</span>
-                          </button>
-                        </div>
-
-                        {/* 2x2 Grid (4 items) on Phone */}
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                          {displayGigs.slice(0, 4).map(gig => (
-                            <GigCard
-                              key={gig.id}
-                              gig={gig}
-                              onClick={() => {
-                                setSelectedGig(gig);
-                                setSelectedPackage('standard');
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }}
-                              currentUser={currentUser}
-                              savedGigIds={savedGigIds}
-                              toggleFavorite={toggleFavorite}
-                              deleteGig={deleteGig}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* 4. AI & AUTOMATION SERVICES BLOCK (‡ß®‡¶ü‡¶æ ‡¶ï‡¶≤‡¶æ‡¶Æ ‡ß®‡¶ü‡¶æ ‡¶∞‡ßã = ‡ß™‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó) */}
-                  {(() => {
-                    const aiGigs = gigs.filter(g =>
-                      ['ai', 'automation', 'chatbot', 'bot', 'gpt', 'saas'].some(k =>
-                        g.category.toLowerCase().includes(k) || g.title.toLowerCase().includes(k)
-                      )
-                    );
-                    const displayGigs = aiGigs.length > 0 ? aiGigs : gigs.slice(12, 16);
-
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                          <div className="min-w-0">
-                            <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                              <Sparkles className="w-4 h-4 text-purple-500 shrink-0" />
-                              <span>‡¶è‡¶Ü‡¶á ‡¶ì ‡¶Ö‡¶ü‡ßã‡¶Æ‡ßá‡¶∂‡¶® ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏</span>
-                            </h2>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('AI Services');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                          >
-                            <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                            <span>‚Üí</span>
-                          </button>
-                        </div>
-
-                        {/* 2x2 Grid (4 items) on Phone */}
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                          {displayGigs.slice(0, 4).map(gig => (
-                            <GigCard
-                              key={gig.id}
-                              gig={gig}
-                              onClick={() => {
-                                setSelectedGig(gig);
-                                setSelectedPackage('standard');
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }}
-                              currentUser={currentUser}
-                              savedGigIds={savedGigIds}
-                              toggleFavorite={toggleFavorite}
-                              deleteGig={deleteGig}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* 5. OFFICIAL IT AGENCY SERVICES BLOCK (DEEP GREEN CANVAS, 4 ITEMS 2X2) */}
-                  <div className="bg-gradient-to-b from-[#064E3B] via-[#065F46] to-[#044E3B] text-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-xl border border-emerald-600/40 space-y-4">
-                    <div className="flex items-center justify-between gap-2 border-b border-emerald-500/30 pb-3">
-                      <div className="min-w-0">
-                        <h2 className="text-sm sm:text-xl font-black text-white flex items-center gap-2 truncate">
-                          <ShieldCheck className="w-4 h-4 text-emerald-300 shrink-0" />
-                          <span>üè¢ ‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤ ‡¶Ü‡¶á‡¶ü‡¶ø ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏</span>
-                        </h2>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveSubTab('ptenit-services');
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                      >
-                        <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                        <span>‚Üí</span>
-                      </button>
-                    </div>
-
-                    {/* 2x2 Grid (4 items) */}
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                      {services.slice(0, 4).map(serv => {
-                        const priceNum = typeof serv.priceText === 'string'
-                          ? parseInt(serv.priceText.replace(/[^0-9]/g, ''), 10) || 10000
-                          : 10000;
-
-                        const servGig: MarketplaceGig = gigs.find(
-                          g => g.id === serv.id || g.title.toLowerCase() === serv.title.toLowerCase()
-                        ) || {
-                          id: serv.id,
-                          sellerId: 'ptenit-agency',
-                          sellerName: 'PTENit Official Agency',
-                          sellerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-                          sellerLevel: 'Official Top Rated Agency',
-                          isAgencyStaff: true,
-                          title: serv.title,
-                          category: serv.category,
-                          description: serv.fullDescription || serv.shortDescription,
-                          thumbnail: serv.thumbnail || 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=800&q=80',
-                          rating: serv.rating || 5.0,
-                          reviewsCount: serv.reviewsCount || 48,
-                          packages: serv.packages || {
-                            basic: {
-                              name: '‡¶¨‡ßá‡¶∏‡¶ø‡¶ï ‡¶∏‡¶≤‡¶ø‡¶â‡¶∂‡¶®',
-                              price: priceNum,
-                              deliveryDays: 3,
-                              revisions: '3',
-                              features: serv.features && serv.features.length > 0 ? serv.features.slice(0, 3) : ['‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®', '‡¶∞‡ßá‡¶∏‡¶™‡¶®‡ßç‡¶∏‡¶ø‡¶≠ ‡¶≤‡ßá‡¶Ü‡¶â‡¶ü', '‡¶¨‡ßá‡¶∏‡¶ø‡¶ï ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü']
-                            },
-                            standard: {
-                              name: '‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶°‡¶æ‡¶∞‡ßç‡¶° ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú',
-                              price: priceNum * 2,
-                              deliveryDays: 5,
-                              revisions: '5',
-                              features: serv.features && serv.features.length > 0 ? serv.features.slice(0, 5) : ['‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®', '‡¶è‡¶∏‡¶á‡¶ì ‡¶´‡ßç‡¶∞‡ßá‡¶®‡ßç‡¶°‡¶≤‡¶ø', '‡¶∏‡ßç‡¶™‡¶ø‡¶° ‡¶Ö‡¶™‡¶ü‡¶ø‡¶Æ‡¶æ‡¶á‡¶ú‡ßá‡¶∂‡¶®', '‡ßß ‡¶Æ‡¶æ‡¶∏ ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü']
-                            },
-                            premium: {
-                              name: '‡¶´‡ßÅ‡¶≤ ‡¶è‡¶ú‡ßá‡¶®‡ßç‡¶∏‡¶ø ‡¶∏‡¶≤‡¶ø‡¶â‡¶∂‡¶®',
-                              price: priceNum * 3.5,
-                              deliveryDays: 7,
-                              revisions: 'Unlimited',
-                              features: serv.features || ['‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ ‡¶Ü‡¶∞‡ßç‡¶ï‡¶ø‡¶ü‡ßá‡¶ï‡¶ö‡¶æ‡¶∞', '‡¶´‡ßÅ‡¶≤ ‡¶°‡ßá‡¶™‡ßç‡¶≤‡ßü‡¶Æ‡ßá‡¶®‡ßç‡¶ü', '‡¶≠‡¶ø‡¶Ü‡¶á‡¶™‡¶ø ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü', '‡¶∏‡ßã‡¶∞‡ßç‡¶∏ ‡¶´‡¶æ‡¶á‡¶≤']
-                            }
-                          },
-                          tags: ['Official Agency', 'PTENit Guarantee', serv.category],
-                          status: 'active' as const,
-                          offerBadge: '‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤ ‡¶è‡¶ú‡ßá‡¶®‡ßç‡¶∏‡¶ø'
-                        };
-
-                        return (
-                          <div
-                            key={serv.id}
-                            onClick={() => {
-                              setSelectedGig(servGig);
-                              setSelectedPackage('standard');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-[#1DB954] dark:hover:border-[#1DB954] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition duration-200 shadow-md hover:shadow-xl cursor-pointer flex flex-col justify-between space-y-2 sm:space-y-3.5 group relative overflow-hidden text-slate-900 dark:text-white"
-                          >
-                            <div className="space-y-2">
-                              <div className="relative h-24 sm:h-38 rounded-lg sm:rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950">
-                                <img
-                                  src={serv.thumbnail}
-                                  alt={serv.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                  referrerPolicy="no-referrer"
-                                />
-                                <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 px-1.5 py-0.5 bg-[#1DB954] text-white text-[9px] sm:text-[10px] font-black rounded-md shadow-xs border border-white/20">
-                                  ‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤
-                                </span>
-                                <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 px-1.5 py-0.5 bg-slate-950/85 backdrop-blur-xs text-amber-400 text-[9px] sm:text-[10px] font-black rounded-md shadow-xs flex items-center gap-0.5">
-                                  ‚≠ê {serv.rating || '5.0'}
-                                </span>
-                              </div>
-
-                              <div>
-                                <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-[#1DB954] transition line-clamp-1 sm:line-clamp-2 leading-snug">
-                                  {serv.title}
-                                </h3>
-                                <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-                                  {serv.shortDescription}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
-                              <div className="min-w-0">
-                                <span className="text-[9px] sm:text-[10px] font-semibold text-slate-400 block leading-tight">‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶Æ‡¶æ‡¶§‡ßç‡¶∞</span>
-                                <span className="text-xs sm:text-sm font-black text-[#1DB954] truncate block leading-tight">
-                                  {serv.priceText || '‡ß≥‡ßß‡ß¶,‡ß¶‡ß¶‡ß¶'}
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedGig(servGig);
-                                  setSelectedPackage('standard');
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="px-2.5 py-1 bg-[#1DB954] hover:bg-[#19a34a] text-white text-[9px] sm:text-[11px] font-black rounded-lg transition duration-200 shrink-0 shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
-                              >
-                                <span>‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞</span>
-                                <span>‚Üí</span>
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* 6. PTENIT ACADEMY COURSES BLOCK (‡ß®‡¶ü‡¶æ ‡¶ï‡¶≤‡¶æ‡¶Æ ‡ß®‡¶ü‡¶æ ‡¶∞‡ßã = ‡ß™‡¶ü‡¶ø ‡¶ï‡ßã‡¶∞‡ßç‡¶∏) */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                      <div className="min-w-0">
-                        <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 truncate">
-                          <GraduationCap className="w-4 h-4 text-amber-500 shrink-0" />
-                          <span>üéì PTENit ‡¶è‡¶ï‡¶æ‡¶°‡ßá‡¶Æ‡¶ø ‡¶ï‡ßã‡¶∞‡ßç‡¶∏‡¶∏‡¶Æ‡ßÇ‡¶π</span>
-                        </h2>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveSubTab('courses');
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                      >
-                        <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                        <span>‚Üí</span>
-                      </button>
-                    </div>
-
-                    {/* 2x2 Grid (4 items) */}
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                      {courses.slice(0, 4).map(crs => (
-                        <div
-                          key={crs.id}
-                          onClick={() => {
-                            if (setActiveTab) setActiveTab('courses');
-                          }}
-                          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 hover:border-[#1DB954] transition shadow-xs hover:shadow-md cursor-pointer flex flex-col justify-between space-y-2 sm:space-y-3 group"
-                        >
-                          <div className="space-y-2">
-                            <div className="relative h-24 sm:h-38 rounded-lg sm:rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950">
-                              <img src={crs.thumbnail} alt={crs.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" referrerPolicy="no-referrer" />
-                              <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-amber-400 text-slate-950 text-[9px] sm:text-[10px] font-black rounded-md sm:rounded-full shadow-xs">
-                                {crs.level === 'live_batch' ? '‡¶≤‡¶æ‡¶á‡¶≠ ‡¶¨‡ßç‡¶Ø‡¶æ‡¶ö' : '‡¶∏‡¶æ‡¶∞‡ßç‡¶ü‡¶ø‡¶´‡¶æ‡¶á‡¶°'}
-                              </span>
-                              <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[8px] sm:text-[10px] font-bold rounded">
-                                {crs.category}
-                              </span>
-                            </div>
-
-                            <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-[#1DB954] transition line-clamp-1 sm:line-clamp-2 leading-snug">
-                              {crs.title}
-                            </h3>
-                            <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 truncate">
-                              ‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞: {crs.instructor}
-                            </p>
-                          </div>
-
-                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
-                            <div className="min-w-0">
-                              <span className="text-[8px] sm:text-[10px] text-slate-400 block leading-tight">‡¶ï‡ßã‡¶∞‡ßç‡¶∏ ‡¶´‡¶ø</span>
-                              <span className="text-xs sm:text-sm font-black text-[#1DB954] truncate block leading-tight">
-                                {crs.isFree ? '‡¶´‡ßç‡¶∞‡¶ø ‡¶ï‡ßã‡¶∞‡ßç‡¶∏' : ('‡ß≥' + (crs.discountPrice || crs.price || 0).toLocaleString('bn-BD'))}
-                              </span>
-                            </div>
-                            <span className="px-2 py-1 bg-[#1DB954]/10 group-hover:bg-[#1DB954] text-[#1DB954] group-hover:text-white text-[9px] sm:text-[11px] font-black rounded-lg transition duration-200 shrink-0 shadow-2xs">
-                              ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ ‚Üí
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 7. VIDEO & ANIMATION CATEGORY BLOCK (‡ß®‡¶ü‡¶æ ‡¶ï‡¶≤‡¶æ‡¶Æ ‡ß®‡¶ü‡¶æ ‡¶∞‡ßã = ‡ß™‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó) */}
-                  {(() => {
-                    const videoGigs = gigs.filter(g =>
-                      ['video', 'animation', 'editing', 'reels', 'youtube'].some(k =>
-                        g.category.toLowerCase().includes(k) || g.title.toLowerCase().includes(k)
-                      )
-                    );
-                    const displayGigs = videoGigs.length > 0 ? videoGigs : gigs.slice(16, 20);
-
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h2 className="text-xs sm:text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
-                                <Video className="w-4 h-4 text-rose-500 shrink-0" />
-                                <span>‡¶≠‡¶ø‡¶°‡¶ø‡¶ì ‡¶è‡¶°‡¶ø‡¶ü‡¶ø‡¶Ç ‡¶ì ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶®‡¶ø‡¶Æ‡ßá‡¶∂‡¶®</span>
-                              </h2>
-                              <span className="px-2 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[9px] sm:text-[10px] font-black rounded-md border border-rose-500/20">
-                                ‡¶™‡ßç‡¶∞‡¶æ‡ßü ‡ßß‡ß®‡¶ü‡¶ø ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏
-                              </span>
-                            </div>
-                            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                              ‡¶á‡¶â‡¶ü‡¶ø‡¶â‡¶¨ ‡¶≠‡¶ø‡¶°‡¶ø‡¶ì ‡¶è‡¶°‡¶ø‡¶ü‡¶ø‡¶Ç, ‡¶∂‡¶∞‡ßç‡¶ü‡¶∏/‡¶∞‡¶ø‡¶≤‡¶∏, ‡¶Æ‡ßã‡¶∂‡¶® ‡¶ó‡ßç‡¶∞‡¶æ‡¶´‡¶ø‡¶ï‡ßç‡¶∏ ‡¶ì ‡ß®‡¶°‡¶ø ‡¶Ö‡ßç‡¶Ø‡¶æ‡¶®‡¶ø‡¶Æ‡ßá‡¶∂‡¶®
-                            </p>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('Video & Animation');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                          >
-                            <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                            <span>‚Üí</span>
-                          </button>
-                        </div>
-
-                        {/* 2x2 Grid (4 items) on Phone */}
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                          {displayGigs.slice(0, 4).map(gig => (
-                            <GigCard
-                              key={gig.id}
-                              gig={gig}
-                              onClick={() => {
-                                setSelectedGig(gig);
-                                setSelectedPackage('standard');
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }}
-                              currentUser={currentUser}
-                              savedGigIds={savedGigIds}
-                              toggleFavorite={toggleFavorite}
-                              deleteGig={deleteGig}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* 8. SEO & ORGANIC GROWTH CATEGORY BLOCK (‡ß®‡¶ü‡¶æ ‡¶ï‡¶≤‡¶æ‡¶Æ ‡ß®‡¶ü‡¶æ ‡¶∞‡ßã = ‡ß™‡¶ü‡¶ø ‡¶ó‡¶ø‡¶ó) */}
-                  {(() => {
-                    const seoGigs = gigs.filter(g =>
-                      ['seo', 'growth', 'ranking', 'traffic', 'backlink'].some(k =>
-                        g.category.toLowerCase().includes(k) || g.title.toLowerCase().includes(k)
-                      )
-                    );
-                    const displayGigs = seoGigs.length > 0 ? seoGigs : gigs.slice(20, 24);
-
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h2 className="text-xs sm:text-base md:text-lg font-black text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
-                                <Search className="w-4 h-4 text-teal-500 shrink-0" />
-                                <span>‡¶è‡¶∏‡¶á‡¶ì ‡¶ì ‡¶Ö‡¶∞‡ßç‡¶ó‡¶æ‡¶®‡¶ø‡¶ï ‡¶ó‡ßç‡¶∞‡ßã‡¶• ‡¶π‡ßç‡¶Ø‡¶æ‡¶ï‡¶ø‡¶Ç</span>
-                              </h2>
-                              <span className="px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 text-[9px] sm:text-[10px] font-black rounded-md border border-teal-500/20">
-                                ‡¶™‡ßç‡¶∞‡¶æ‡ßü ‡ßß‡ß¶‡¶ü‡¶ø ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏
-                              </span>
-                            </div>
-                            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-                              ‡¶ó‡ßÅ‡¶ó‡¶≤ ‡ßß‡¶Æ ‡¶™‡ßá‡¶ú ‡¶∞‚Äç‡ßç‡¶Ø‡¶æ‡¶ô‡ßç‡¶ï‡¶ø‡¶Ç, ‡¶ü‡ßá‡¶ï‡¶®‡¶ø‡¶ï‡ßç‡¶Ø‡¶æ‡¶≤ ‡¶è‡¶∏‡¶á‡¶ì ‡¶ì ‡¶Ö‡¶∞‡ßç‡¶ó‡¶æ‡¶®‡¶ø‡¶ï ‡¶ü‡ßç‡¶∞‡¶æ‡¶´‡¶ø‡¶ï ‡¶¨‡ßÅ‡¶∏‡ßç‡¶ü
-                            </p>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedCategory('SEO & Growth');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="inline-flex items-center gap-1 text-[#1DB954] hover:text-[#19a34a] font-bold text-xs sm:text-sm transition-colors cursor-pointer hover:underline shrink-0"
-                          >
-                            <span>‡¶Ü‡¶∞‡¶ì ‡¶¶‡ßá‡¶ñ‡ßÅ‡¶®</span>
-                            <span>‚Üí</span>
-                          </button>
-                        </div>
-
-                        {/* 2x2 Grid (4 items) on Phone */}
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                          {displayGigs.slice(0, 4).map(gig => (
-                            <GigCard
-                              key={gig.id}
-                              gig={gig}
-                              onClick={() => {
-                                setSelectedGig(gig);
-                                setSelectedPackage('standard');
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }}
-                              currentUser={currentUser}
-                              savedGigIds={savedGigIds}
-                              toggleFavorite={toggleFavorite}
-                              deleteGig={deleteGig}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* DEDICATED FULL-PAGE PTENIT AGENCY SERVICES TAB */}
-          {activeSubTab === 'ptenit-services' && (
-            <div className="space-y-3 sm:space-y-4 font-bengali animate-fadeIn pb-8 bg-white dark:bg-slate-900 sm:bg-transparent p-2.5 sm:p-0 rounded-2xl sm:rounded-none border border-slate-200/80 dark:border-slate-800 sm:border-0 shadow-xs sm:shadow-none">
-              {/* Mobile View PTENit Services Return Bar - Clean White */}
-              <div className="flex sm:hidden items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveSubTab('gigs');
-                      setSelectedCategory('All');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs shrink-0 active:scale-95 transition cursor-pointer"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5 text-[#1DB954]" />
-                    <span>‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏</span>
-                  </button>
-                  <h2 className="text-xs font-black text-slate-900 dark:text-white truncate">
-                    ‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏
-                  </h2>
-                </div>
-                <span className="text-[10px] font-black text-[#1DB954] bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full shrink-0">
-                  {services.length}‡¶ü‡¶ø ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏
-                </span>
-              </div>
-              {/* Desktop view header */}
-              <div className="hidden sm:flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveSubTab('gigs');
-                      setSelectedCategory('All');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700 active:scale-95 shadow-xs"
-                  >
-                    <ArrowLeft className="w-4 h-4 text-[#1DB954]" />
-                    <span>‡¶∏‡¶ï‡¶≤ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®</span>
-                  </button>
-                  <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                    üè¢ ‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤ ‡¶Ü‡¶á‡¶ü‡¶ø ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá‡¶∏ (PTENit Official Agency)
-                  </h2>
-                </div>
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                  ‡¶Æ‡ßã‡¶ü {services.length}‡¶ü‡¶ø ‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏
-                </span>
-              </div>
-
-              {/* 2 Columns on Phone View (All Agency Services on Full Page) */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
-                {services.map(serv => {
-                    const priceNum = typeof serv.priceText === 'string' 
-                      ? parseInt(serv.priceText.replace(/[^0-9]/g, ''), 10) || 10000 
-                      : 10000;
-                    
-                    const servGig: MarketplaceGig = gigs.find(
-                      g => g.id === serv.id || g.title.toLowerCase() === serv.title.toLowerCase()
-                    ) || {
-                      id: serv.id,
-                      sellerId: 'ptenit-agency',
-                      sellerName: 'PTENit Official Agency',
-                      sellerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-                      sellerLevel: 'Official Top Rated Agency',
-                      isAgencyStaff: true,
-                      title: serv.title,
-                      category: serv.category,
-                      description: serv.fullDescription || serv.shortDescription,
-                      thumbnail: serv.thumbnail || 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=800&q=80',
-                      rating: serv.rating || 5.0,
-                      reviewsCount: serv.reviewsCount || 48,
-                      packages: serv.packages || {
-                        basic: { 
-                          name: '‡¶¨‡ßá‡¶∏‡¶ø‡¶ï ‡¶∏‡¶≤‡¶ø‡¶â‡¶∂‡¶®', 
-                          price: priceNum, 
-                          deliveryDays: 3, 
-                          revisions: '3', 
-                          features: serv.features && serv.features.length > 0 ? serv.features.slice(0, 3) : ['‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®', '‡¶∞‡ßá‡¶∏‡¶™‡¶®‡ßç‡¶∏‡¶ø‡¶≠ ‡¶≤‡ßá‡¶Ü‡¶â‡¶ü', '‡¶¨‡ßá‡¶∏‡¶ø‡¶ï ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü'] 
-                        },
-                        standard: { 
-                          name: '‡¶∏‡ßç‡¶ü‡ßç‡¶Ø‡¶æ‡¶®‡ßç‡¶°‡¶æ‡¶∞‡ßç‡¶° ‡¶™‡ßç‡¶Ø‡¶æ‡¶ï‡ßá‡¶ú', 
-                          price: priceNum * 2, 
-                          deliveryDays: 5, 
-                          revisions: '5', 
-                          features: serv.features && serv.features.length > 0 ? serv.features.slice(0, 5) : ['‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ ‡¶°‡¶ø‡¶ú‡¶æ‡¶á‡¶®', '‡¶è‡¶∏‡¶á‡¶ì ‡¶´‡ßç‡¶∞‡ßá‡¶®‡ßç‡¶°‡¶≤‡¶ø', '‡¶∏‡ßç‡¶™‡¶ø‡¶° ‡¶Ö‡¶™‡¶ü‡¶ø‡¶Æ‡¶æ‡¶á‡¶ú‡ßá‡¶∂‡¶®', '‡ßß ‡¶Æ‡¶æ‡¶∏ ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü'] 
-                        },
-                        premium: { 
-                          name: '‡¶´‡ßÅ‡¶≤ ‡¶è‡¶ú‡ßá‡¶®‡ßç‡¶∏‡¶ø ‡¶∏‡¶≤‡¶ø‡¶â‡¶∂‡¶®', 
-                          price: priceNum * 3.5, 
-                          deliveryDays: 7, 
-                          revisions: 'Unlimited', 
-                          features: serv.features || ['‡¶∏‡¶Æ‡ßç‡¶™‡ßÇ‡¶∞‡ßç‡¶£ ‡¶ï‡¶æ‡¶∏‡ßç‡¶ü‡¶Æ ‡¶Ü‡¶∞‡ßç‡¶ï‡¶ø‡¶ü‡ßá‡¶ï‡¶ö‡¶æ‡¶∞', '‡¶´‡ßÅ‡¶≤ ‡¶°‡ßá‡¶™‡ßç‡¶≤‡ßü‡¶Æ‡ßá‡¶®‡ßç‡¶ü', '‡¶≠‡¶ø‡¶Ü‡¶á‡¶™‡¶ø ‡¶∏‡¶æ‡¶™‡ßã‡¶∞‡ßç‡¶ü', '‡¶∏‡ßã‡¶∞‡ßç‡¶∏ ‡¶´‡¶æ‡¶á‡¶≤'] 
-                        }
-                      },
-                      tags: ['Official Agency', 'PTENit Guarantee', serv.category],
-                      status: 'active' as const,
-                      offerBadge: '‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤ ‡¶è‡¶ú‡ßá‡¶®‡ßç‡¶∏‡¶ø'
-                    };
-
-                    return (
-                      <div
-                        key={serv.id}
-                        onClick={() => {
-                          setSelectedGig(servGig);
-                          setSelectedPackage('standard');
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-[#1DB954] dark:hover:border-[#1DB954] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 transition duration-200 shadow-md hover:shadow-xl cursor-pointer flex flex-col justify-between space-y-2 sm:space-y-3.5 group relative overflow-hidden text-slate-900 dark:text-white"
-                      >
-                        <div className="space-y-2">
-                          {/* Image Thumbnail with Badges */}
-                          <div className="relative h-24 sm:h-38 rounded-lg sm:rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950">
-                            <img
-                              src={serv.thumbnail}
-                              alt={serv.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                              referrerPolicy="no-referrer"
-                            />
-                            <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 px-1.5 py-0.5 bg-[#1DB954] text-white text-[9px] sm:text-[10px] font-black rounded-md shadow-xs border border-white/20">
-                              ‡¶Ö‡¶´‡¶ø‡¶∂‡¶ø‡ßü‡¶æ‡¶≤
-                            </span>
-                            <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 px-1.5 py-0.5 bg-slate-950/85 backdrop-blur-xs text-amber-400 text-[9px] sm:text-[10px] font-black rounded-md shadow-xs flex items-center gap-0.5">
-                              ‚≠ê {serv.rating || '5.0'}
-                            </span>
-                          </div>
-
-                          <div>
-                            <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-[#1DB954] transition line-clamp-1 sm:line-clamp-2 leading-snug">
-                              {serv.title}
-                            </h3>
-                            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-                              {serv.shortDescription}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Bottom Pricing & Action */}
-                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
-                          <div className="min-w-0">
-                            <span className="text-[9px] sm:text-[10px] font-semibold text-slate-400 block leading-tight">‡¶∂‡ßÅ‡¶∞‡ßÅ ‡¶Æ‡¶æ‡¶§‡ßç‡¶∞</span>
-                            <span className="text-xs sm:text-sm font-black text-[#1DB954] truncate block leading-tight">
-                              {serv.priceText || '‡ß≥‡ßß‡ß¶,‡ß¶‡ß¶‡ß¶'}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedGig(servGig);
-                              setSelectedPackage('standard');
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="px-2.5 py-1 bg-[#1DB954] hover:bg-[#19a34a] text-white text-[9px] sm:text-[11px] font-black rounded-lg transition duration-200 shrink-0 shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
-                          >
-                            <span>‡¶Ö‡¶∞‡ßç‡¶°‡¶æ‡¶∞</span>
-                            <span>‚Üí</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                
-              </div>
-            </div>
-          )}
-
-          {/* DEDICATED FULL-PAGE PTENIT ACADEMY COURSES TAB */}
-          {activeSubTab === 'courses' && (
-            <div className="space-y-3 sm:space-y-4 animate-fadeIn font-bengali pb-12 pt-1 sm:pt-0 bg-white dark:bg-slate-900 sm:bg-transparent p-2.5 sm:p-0 rounded-2xl sm:rounded-none border border-slate-200/80 dark:border-slate-800 sm:border-0 shadow-xs sm:shadow-none">
-              {/* Mobile View Courses Return Bar - Clean White */}
-              <div className="flex sm:hidden items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveSubTab('gigs');
-                      setSelectedCategory('All');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs shrink-0 active:scale-95 transition cursor-pointer"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5 text-[#1DB954]" />
-                    <span>‡¶Æ‡¶æ‡¶∞‡ßç‡¶ï‡ßá‡¶ü‡¶™‡ßç‡¶≤‡ßá‡¶∏</span>
-                  </button>
-                  <h2 className="text-xs font-black text-slate-900 dark:text-white truncate">
-                    ‡¶è‡¶ï‡¶æ‡¶°‡ßá‡¶Æ‡¶ø ‡¶ï‡ßã‡¶∞‡ßç‡¶∏‡¶∏‡¶Æ‡ßÇ‡¶π
-                  </h2>
-                </div>
-                <span className="text-[10px] font-black text-amber-500 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full shrink-0">
-                  {courses.length}‡¶ü‡¶ø ‡¶ï‡ßã‡¶∞‡ßç‡¶∏
-                </span>
-              </div>
-              <div className="hidden sm:flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveSubTab('gigs');
-                      setSelectedCategory('All');
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700 active:scale-95 shadow-xs"
-                  >
-                    <ArrowLeft className="w-4 h-4 text-[#1DB954]" />
-                    <span>‡¶∏‡¶ï‡¶≤ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏‡ßá ‡¶´‡¶ø‡¶∞‡ßá ‡¶Ø‡¶æ‡¶®</span>
-                  </button>
-                  <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                    üéì PTENit ‡¶è‡¶ï‡¶æ‡¶°‡ßá‡¶Æ‡¶ø ‡¶™‡ßç‡¶∞‡¶´‡ßá‡¶∂‡¶®‡¶æ‡¶≤ ‡¶ü‡ßç‡¶∞‡ßá‡¶®‡¶ø‡¶Ç ‡¶ï‡ßã‡¶∞‡ßç‡¶∏‡¶∏‡¶Æ‡ßÇ‡¶π
-                  </h2>
-                </div>
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                  ‡¶Æ‡ßã‡¶ü {courses.length}‡¶ü‡¶ø ‡¶ï‡ßã‡¶∞‡ßç‡¶∏
-                </span>
-              </div>
-              {/* 2 Columns on Phone View, 3 on Desktop */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 lg:gap-5">
-                {courses.map(crs => (
-                  <div
-                    key={crs.id}
-                    onClick={() => {
-                      if (setActiveTab) setActiveTab('courses');
-                    }}
-                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 hover:border-[#1DB954] transition shadow-xs hover:shadow-md cursor-pointer flex flex-col justify-between space-y-2 sm:space-y-3 group"
-                  >
-                    <div className="space-y-2">
-                      <div className="relative h-24 sm:h-38 rounded-lg sm:rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950">
-                        <img src={crs.thumbnail} alt={crs.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" referrerPolicy="no-referrer" />
-                        <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-amber-400 text-slate-950 text-[9px] sm:text-[10px] font-black rounded-md sm:rounded-full shadow-xs">
-                          {crs.level === 'live_batch' ? '‡¶≤‡¶æ‡¶á‡¶≠ ‡¶¨‡ßç‡¶Ø‡¶æ‡¶ö' : '‡¶∏‡¶æ‡¶∞‡ßç‡¶ü‡¶ø‡¶´‡¶æ‡¶á‡¶°'}
-                        </span>
-                        <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[8px] sm:text-[10px] font-bold rounded">
-                          {crs.category}
-                        </span>
-                      </div>
-
-                      <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white group-hover:text-[#1DB954] transition line-clamp-1 sm:line-clamp-2 leading-snug">
-                        {crs.title}
-                      </h3>
-                      <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 truncate">
-                        ‡¶Æ‡ßá‡¶®‡ßç‡¶ü‡¶∞: {crs.instructor}
-                      </p>
-                      <div className="flex items-center gap-2 text-[9px] sm:text-xs text-slate-500">
-                        <span>üìö {crs.lessonsCount} ‡¶ï‡ßç‡¶≤‡¶æ‡¶∏</span>
-                        <span>‚è±Ô∏è {crs.duration}</span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
-                      <div className="min-w-0">
-                        <span className="text-[8px] sm:text-[10px] text-slate-400 block leading-tight">‡¶ï‡ßã‡¶∞‡ßç‡¶∏ ‡¶´‡¶ø</span>
-                        <span className="text-xs sm:text-sm font-black text-[#1DB954] truncate block leading-tight">
-                          {crs.isFree ? '‡¶´‡ßç‡¶∞‡¶ø ‡¶ï‡ßã‡¶∞‡ßç‡¶∏' : ('‡ß≥' + (crs.discountPrice || crs.price || 0).toLocaleString('bn-BD'))}
-                        </span>
-                      </div>
-                      <span className="px-2 py-1 bg-[#1DB954]/10 group-hover:bg-[#1DB954] text-[#1DB954] group-hover:text-white text-[9px] sm:text-[11px] font-black rounded-lg transition duration-200 shrink-0 shadow-2xs">
-                        ‡¶¨‡¶ø‡¶∏‡ßç‡¶§‡¶æ‡¶∞‡¶ø‡¶§ ‚Üí
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-                    {/* ORDERS & LEARNING HUB VIEW (FULL PHONE VIEW & DESKTOP SUPPORT) */}
-          {(activeSubTab === "my-orders" || activeSubTab === "my-courses") && !selectedGig && (
-            <div className="space-y-4 font-bengali animate-fadeIn pb-16 pt-2 px-2 sm:px-0">
-              {/* TOP HEADER & UNIFIED TAB BAR (OVERVIEW, PROJECTS, COURSES) */}
-              <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                {/* Title & Top Action Buttons */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                      <ShoppingBag className="w-5 h-5 text-[#1DB954]" />
-                      <span>‡¶Ü‡¶Æ‡¶æ‡¶∞ ‡¶ï‡ßç‡¶∞‡ßü‡¶ï‡ßÉ‡¶§ ‡¶∏‡¶æ‡¶∞‡ßç‡¶≠‡¶ø‡¶∏, ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶ì ‡¶ï‡ßã‡¶∞‡ßç‡¶∏‡¶∏‡¶Æ‡ßÇ‡¶π</span>
-                    </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      ‡¶™‡¶ø‡¶ü‡ßá‡¶® ‡¶Ü‡¶á‡¶ü‡¶ø ‡¶ï‡ßç‡¶≤‡¶æ‡¶Ø‡¶º‡ßá‡¶®‡ßç‡¶ü ‡¶π‡¶æ‡¶¨ ‚Äî ‡¶≤‡¶æ‡¶á‡¶≠ ‡¶ü‡ßç‡¶∞‡ßç‡¶Ø‡¶æ‡¶ï‡¶ø‡¶Ç, ‡¶è‡¶∏‡¶ï‡ßç‡¶∞‡ßã ‡¶®‡¶ø‡¶∞‡¶æ‡¶™‡¶§‡ßç‡¶§‡¶æ ‡¶ì ‡¶∏‡¶∞‡¶æ‡¶∏‡¶∞‡¶ø ‡¶∏‡ßá‡¶≤‡¶æ‡¶∞ ‡¶Ø‡ßã‡¶ó‡¶æ‡¶Ø‡ßã‡¶ó
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsPostProjectModalOpen(true)}
-                      className="px-3.5 py-2 bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shrink-0"
-                    >
-                      <Plus className="w-4 h-4 stroke-[3]" />
-                      <span>‡¶®‡¶§‡ßÅ‡¶® ‡¶™‡ßç‡¶∞‡¶ú‡ßá‡¶ï‡ßç‡¶ü ‡¶™‡ßã‡¶∏‡ßç‡¶ü ‡¶ï‡¶∞‡ßÅ‡¶®</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveSubTab("gigs");
-                        if (setActiveTab) setActiveTab("marketplace", "All", true);
-                      }}
-                      className="px-3.5 py-2 bg-slate-100 dxúÏ}˝o«ôˇÔ˘+&™œ†Æ"ıÍó(vö¢^eQ%È§π ®W‰ä‚e…ewó∂\⁄¿%w©EÅÛπ≈7_„|FmYó:â·Z8‘ˇäpAˇÑõ˜ùùùôù•(ø4&ãª‹ùùùôÁôÁ˘<oNÈÍV∑zN‰O/,Äˇ™ƒßñ‡©é/íŒüÇÁ#w7Òe¬9tÎ∂?àä[æ◊!ÔÜ GÉé€)Óz 
-úAÿãz˛ ¥GAË≈°ﬂDn ¬ù†7¯¥∏0ÛP|ﬁSû‡`ÔªÉΩøÏ=9xÙÎÉΩ;ènÏ›;ÿ˚>≈áœ‡Eø=xÙŸ¡¸Ô.˛≤ØlÌÃ¸÷(ä¸ÅÍYgÊ;Ω´ÈËÈ‘˘Ò¸ﬂÉ≈hïœÉÛÂ(Ï›>ÿ˚ñˆ}y~∞˜Â`}Ç;vø <ºá~Å_øbÔıl¡ÂçµjcΩ∂QÕ÷GÎU˜Û7”œ-f¡Ÿ˜¿XÒ
-mF¿æÁπùı<8
-‰∏Ô¢‹∏>˛d∂¥›Û‡Ñ\‘ê[ÖnPÎÄ≥gœ¢‡Öó·ôs•^]Ôñ¬h‘Å'´}ßÁ•Ør—ÈŸwµ›i˚p∏aÆ‘±w%œt£X Áîø¨ÇΩ^p…âvJ˝ﬁÄù¢ÕÅÂYx·Ç°ë9^=Ë∏Ôá„yÁG◊›Äú•MΩõûg 7PPØ(∏:@€s¬p√Èªgg∂|‘^q–/Ω%Œ"¬‹ˆ‹]–ã‹~XlªòJ˛iFΩÌÎ≈-7∫Ê∫–uÜ≈%ÄËt€ÛØwãŒ(Ú¡¿/Üm4^[N ÜQqqFG?r”ODOXa}9©mà¨˘ñ≥WÅrπÉBvÛjœΩ6´\ªºKÑ
-µø]¢¡ƒó©Ÿ˘¯Éä◊kzv¨'ä¯∫ûÌ˜G[-
-3>ÌÏårÂ$ÓãóJ3r¢QxÅ–\EÊªoÍG≥2æ∏pMÙÆ∫`∏U\√]8ÁpF‡ﬂeŒd·1aƒ} Å=ß˝©bëÛ·"Ï•Ããèôá è«	S|<V∆€ §“‹«è¥∏v˛ù+üd›∞Jo $qR±„¨˝K8˘Nr√ø\€Å√`zﬁÕ+˙Ÿ–Øz∏^◊ùÎ˛(Zs¬ù-ﬂ	:"9]+ÆÄù‚ ò7∂ù¡{J¢93è3‹<÷œ8~\√òO;ÏlÖæ7ä\»° uıã¿s∑#¯'Ëuw–ﬂù‚BÈÄ2üCæΩoè‡J
-wúbDa∆;œ ﬂá3yÕ“™vEL˛ˇL»ò>ÖÕ¿ˇ'∑wºy@8¸Î¡ëpW ÖºÎíüúzÓv€	›…9âö$≤ôâÃ∆W ^«TO∆zqa∏˚â∏"Ù/¯G6Á"˜ô_¢JIû5¿UöE.zâ˙ê0Û'‘K$cﬁMCôó,pöhv¢Ä‰ﬂ>˚_^ï%P®Òˇµ‡ËTU˘a∞tˆ≤?Hû~1p:#e≈NŒ◊k˝gÁˆÛ˝∫Ûsƒò6/g£¯⁄3s›Ôj ç‰Û?Aˆ
-öÆ¥w@ÀÔv=äÌ®©∂}üó¡»ó¿NØ”qàjŸeñêi^@˙ÒIÕãc!SaX«Ûß0WáB
-^‰sÂuOáœoÓÙ\ØSŸq·8&8œ2liˇ+Qú3zÙË‡—¸ÔÔ‡¸¨h›°RÁ£Ø∞‚Öê÷'ÏÏü∞Óı ãÃøkPX„OäΩıÊl.Y%hªTjÎ≠j£â@€o∞Ú¯!…®˜w¿¡£Ô6˚5>CêÁ}xÚø–…'¯v¡Åô#ÍÁw¯˝aS˚¯∫~ü˛t∂É†›Z•æ*Ô◊6õpiü/Ø]¨65ÆV÷ªq√ ÀÃbÓÒŒ˜õÅﬂ‹Pá”Ò—Ä¯Ö¸Gø7¯˘êﬁ;3Àd˝É.ö™I∏dí3“ˆ˚Cœç‹NÓß;-û2mAâÿÍΩp_\ﬂﬁvÉÏñ‘ì&»Û+;Ω!|3±íïåAØÖ
-Ñﬁ'$7ŒœŸr=xöÓÃZ¢Éh5’Ø9–É7≠Çuˆ,úNâÂÁª´IQG‹Vﬁ9± €zt˙#r„õs¶~íÒFãcZÍ>Àú,Óº0]¨ﬂ=ÀïªΩÂçàt-H …≥+≤:,RÜ≤≥	ˆ˜T"F÷€äÁ∑?ï{ÎÙ∑‹ o÷∆AÊóYÙôíô≤«	ﬁ/ˆX†j÷ﬂÀCœw:∞◊£é‹Î·(ÄdfÂ¯ö¨>«D´[∆Ú÷˜<…*¯P#¢“⁄ûª$˜›ÌªÅ„uÃù.ÇΩWt˛ì√ŸtbùŸHÜU"≠5¯F©Ôm¯Õ¨ÔSæñÒ(Af≥•¥ë}∂wM=
-` :ôê ü∫◊œéÈ√Lää=¸ë 1ôÀhø2Ãm Ù∂AZ‚H D®y»íÑYzØ7pãz)#.HBáﬂì tZ±0",òÇ†<‹vãˇZ‡)…≠Üm«CÏå;Md)ÁÄ/ƒåÀê>~ÂY#åæoäË ◊	1]C≤¢££õ‰úøΩ'*(XÉOq‰ÂJf7riı*–g9üc±ΩßÛHÁJ€ÊO·ÃtaÇäÃ`§eBm†Sÿ∏∑åYUc ô#Ã˚of£‡hë(û•%≈≤N„H”\íD Å≠rxà™Y‡Pr!-•íÖO”≤≤ àDÑ∆øùŸ@DYàäR„•’ 5˘ugÂ˝“Y§N◊?®6>®U?ÕVπ’«AÛÚ•KÂ∆G†·˚’ÏUkÚ´Tò}ñy[∑ÎCsË™tÖ¿Ìå⁄n°é˙s¿«Õ¿Ø‡«pw)9}¨_@-vavN©!æ ˝há/B7|• Ü/§∫`êÁdq∂¿∑Eˇ€æõN|∏Ç•éeç‡ö@…ﬁ—_¬!ƒÜƒë]Ñ±˜•]O∑1j<÷bÒÄ»-◊Â{&{ªMéπ“=j1ﬁ£†¯5ÛVÅæ"ﬁ"∑êu8Ï3JÊ¯Á[L= ¥üüYÉ≈	öΩÓ@a‚±Y0'¸qòzØ-‰+¿L{^W‹ÑU/A;”øÀ¡£ˇ«‹≥˘Î>:õíÁ
-3[É‚˘µ-f~®Ìøfj∞¯Äøãöd‹avv%·bºÖî”k®†È«¯‡{å/<&¯Aeüc|iÚX±øØ}G˝j0ô5ﬁe&QJ¯˙ÑÓ,g02§•D˚yaîHûô\ÿ‰úyË∆í†q`ÓÙ¸(»œhÁ EzOÒ¬	˚‹«SGÿÎS:%x+∑™¸xˆ≈ΩhäªœÊÂπ‡É˙\∂jeRúÄmjÈéò/ñd5^’Ùd&È	¬˜Î@x…S)vÊ`ÔLlü1ôg/…[›√gÔ"`Äò8õÏì=ÛÅXÔ„’9¿«Ï≠ΩÜbèàbïñe≥/t.Ô°3"ÿˇJâ≥Ò34 È≥?NË{Ø„˛Ê…ﬂR„›£[@√©!£Zˇê“§ïnıi¨!ä„`≥Qˇáj•’Îµf´∂qTÍ≠rm£⁄P!=XŒ/FnpjÍòrâ?–O—)¨õ\sÉ
-\6ÖŸTP˙Ö÷??®≈Ö öß ¬ÌêãÙ8H–—Y;ê}˜uVc!Í;Q{ÅÿöA!çôôYÈuzÉ∂7Í∏!mRÌ	-∂zëÁ≤F#|0ïvõÆÁ!ki8ƒGà¶”z“G◊«”ã€o≥„…[G”6‰„«¡€¬C˙V¸òıcñ!4€é∫™(¸á2MSYm¢€V¬)∂î Ykxb5ÂÑa‡£·Ùí…∆É#è∫ƒóLÚ Ÿµ"ÒòÑÛä™uzmåstS∆<äz±ø@*„ò¥À®?Mˆ•=é…˘[{ö‹≠ø£v‰§È^|<$qù¯i6|F›p6õQØ;Õ›Ç´†≈ÌöyµÑ›¶‡´öÆ±gd˘iH0¸‘êH'4πß3ˇ«ÜA4ªS¢_MlA∆5¸IÁdämJ”ÒÌ`cj∫…Â53,û&˙’"uÄ¶öÃQ*[aü+[+÷ ÷µ‚‚I®¿FËgΩäF˚‘+»^SkÓ¯√ao–=Ôtì˝;ªwzb}Hz›lmﬁ≥≥¨V¢‘ÜÄ”ÍƒF'Ú1ëæœ©pµ¬˘Í& ÉOhÄt)«-¿|o#ﬂÇÅyt∞ïäE¸äÍπ¨çﬂÏ°[ˇÄ’†ßÃZC"}o©èä>dhñvñCûV[wCiÒ¿≠e∑àW9]\÷#¸SÈøƒQ‰„√_`Á9∆mnIÅŒ_ì€ËXÏ·w%£æOÜ„!ü≈í)!¿ﬂc÷‰r/i5tù´,ŸÚ@=ígSÅA<˙gx®	‡VNi‹5˘˜Q˜Ÿ/⁄˚ÑZ~–Öp	˛èh$˜}%'G¬¥éÙ`BFê…¡àó„0*.ôp≤ 2Çâl|	è“C∞.©¯Öô,ˇ=|[-n$æE,YLÀ˘of∏[\A>PK¿ﬁßH√nSÃŸ2Qíi¨ÕnH*Aàî∞ë4!ŒÈUø%´¢I}CªΩn¶g(í∑¯çÆY f˙pj›hÁ9;œî°Ï7áÂ’iı&\9¿S^◊‹”}˙ÎÀ¥∫¶ôá},„s˝§Úf;îkNñä∞–ÂÅCA•‹XkÆÇfu}’.ï/V¡zıBk¥j≠ı*8÷ ≠*∏T[[[ØŒÅÕF≠ÇN"«πÀMp˛r´Uﬂ ç⁄≈˜[†∂ÍnîL˝x®P1µ¬ÑIÜçC7:Àø˙C•Ø…oÜ1¶¬¢çÓ¨§$ªd¥ºŸ•FLøh˙hS‚è|!ö∏93Nò>≥Q·Áh4[åd1ãôù>?ÿ˚≥ïÒ¸ŒJ∆¢Fa#µ%Ë‚Ã{>Pâ˜R@∞ÃéoPl@é;kœq†®iÆí"~a¨ãª9˛˜Wˇñ1_YªzÜ‘ä∑}=±KåE“,)Ï√Bij‹	ÜòÅr°’È∆àë\›îïñ™0àY—í~ñ[⁄tùﬁ†[¬πÍxäˆÜ‰äü;Ù´f´ªêN;∏oøÌ“ay|LÏOÍ–+ˆÅoHOŒc
-™ ÚÄ-≤úÜdQaïù¸kÏheÍ-z¿ñ”È∫Áª∏Y!8o~ÒÑË>uJÌ>≈ﬂ∂ú˝DÚJTN≈áIÜ¬ÙÎ¿kˆôpÙbñoñSìc«‰BqÙÿπ‰¯≈\å>Rº5cAz¸TQÖFA∏PA£c…hÚàÜR< 3ñÒm|(È©Sw"ˆH·Œ¸#)Â@{Ò7€ˇ^¢®∞_â¡—0„8‡ºÉÃn‚CåO$üÜóﬂìp”Éìºa0MÏ¿"Fì»¨>“$,Ÿ^F_9b†>·Å%Ö-vFNmÑ‚b?SR≈6ó•<)®ß÷ú9é.[~BJX≥∂q™Xó7jj’5–®∏äu/P’±YpÉ™_† ÍdË<Qº
-J≠Ãújå|î∫
-˙Öq∞d4≈¿øÜægf¸]f˘xıfì‰ †óïtœyP˛†‹*´<q,ªO∫	',àRΩ&ΩÏ˜≈kEb}…‘º‘O‚IÕx®k?¬iã‡—7´FâöIΩV Wÿep.ÉRÖ.ı˙]ÀK!ß	⁄gSÀ`ˆqºHºù{ÿ`‰˘s©~b¿õÂO“t∂ÑLg8Ü`æÉ˛ä¬ﬂBŒp]^Â|¬Ü]úäŸ≈“nf÷/ˆ…‘b…RYOW⁄`hÒ÷êavß”ÉÀ∑˘≈≠ l~_L÷·'®∞-Â√òÖﬁCg7$Ë#Øîs y¢BMÿ-,ÃÅE‰¡py8d»r≥iΩä2T>Òì©W”µ… ä4[Ÿ"(í<eã@|ñçæ)Òuâ}wCq°æÉœ±Ô»Yfjã#ˆÅLivK‘ú«L¸ vLvôUÇ¸ÕÅ⁄⁄®¿çÊbΩÒ—Åè3fΩQæ§˘§>(ò4=∆Ñm,…YÕ©Új‡«†Ï÷75˘bV¬Ñ‰¢â˙ßH¢πæ?ËåËdüiær˙ù8zﬁû‘~d)íÒw¥@«ÚéHfM¯zÊ¯Ñnø'èQå»ìZ±?^<ÅnœÀúò#Á—€8Âáóù&1Ò¥åaèïíA)9©VJdtê˜·V È‘Mˆoók,m∑5£S˚• ü∫.**`›s§º√¡®ØN¥ßãiRÇæ„ú†>πOKW«&„xÚ3Ê‘∂#ÉF¶»ZóÅH®6¡áÁƒIv`¡ZtCRÏ„tNˆq˘ûJÈOê cÔ÷ôPRÔ˝ûJ–ﬁlU7@≠ aÿÎ‹ŒåUæ°Â√Ò}m˝ï¸º„L≈Ò‹ú3Ì ∆+Á∞Éÿ\ÿTßAt‡^k®ê¯añáê£ﬂ§0rÓ„uóŸéü(åO/x*h¢ÿ~Gì(vQ&…âÊ(¢,LPú≈Ó§Ó\%ÆŸ*‚èhZ‰ŸÀû¿Gﬂ2ü¥Ω˝£ú+kmƒÚB€-IÓZ’XÁmÏÚâÁ6`√ΩåùÇ§-aA1DÇú¿0Vá≤<SÂ'‡Z·¥,YJ†’ZF≥@MsBEÖ(…ÓvƒE¨˘ŸÍ)ñ!yä;.S¸ÅãÇ*nÖƒ⁄M$øœµLï{´*éQ§≥øë>¸Àö…†Dòò≈úFyÛyHof=
-˘‘b‚%Œc4§.‰eøT‡∏æBV'Í£Ñc+ä]D∂î´ôt’Æcö¥j©\Åªr¶@ºd(gxé )ñŒ±15∑X$+„Ôõ∞∏C≈Jπ[1dÌL∂ZﬁX0ø£vµi&m=∂…„nk#ô'm_∂‘£ß\ËynŒ€û@%+¡jïk;e◊⁄ØjYŸq"Ft÷K⁄ á}Ú¯Ò∞ON˜a·∆°;@ØÙao 	£`#¿˘sØ¥·ΩE≤cËœu∆]M–Ω5ÿπ9œ≠°ãúâ–"ZÊÄ¸M7|6=C⁄Õuo–ãzéw	2ß€∏Ç%˜gÃ—Ï)s7˚å8˙shïx÷˜69˝ﬂ`S{ÓèÿhS¯∫xrˆ&Ò‚Œ=ÛâõÚC‚ﬂO∞ë‰Ù◊Ùyd'eüõôﬁÂ¸J[NÑVŒ{Wÿ‚,˙B∫RéX[2„àxbe·ç≥e›≥kÕZÍßã®˘ãëLPÓLh)ªhî¯ALØ6∏Í#ôıUgx°≠πë”Û¬K~áÊôGù•∞¶Zä&8yz≈†ó◊ÉI#c…V(œ‘wè;ñﬂÊ<$Å€¥™zs<sπ”ÀÆÿV Ÿ;XúWv…⁄oµpqW”âÖa‡^EÂ⁄¥K•∫/œ^∆\W¡€ËVvòc„x;«ÎLÆc¡ˇ«6ﬁc±~|Sπ√”I=f>ÉèaH4Œ0ëNéªBˇéµG9Å∂}Kk∑5KÄZ≈’¿¨˘◊í*g±ì˛∫Ì˝§´‘1ip?¬}:U¿T›Ú3õkÛ†dVY∏d≠U◊kTÅF'à>_ˇ®]@=ëÕ‹$-2€ÏóïUåªkr:£g†@6øú†é§_ΩLvå°ßQÈÆìqFjá_≤qÚ£Ñy@{¥DÙqM⁄ÁË…ÂDP£Ω*G“¿ì96X¶FˇıﬁÌ=Ÿ´CK¡çwÖwì%ºH8ÀÔ÷⁄Ïâwâ¢ìà’&).![[=–;çP…÷ùZ√]a˝fO˛í∞{Ù;ˆË$	5O‰„˝
-+q˚d‹¯4≈èFáLiq°>Ï?f ¡ôgÅÁ“ò?%Ô‰Ô1ƒ≈˝‚∫~Z6É.÷pöï\.ë◊É bp}√è≤ Áßc¿ ≠¸‘∑≥â(é\ä…È{¢∂≥/â‹vÍúÜòŒb¯sÇÇ> ˘àPî|À≥L˜IÎü£«"ôÇÙÙÅ‘:Y}∏›=ûé"&Û¯%2m|q2ó3›>°I–øw9¥ÒGóM
-%Ê»0 ÆcmÆÅƒe÷;
-32-ŸÑNÚÊ_ÇÜåƒÄ USPëw±T@1y9âã’ÒŸ•Ã‡§‰∆®ä∆N“π¡tX9‹ñˇıﬁøˇ´îÓ˜èà¸Ê9·¸/ÚG,w
-e˚¥Ã'˛mÍ≤ÈÀYLõŒıÜÎπNËNe9≠ãIÙ16πü‰™æFà…bï¨˝…cˇ-PƒÈ.ÆˇΩ˚ÖIJb*‚¿øßlúı}ûÎ&¡2_i» K>Hˇ©˛l≥º±V>øé¸>®¢T©’f¥jó™ñ¢˙8ë‘èêı˝√ùÏ‹Ñ(.√úP¿P°ëC¬ÚsΩ>˙}€È∏µÅù§à OöGmÆLôO;ÒèrÈˆ	(MRù¥°pB0Å&˜ÿΩﬂâ~ÏyÑﬂ¨}zùπ0Õ¢™0/¶=°6J∞ò˝Ò%∆N!’|eA/3≥Îd›úùóí√ëh¶<
-¥m¶lë[K±LyTZk-_=L˚üpøN>Ç 2+®Í™Ò]“&€⁄gLö¸Wﬂ}K˘S’9mòS Ó·‹|È‚.‹
-(oTœ—¡<
-wéKﬂ,Ïzë|øîPÏ‚$/c-ìÖ¸å˘¸?·
-cFÒîWmYèØ†uù^≤Íuò])í}¿˜∆1ıÜıDùKFÙ´Äﬁ9|_Î⁄™ÂL¢ceÈCŸ´]áÑf˜¸._,66j»Q∏«∆⁄9Acù¬nWÈπ8√j´∆°∏√¯JÃrÙZátÀØ¢*AK_rôˇ*ôÙüg,¬Á;bª∆◊Mu3ÂNÍà—¨] ‡Ø¯ÛC·,ìÚíÏ≠€~£˛€„'…¡ÃP“ƒò®ˇÍ}Gı2G.æÒM)
-92.°¿‚_23ò2Hs®6n∫*À∆Vu†Üä6ıııÍ®‘/7ö’&hV+≠Z}#OÓ«üÿ>ëHRJm?i&…¨Ï∆πMÂFHì
-r¬’I—ß3ß3¬N#ö(3$√úN∏ø¡˙<Q°ü&¨bw${gü
-Í…>¢˛LƒõÊfƒÈ•¶üŒ ˜ÎπN0Ë∫(Ÿoˇzë-wãúøyMa …¨$—Í…%ÜLö±ˇ{Zô’úN2Äœ`≥ôàcø≥*V∆ˆ∫¬·2âéÀ†Ø±Ã°PJ 6*¸ıﬁî2y¡∆reÚö±L‰Ö}ñ&LÊïÃ>ï
-2dÏˆpâKu\‹w:Jüß	‹cÑ$p>"◊ÒY!â§ áOôààºJEœ6€ëI€Òh5(K k‹í∏…<Ô„¡˛˚RqΩ”“
-´ªíJË≥)æó≠êhJÛ,•>P&£»õQèàe6	;ãLf	Mö´ÓJ #‹V…+Hï±X∫Ñ¶;Ë¡S≠¿ÅX¨T]¬Œô4Ö®Gÿâ*ØAÛp¢"Ìäí¢vJõ
-¶Òáå{x!p]‚B˝f/.ÀgHªºrËøèç—&VÍÙ¬6¢>úÁù≤CpFŒE2;ñiÌ¿ë◊yc¢†É£Ô»« —ﬂ‰p4Õ2Sqı∞c	é∞øÒ˙,Yú'+9˙ÿ˙nXp˚lUﬁT®ƒX°«®Œ[_Ø©´kº3	‡ﬁÚ’5p±v±	Ê¡ÖÚıF≠UmÏJ_¯∞ﬁ¯I\®7¿z˝‚Ex]m/Wõ-pπYm4Â¶cG®ìBÙ˙–πÍv~é+¶‡JÜ°ÎπÌ»Ì\Ïu”∫º^Éá⁄3/õA◊Æ;Ë:^Or√-î≤πÚL8XÏ*í¨†Axﬂuê<LÚ¸n√˝hÕ?ç¸°)ë{H≥Ω–L¨fY” °#©|
-Èv˚ÇeŒ(Âé¢HâπÄRb&C∫≈¿ì˘ŒÿâÏ¸ïY‚87Å>áúgN å»„“†˙Z’˙20;K©≠8dÉP–oê1òJA{Ç_Û#Í´„$ø√™ÚÔ∏r™jY≤v∆Œí¶€Ku™≤j™Œ?`a⁄œ©·óY˚ã˜¿”9$j^5"ñŸ„W|":bkD9ÕúÈNk≈Ñ,±¿J»U˙i∫%üîÚÄ¥ˇ—ÓücœWÕ ^QO»ÇéÁ>≥ÜìnÛVÀÛxÛBk†E."åGQ^^ñCVÂpŒÁ¶∂îƒêñì“äM∂m°k<ÇKùÅóUú@gcƒÄl¿ ¡_Ò%∫ﬂ≠Öb∏§õÒé∫mênÖã7·Zs∫na&åî]Æc*†vßﬁ(ÖmTü∫Â∆ Ó∆´`alπ;ŒU®2¢}ﬂèvfY¥"µP¶˙ÏX8–]œ¶™÷	œéÖ›ı¥æ‡\ı∏!ú'è’w)70ïê©‰ÑÍL◊ åYtÁE¨„§MùﬁÂ‹Ú»∞xR-O(6sñd[ä(ñ∑*ƒ√X≠›˛îW4æπ§≠Er %ÓÏÇ5Ô€¥&¨Æ´]…W$ØíîóG^˜U∑œ¬¶‚>“˛†ùhSﬂN|ã∫]≤∑øÊªx"‰Ë∂ƒêÄ¨[ƒ¥Û[fAæï|Ó	æ‡∑‹}í˚ü›"—G∫-ﬁ†€gkÛñ¨*g’∆i◊k‘û§˝
-x5
-5™eJÀ‚åè¨/˝í∏CKÅÍït5gÀ÷iïø≈∫.˝É$ÜEVVq≠⁄*◊÷õPù≠_∏P´‘ ÎPπ˝†é“36™ïjm≥.’◊‡ŸX¶w‰t*IV≤Ïÿ§cå</Ò~¢¢÷€Ö¬Mo oÑ:Ï/¬é>üê”p÷±´¸€	¸! #`»0K·¢r…PßF˜ i“Ë/O:∞xBpÒ«>eÃä_⁄≈oÌñB∏so¬:]‹ñQòXê*Kßñó?…±˝ ñ~çd˘'Ï‘Î&kûÌŒàƒ∂=x@uxa~È˚}¯íYbpì;≈èﬂY∏∫ÛI“&RUr„úAtiΩ_-£≈'À©),z∑àÅΩMËWºG√sÍ˜πaiÀ¥˝Jªh'¿µÏ%î@ [)02;ê@õ`≥e≠-Í‡Ä§ÿêRı˚ •ﬁsáÀ}æÀ*LT
-?…/XÒÙgB˝d‰;!ß' !P®ú∆π˝ï:@ùV§?Ç«üØÇ•9“$îõ∑r`’'5õºyÉüàkíObûÇT™Í	£_“ﬂê3KñƒC≠˜V≈¯˝Ã.]ôzìT©¬"9__˚(õª@Ê¬yﬂu"R«ÿ™.
-Î€$m1-9úéJ:ÙUãáô·'IS2∏øÜ=)	…Œ¢/âÍ#TW€≈yu5ÈpGm(2vh≤˝Jœ’Ñ&ÍÍGÛd‹i∫é3Æﬂ∏ÅØ)¸kÖYcñnµQB˝FyÔ¥¶@ù0·K,g"$v¶¸3boÖ˝ÎΩˇ7êﬁ#‰ò3¿rŒëêÃ/Òjπ
-PÃ˚;“ıœX÷Ri•wò=ÏTË¡¥Ûó?Ç¢	/ T€∏PœO‚)òLg\P‰TyB:’	ç
-ûî-dî1ö⁄:|o˚ÑÃãÅÍ¡:ˆí≤Ï9˛û˝Ωi5ö"’&≈ñéΩoY*XÙ:Wà˘a©˚6≠k…≥ä»Ô0£ñî‚IÜB◊◊jûMu÷Egs'ªkMÃlK—πJÊ¨öÓ†Îæe¡ﬁt∑z1´OQ/•úH6JûîÁ>0ƒ5NqÂ±Gà{√Ôxô≈Ó)∫⁄Ibø¬tßÈiN∆\kU/qº¢ÖS?dÛÂ|VXÈíVl√∫©!*3Á§⁄Çj¨d„L≈” 3⁄å]ˇ=ö°	›A¯üˆé¨∆Ï¿™‘ªeœÅ)Ö47|zMGôy‚Èÿ†ÇÈ€≠ C∆]k°Wiπñ≠4C¿ÿ ÀÑÅ=”≈Lﬂ(â~H,W-®∑b∫oR®¿YÚ˚Ω_∫∞¯®˙©“ÅÒP[£-±ûüNeR˚.Í©ﬁ∞‘“ÿáÅ€õií‰„ÿU@HˇF,hR≈î<∫,ï≈JÕ…≥[çÚF≥L¬≠*ı5éM•˚î)±D»ˆÑ3ÄâhPíYÅÖFae:ÅQW›§„aÕùûÎuppË!3Í∞™E„Ó	ÚÓ~ú®êd7c[ˇ}$(òò[>%%¡NªFÿìÉsœ◊:h1_i5~V<¶Ñíµ{o^…∑∫≠ëFCz
-≈´ß˝ç¥ôR9ÆÚP°O'Ñ/Ör˝8ôhë„œ∏πÛÛ¥~-˚(ë§éI]ü±Ê`.˜'íoîËz˚<O‰mûRÃπœìJ …f%nú?‚©òÂ2e•èÖ˝WLvj?RÃ‘x°^oŸò2àcíçkß{ûx2mﬂò≠≤5S_ï!‹G¢Ç¬¨0+Ú¸	¬ÛRJx>ïNÿŒ}$§ÛíùXõ”l2€±!5˘FœQñC°£ÙM\,g°1º7ò
-˚%-∆ç3∂™yú÷πÏ%Z)^æÌ?=‡⁄d˙yÏ⁄=‚+K%Pﬁ‹l‘?®∆9ﬁèÉFuΩZnVAµYi‘?Lõ‰áäîõ9≠Ú ¨ùoÛGnòÔw¶hòG6-n√“€‚Û«á“wÿ≤›öÜ[
-∏;√ºå‘&J†ÇY◊à„ºÖÑlÆ +f%J›ëEn´%1)Òàö=ßm›”bÕvûZı:rŒ™*ZÒzŸñıÒ8:3±F´e©©˘òëY-œÉ=bAÃñùk¯U*jP#ÿYö	Ò„†∏Æ(ìü	£¿tﬂSÓ<»çT-re”ÑX:"ºh”{âŸÚÍ«2õa"æú
-˘{≠qŒF»›Ù© ô´f\’Ï‚”Øüp¯¸!WŒ‚m≤Œ¥ÚÜÄÂƒXa?Údsw€€†>êÏÒâl¸¥  œsÒòËè9Ù/ê‘(∑jëQ∂Zi’”˙ñûF’)bŒxŒñÎeZut†<∑=%
-É©ÄŸ=û˝ÉVıÖE˘‡*ÉÑ≥´gÊq/&VSÈ„èÁ¿“Xû+s‡ƒ'8™¢Ä≤∫Õ+åQ∆8Æµ†ıÛ∑=V¿À≥≈∏¸pµÅ
-"'•ï„óí>ŸsHŸ∆≈≈´(]mh*ö ÕobgP∂ìpw9iŒîá^ú9ÒÖ◊û-Ê*8ÃèöÉéì)“4a˙&Ù·Î:—n¨Œr˜·%8¯ﬁ˜W'Ü&‘}Oî¶ÑU”¬Yï˙•K’ç÷´…aí–õ‡ëÆÄâ(º=ÿ	\G1MÅ-<;^VÕ‡U«A`ÛÅsÅ∂`K™k}TGx–uπ÷%?ø±‡ñ`7∫nT¬M+ó;ÿÅ#Ë®ê%ƒz‰uÔ‚q˘‚~f3≤këêº˝R©§"äÑ,â•ﬂaÜ
-).*çpY´Íjó˜›NoÑÚ™¥G·*⁄•ãK‚Añêì˛(¬ôU˛¿MøäB ∂Ç;'¨w≥îœ<¨rrÕGÅI™’+~íˆßãS˝/t$ÑΩH¥Oµ„9∏¢ªãG∏<Ë–QØ¢ ∆kjâ¥◊QgMsC-§◊7GÌ∂Ü-ﬂ	£Ç66	ﬁ—Íı]H3æR‘Ml;^ËŒBëjaa·p»ˆKŒM¢Z?z#auë•¸áà.ó÷‹D6‰Fıß8ÎF
- R¨r¬üä
-Xo¿œ7‡ÁÎ
-~6p-‹J˚ö˘‰"∂˘îöqYÎWT±gÉò\ˇì¯	ºxp”Ü|Sk˙¥9¥©s/UÂ‚V£ëi—ù∆pì]UÀÇ‚c∂= ó<ÊR}¢ÆûÏ5M≥ ’Ä«‘√Ö6≈!∆äHäøV®´©qNcXZ}ähS+È%…u)≤ÜQ1—ÙEj%*æ#[í¥ßÔi®|+Ç⁄≈Æ–R_±ÍØjJÊ ˆ„M®'·]‚ÄÚ/ÿ≈Ì◊xö®Ÿ‰!üF2⁄Ohh?˙˛'ﬁ–ËL${ı‹—ª$ÑÖeXLƒº(UπWXëãÒélEn˛†±MƒŒﬂËk∆aUÈkÅ˚ãëFxÑŸò“≤4‘“ÊÄ»û‚(ª ¶ YÀ]˚Ä% ´3Sñƒ°Ù±òÓ§ ¥/KKê%âMòø∞ cµ⁄uy£v°V]ó çüT[õÎÂJ4´-dÜiR˝´P©_⁄,WZ`Û˝˙Fï$K<Œó+?Yk‘7AeΩV˘	(_n’ãïız≥*fI˜¬Kq&ë¶!<ó∫°»ùRﬁÄi~Q3∂F¯◊\ïâô}ıtπ∞?=]Œ^{c‰º'-∂÷”¨RUÚ8MÅ÷ºä^f A5è-ı	ÎZ0-œ*øM2S"„ã÷ˆrì{äêQØˆ)îº¥°r;=ïViΩi›î«ëçB{¬b»ëøG0!…^„∫¯*®ó§ö1Âã<"å≈+0i9t˚=À$e,Õ)úãF Á0Avô!ô¡≈∆ã;≈B—OJ.
-∞â.lÁlss˝^ô∏AìÖ5ñGX§Ís∆2˛àÅC¢Yªb	4¢˜Mwmpæ£˙#±{í´ÓÌ)”„ı=Â‚A±t=◊ùÓÜ£HÒûÑìµëÎ·ñø´4'¢ﬂ‹ŒŸqˇ”à±Æ“¿áãÆ◊∆˚ü2õ¢J˚ø7P®Ú
--ŒÅDì´Ä£Ù˘ö:[ä}ƒi#“Lí/<+Agop|Cî6D˘,ˆÈg•ÎàUFåÁI÷πïoô9hÂΩ$˚tá≈Dºè	Ô6
-Ù'?~ôd¢Tˆ‹ ö—	æ!π◊è‰æ¿Nç_≈,ü∑A2ïŸóÑIŒöˇGDÊ)—ôÏ¡sG"Ô€))ú·-q÷gx_$¬˘= æ»CFû/üÓêlÜíVcgJ§ólÛıΩ~‘ßŒ]uõ£bÑ‰æ·ø§NÖ
-¬∞¢ò+Ÿ¬ûÚú¿8∂!öü«>⁄8í0©ıKn»0æ’]˙˛±…„ﬁÀ‹.ë˚åän◊È‘ﬁıÈê´°|za˙‘Öj†®=4ßU3arDBiî:¨Øê⁄R¡läÀı;Úêö5‘É˙ù”∂5“‰øßÎ€.Ç“`ı–∫'jO»xv‚‹Ïªo›|˜≠∑‹›°D†„n;#/ây√˘ﬁ}Îˇ   ˇˇ Üy<
+                                              ? 'border-l-4 border-l-[#1DB954] bg-emerald-500/5 dark:bg-emerald-950/20 border-slate-2xúÏ}}s«ôÁˇ˜)⁄⁄¨ ∆IêÑDqEÎ@í∞ÊãB@Rº^W< Ü¿¨23≈0™äs˚\)Ø∑÷—∫ Òù÷∑≤§rlEß‘9J’ñ˝UT˛õèp˝tOœÙÃtœt@â≤=eS¿`^˙ıy~œ¬ÍŒ[´-€ÈòN…ÌûYZYX(¸7§u¨¢Çˇà~iGcg‘7KïÖ‘ÍrﬂÊ+˛kÉìÁ*Ûã(“é≈Ö)¥Ó÷õ∑îØ~E„πGÛ?FMÀÎõ≥h›ËtMt5ç.˙Òº˙Î:ﬂ±n†vﬂp›c`Æù⁄Ôõ7ëÂô∑‰zÜ„°ªûµXjôﬁÅiQ◊ïOÈ¥3˘íÅ5,î4üí⁄ÿ∂9ÙLá¥Æ<WAÉV©¨˝x¸wd˘7åní«çK¯«;fyÊMØÙ˙π—Õ7–æ=ÙJ≠æ—~+∂æ Ù2ˇ‘∂í¯ìÀlΩ±e«=`Q|‡¯Îùﬂøˇ_O>@OÔ=|zÔÎß˜=Ωˇ˛”{∑üﬁ˜ÈΩ;OÔ}Næ>&_üËèœ<êˆ¥Õ„y”æ©∑ÃO∂õ.rt›?ÙÙŸúÁ"}–√ÀyŒxÿ∆?Ê–#vòŒé"çüÔ-kwxîËÔÎÂ2¨1ÆwïHÔË9XEt,Ï~<X™9zJ	Y∞l˛¯ÙﬁíEÚÄúº≥äé⁄}o2hﬁ-ÙÌØ˛˙õ#≤fÎ˝—i“˝Dv≤fª¬·?zo¸≈ÿ∂/Ìè˚}ÔóbõﬂÌ9÷≠“˙—ëˆ»[ÓÜ=¿€ﬁ3;96¸Ã¯∫%s`:FøCIO≈oÂﬂî7◊œUñﬂàô‡¸¸í6õÖcïºëßu§L÷Ù_©√?·–]˙G‹¯√h~˚…áx3|JV?ﬁﬂ<Ω˜%GI?-‡˛ø˘££ëcw”uØ¥Ω[K6\Ûâf[ı	™ø4ÂÑ+~kQÀp∞úP‡%ÌMOTπo\Vyx˘K¿ãJVeôd5ø¢À˜‘§]ô%˘‹É“""„¢!;süÈq!B0Ï¶≥ﬂ∑J=´”1áy§‹ê€î'g=⁄ñH√~_¯∏'i($vyAw“√ı˚∏GË¿ÍxΩ‰÷y›“Ï¸≥A‚“ O˚e¯‘+—˛ÂôÚÚ;MÅ)$◊⁄ãÚÈ˝?ÑàÃyˆñ›6˙f√√∞[,¥Ü•ıÕ¬Ã3¢É«r˘Ãﬂ)]xK©ìäoV∫L·"‹¶‘ﬂâ÷X]GK´ËzΩyysØz=ìçåC{Ï5∆≠¶—Bkkk®p`yΩéc–È”®ò’Ï%≈s›6KáXO7Ü÷ ∂–æ—1Î*¥1˛(L¢®å•≈Á"HÜBê∆•õ}4*U`ﬂåJgk*>—3:òäª•Õ¢œ,˝µT<jïñ˜Ì˘ﬁRÇ4`z¿HCÀpMmjR˛z~√1;ñ∑a8ù({≠`ˆ]O©”zB_yzÔ"≥=ö?…Ï´ß˜ﬁyzÔ=¨  ÚÓ>#Rﬁ˚D≤ªC.Çõ˛ ﬂÔ=‘°HX›[Rº2ç•ÑJh°Ÿ!.ﬁ/ƒ≈˚[óÀ˙ 3DFÁ¡”{O®Ó«ç¢Ø"bHx7R≈QRQu˜¸æÌê=ƒ§i`ykG=cÿÈõÜ€£Ù
+üº%§<™;GBπ4V{ﬂhô˝…Í€lìa˛N:∑ÌVj˛¢õÛœ}ç#òI≤'»©€¡ﬁ&Kˇm<≠´™Ωô'›QÓ|l¯∫é’Aß‘∂˚.V0	
+ø.SB¬ÜF£∑GØÎËC»ÍÄp˚*^%ÖYD:Ñø3¬AπØ/V€Æ¢ÛçÅ·x£û=4£‰jì´Â@ÒBÖnÕÍ∑c«ËùH;Œ˚ËÈΩ{aÆ},§À€˜Z4Ω»ÎÊ¬∞ˇ`åéÂıÎ∆≠ÿÑƒÊ◊∏!à—üG˝yB®4®‰a◊«VøÉ–≈Ïv*7ÛçπÅ1*–⁄+ô"úoç=œ÷≥>yá# ‰∆SZwæeÆÊ,M3ú=‹Ë[Ì∑÷éä3–?◊Ù|™πmz=ªSÑ'"√≈⁄°¶,1£>∆¯”ÕÄ;qTœ1ÜÆÂYˆP X0âó3P{Ï∏∂SŸ9©mpkÛ˝$“,ÙU[ç)Ãàìê‚º7îıÕmTg÷ﬂ∏ò[Y‡Ÿ∆Y€XZ8üñÆUNOøÑÂåwµ¶
+I§|+!&∑Úhît˚©ﬂ3£º34‘O_-G˘ÎŸ@K⁄¸ıºû¶-xt}ˇ›”{ø·8Â·ÔÒÚÍ"ΩO∏¸#UqG[‡¡7X√—ÿ”h9•¸–∫Ôò?[éñ√`Ñï;≥á'¿t÷N-î1±†áŒko˝1¶Î>	≠∂€`⁄Z¶£≥[1Û¡íz?©h∆ÿO‰ôEsŒ3úÆÈÕëk1¢à@4# å“©©»h∞$§òg9£fldyÏ°ù°>´è∂∫‚´Â¯NÏÊø<Ωˇ[¢œÄGÜäÇtè„Oÿ›¡P Ê¬˙7™ÁMæ◊¡˝;›ùéü¯ÌÛv˜v˜ÁDü˚Ü≈®¸*>Ωˇßôì∑oáÑÛŒX√µ£ ¬ÇŒ¢7◊éåÜÖ«°oÆ}cÿ÷⁄ó±ÕM\9”⁄◊‰aE1?…[;nç–”ﬂ’â_Éû≤fœ—Îe, Õ¢
+˘üÒ?ÒBÌEc‡Õ"´ssF◊∞ëœ¥·õ(uΩ˘ç")ˆy‚A–¥kD÷#¨>jËÅø5bà.Q £=#—ŸÈs¯ 6°ß IÃ(zïœÒ+˜˙"¯ïU‚ã&≈m„Ê	-(Ë˙áuusÌ\”=|å ¸§^m∆ù√ÿŒÂ_#ÒüW˛˚[4OƒpŒÔ`¶~Ô_ûﬁ˚òÈøß∂ueØÎh–„Ôy§ÚòÄ˝	Ûù‡øøJÛ5>ÚΩ
+xLÓﬂ°q∑TçôõõS{î_Ôÿû∑O·’†¸¬˜ÛΩo∫S¡Yı$Ê8πA€v|k6ƒ»©[‚4Ÿ/]Á.ÒÉ™Øµ(õ;lŒü’êßÒlÓú±¥lD‡qI
+O7èæ5|êa¸g±¸Q{øj74±ÃÜ¿k¥oı˚·∫’àDcÙ©u÷~MàÏCrQ‘S´g◊÷„õ åÌ¸<¯›O^P”Ú*∫\o4w˜^CEànBÀhcw˚Ju£	ˇÆ◊wjõ®—¨‚o’ΩÕ™Ól¢ãı≠fmØ1ì'™gπûÌNUâ≈@˘{«vçæ•@†Îï‘^™D˘Í9ÍóPøÀ}≠PøÇÉÊB≥PymW˜^≠5ØlU7j®V›€©Ô\Rkm≤Ω¯ıs~Ã÷2özLÿ"-æ å|)ÀL⁄°`ÍÏ@Ù)eﬁA9ÂÕë7sæ—≥G#¨¨›(MÖ	ÍëøÒ\Åàw^%o	%ΩØu§[*â–:ƒ¸ÚIÒå/q∫X8AO_!!ò∏§g¶Æxƒizøƒ¸	Ãi˘S¯"<ß%œÍˆ<ı02¨+ﬁÚjÜ34;ì≈	O⁄Ûå†mn•ÉŸáà-ºG GÉß`j0LU)2 êãò@÷v0/Cß1Yø∫◊¯ÅH~gà‰%«Ëåê{7‚ÅU12ÈôF_L$π‰<Í˝˙˘•O;U”;ßLÉ„5E>Á†çën–ò‹oæÎÑr¯¬  <¯mñ.:h? .»Gæõ6∫\èìj.≠‚ówØ6—^≠∫˘ZØnUw∞Ä9íã√f¥ìùÅ• ﬁj1ˆÇÀp∞GmãaGßK/E∞1B…€E(•TÁCMsÎÛ9—M.[ó3¥ $EÂå$√¶|DzÚÈâ"ò\êd~˜'ú:…ˆBTv`gÂÙ3ûÖ¬Ï<,úÂ∂"ˇ»À°îÍﬁ%T˜Óqí“ÂU‘∏∫±Qk4.^›bTµ·V∂™ç&;óm;‰ÚËIëG7zf˚≠Ài˜Õ≈|TñÜ‰ÀìÆûMe{åÑK%9∫∫î™<∫G∆h‰ÿ7ÃŒb@tÁ˙Ê∞Îın¡˝õpÏéaà^@9ÿ≥=£_FÃza‰a≈>·0Ô∫Äﬁ$”ˇàE&˚>’UäÒóŒed[£bÙÚëq8¿tÅ&9‹öyëÏö ÓÍ+"òﬂ'üÔ∆≥˘}Û«…{*´ËJmg≥æs	ãÒ?πZk4_(£j€˝lSj9æ©∆…}œ∏	]Hc;Ñí£€·•¢wYö„Ø”¸kœá—DŸ=Á[JÇÍöJ>Á4óOi˜OáÁmé‡öX˘sÛ‹∑˙xΩG«0ös=√ª‘w≈B`afŒ1;„∂Y,Ìˆ,ëê¸Ωåo†dt-Ãúæ,é˘·˙Ä”ìp˝åK(ÔmØ≥{x©ëË|›QaÔœA Ô±0≈Àî\•‘›ãN£F≠∫∑q≠W˜r9Hè	wbôr™J¿Tñ¶Å;¿UãùUÚŸ±‡s*Ö∫Oóé,xúØ6ÿ _©om©≤l~«¯KÄ¶t≥då=πm«Ó˜[ÜSBÇvÇõ©Ôır?wπ⁄ÔGRóü	Ó#¢ò?∆åß†ìÕûÈæ‹É)ôXrÀÛ
+∂Àπ7|'$d$yøg˛ìŸˆb=∏MÉøª"((ga”òÂñ7‘V÷T&A ¯=öô‘…8cJhÑ∞^§ƒñ>6O:uìp	Ñb¬‚¬ ™XjtÄïúpîË	a¥7öÅ√)È“KfŒDi>M:ƒñÀsùÑxãù?{Bah≤≥Fú≥^µjµNî$0ãÌ˙™nÔ^›iÜ¨∏æsÂ™≤öß 3Ù—DŒcq	S0›»\∫W∂≠°n.ç(:˜JÙaìÁ“D‚≈∫ŸL ˛+Íê«÷ièMÙÁg·ÒXÇÖ˝± Ì¸<Ω<˜Û!Âø‚˛üûﬁø?˚Ù˛=˙ﬂÀSyn`¸ƒi>ª¬=˚ì=Îúd€h%*ÚÀ“1Ò ∞nPx1ä\pPZ^—
+=3ß›K5$Ñ&<£Â⁄˝1Ê>}sﬂPƒ]≠ﬂgìÀ;†âºoìx$àÜ,ãÍi>t0£ïd#ft<26ù√ISØƒ8Âåﬂ~iç*yõn˛Å~
+T/’3 ≤®Ífu}+w,E4`U˝ì5‚."≠.`—SUoöj|iØ¨ï@-◊A ªádH†∞rVÕ{ƒ—˚>µ—ˇÅa∏—ê/#˚nÙYWi·Ô2ÂÎ/‰∑'î	‚ORÙC‰ﬂ_êîv}u+¶7È)&b-ãh‰äÿ≠â'Ö¬÷BﬁG‰≠†◊-dÅı>}b@ºúæ5‘ Kz©¸ÇUòﬂ©Q>öørl™äëú¡Íb^í3@È–¢W‹ã“±í#€3çé^Ôyœâ35°gE4Ã7hèG#”iáÄ≤:&8ÆGæ—ÇÙ≥SØ‘7œœ{Ω)=å√ØŸB˝∑©>9Çº˘a{j™ØÚSmÁYNÓ§Gˇ1µw–πu®œF§5Mı=î”FBK^FiÀì„ÍYoË+íiß˚*|á£á8ßΩwœ{-ªs»w”'´Ée‰àITë≥+Q§z≠Œ%d,Ç%1
+ë$¥qÌ°Î!Àı“hM‚é“„∆‹s´ìxh``Gø¸e¸}¯˙ú/≥GÊÍË ≠◊`<–+kH"íñ–"§J~}-˛ùNm8”;CM 80–æ«∑ìè¥ÒFÈ¡õ≥9ªué¢9pk'◊›Ã&∫ﬁ+°8‚èg:$=ÈäãZÜ√üÚ’‘ÅcbñÊäÿ eR*π^ìßÜá.πÖ„º…®Å#SàêWè.'L5≈˘ªå˝DYß˙‹–>påi‡7ôÆgv™ﬁq5H0'hLÆEîDâ‘%âEÖ˘q"íõÑ3Uƒ1"®è3˘j¬ë∆œ¯ j§ÅT¬˜ƒíq≥tPzÀ∏XjÕ9ÿx,Ü6û<ÃI
+⁄ê˘ö 8~œß=bD˛kè\úÁ`jÎ‚yXŒt*«¯úˆ¿¯Fü„⁄ó¥¿çÒ*+òÀ…"ë/ÂºYT^n1^"/øé7)O2q÷º0ˆ,jØÃœ©ôøŸ±]3ÚRv"ﬂÉ1wŒ∑ºH;"Ô^»
+·Üú\,è˝X‰„<;R7Ñ2zÁ±êπƒfFÃÈîwWÀ|X÷ê0Æ“òwræ%èu5zÑ∂V3ó¶∆&^ˆËäcèå.…`.jöK£ákzªXyÚm∞Êp\ÔÌÿ	¢ûÅààÏH‰*˘6¡{sîúc©é∏ •ımI¨‡è˚ÄÌ¢;-˘4£d—¬
+|PøÀàú<(≥∫B{„kA.ÊRy°Çå6¨jˇƒπJ~^«‰é8’//àt∑(/êÜ_Oì1¿Fí≈E‚ì$ëF*í≠ÇŸV3f)z‰´¸G^äáiﬁ∂Ìò◊L«≥™†siπÍcè<yô≠úB) A•4,_°Ovƒ…ºÄTÁß{QÚDOŒZZ@ø [ûö)Âÿƒêˇ(µÛ	‰‹¥∞H‹¡√,vÏ¿1≠0''tÆa⁄≈‰q2˙Öxkê!Ø•ï›Qì¿õB4	=„·3º-ˇ÷õdÛQy2êÛØh8ŒO“ÚÄx ÅèΩ[ñ‘LîF§Â-	—u£äDn˘çÎä(◊	îÇ<˜]s‚∆ΩÀ« ¢	n≥ﬂ∞zá˜üﬁˇÕËàdx‰ó‹#ÔœSs7Òê	E_vLn >D¢+àß…√‹√kÀÛ˜†ô¿,'«øÍW1f#$∂-Z)oÜÖØC˜®E±≥-NÎMuóÔ®›1˙0oEœõSx≈∫;í!≤`fŒjˇµ”8yπsQÅ≥¡?ãÖÎ
+GNNüâJ¨·À4ŸO¨Ñ‰◊}Ë1¢àóA€ä	î± Q÷Ô©RaN'ÃÁ*}Ixt·sæß‘÷⁄G≈∂=‹∑úAÒM¬?ßAptÆæ°È¯ôÜkä{ı(-
+/¬gÉ¸ àÖ ÄÅπK√˚>¶nÑoŒÃLe$…XVch:≈ëcﬁ )°oò);ï·•o$Fü
+”iúﬁ"Ñß√ÒänÚæŒ5>«”{_˙(ÃdƒÙ5≠DEÛÀ?ª´Ä(>&Á)'ö-3y‘CN-ÛL…∑•«òR`r/WN4üi:XhJ”a]ô*üÆ‘«jŒO‘cù¯M…˚_pùîÛ«ME+ï„?¡Çù‚Â¸Ti>™BJ aâ˜˝Ù˛'ú˝n!G≈Wa3ß¢µNf»£«qkÀ≠ ,Ãˆ»h[ﬁ!ê^ü™mØdÙ˚ˆÅŸA4Õãd€OJe9gäòË/A~˛ãDbtòπ¿ò5˛¿∂‰®6«•Yâ‰ÇáÂ”	¬r"Ô¯a7ú‰› Køœ":*'tOåí“Cã¿=≈°£b®sC€}‘7çé>úí¸`‹ı6]>ÒH#öƒ9„πƒÙŸW§ÇG|¡ÌÓíï¯GÚƒè`”p˚gw'ûçl5Ò&íHÛk[-ßúÔÕ˝Œ|ë9∫yph™—∑¥F7“(4r∑ÊIÚ÷q‰¢)•“jaM|Qjõ“6ät“nÕ»|œ“Êƒk>%.åù€Â∑ÇΩ3r]Tuúˇ1Zø˙Zm/RäËZΩv}˚´ﬂ°Ì›Õ⁄ﬁ∫XøV€€CõµF˝“˙Ò|¯FII'‚≈æ¨Î;ô√nﬂr{Ë%√Â!ä∂≈}$à)µF£∂s	∑ï¥ØÿhVw6´[ª;54èj€ÎµÕÕ⁄&™Ô†ıΩ›Îçi|ò˘àÚ%¨¶Î‚∆òé†à’‰ògÛÁdZ/Ó2è|∆>Ø ≈≤gu:Êê´áÔ¿¯‚?IΩ˜¸6~ìÈºÑm÷≠kñyêX\ñ[¥L¸ÏŒ⁄xÅí+”ZûeÙ7psª∂s∏vå<öqúº3l”}.òø7P¡r?3◊Ù∂ÔﬁË€Æ…¡PUππ.∫V◊MÜV«∂rbãE˜ Egm‚Ew	5jÕ˙Ó*^ÆÌÌ¢ó—^mcw{ªÜó$ún‡3W˘FmÔZ}£_W◊õ’ı∆*°›ù≠◊`•Úõé[µÒE[LÆZ“M&y&ûªík:7¨∂)ª™mcY^˙Î?Ÿ-<XŸB≤·S65∆Îµ-<^∏€’çW—U<Làå„zug.≤rnç˙? nµ¡Ppkõ"∞uYª ˘6 -÷î>ﬂ+ã2 ™ß; §@Íã§ıÍa@ßòπ‡ã4∂û
+ı◊Õ~€ò$ÓgV.∆KpXÉ:ﬁbŒuTƒöùÉuØösC|g∏.|ﬂtp∂∞›q—´∆/,‘∞{F∑0#·xséI(Qq˛›ˇc±xaA Ë$_'≤DhÂ«G¯éô,}˛±nfækÕ¢Ç÷?b/¸öHÍ∑˝¡pÚ<∏·ç1Qˆ‡3úXöNˆ3<«àE 6è
+Hò#û“,`˜ÿ*ç¨g…*(∆∆E‘Ÿ ;?ﬂ+¢	IY Îª!qƒ∫JÈ&-ÕXº≤€h•¸{LN1¨◊.©¨mmÅL"‡‡˛Î≤™5RC‘lîÇx
+NÒµI√™±¶w´kI<¶âgÖzdÂH+ÖCùƒL¨ªWl◊ª‚ÿ —ÀçQD3ÒΩÑRP œQ(›¸f,U¸æ KŒƒRÊcëetôø+^)à˜z≈ìywqsG"SèxÕ´bË¨aÈ •ËA¸9•≥®áˇ' ^+Oˇ√G´Û%n ï`¢∏∫7âä
+Ï>Ã%ÖR<ä=µ˘%lS,'Á±åg6qD•Å):]u=¯êb¿JU∏‚#Áè¥èÇñ÷ºﬁR€V/◊1&EJ‘|Nå5O¯FA5DL˛ñRZöƒ?ÚùZr∏´ÂN≥RÕé5D⁄xõ∫ÖÕCöéÒá  Ä¢=H±•ÃP⁄O©¡2Ïç^"≥Ω™ÁÂhe›d–S©é.”˙ì¶w≤¸	˛2Û{.¯ j·_‚	Îã+}Q^>â◊Œä$˙M≤C—ÅwH)n2©åœÂË<Oî"H∏¸‹¶å\ÎûxA…ñ˜%”CÆg8û)NMsÈÀa‚¯B•úƒÇäçÎıÊ∆e‘‹eßK®AË—E<¥Ë4∫fµpzh√Ó€Œ,∫N∫K(-ﬁıÈ»≤≠Ñ˜òñ0ã ∆'Ä˜≤-ÅØnåÃ∂eÙ-◊€6¨!—•°ù!˝V“Î®û~9AŒædu”£¨!^Ts˙ºiè ºr-Ã¢ñŸ3nX∂≥ä
+Ó¿∂Ω^›í<F≤€øõbUòÎï§·oﬂ	±äKâ≈*.#.QQÂYãUˇØx+ë®Ì¥˙}.„‰À[ÈIárô+¢ˆ”RøX˚Ù˘
+YO∏¢Ï_Rp?4’á9{á∫ ˘à≥Ôë»•¡V&b,⁄¨EèπLâΩL N2T_úÙyµfbZ÷u∆¡î©‰Ÿ%Ì;ˆÄ/3ds€éR*Óädpàó~z3w!w6∏2 >ÙÕõi“#!”Òsc)ÿz Ÿ®oàöè≥¡8ÛàÉ¬=+æò‘äÒΩÂU¥^m‘6˛|˝rµâ^€Ωä∂Îó.7—zmÌÓæ
+ÊÔãª{®xπæπY€Å∑w◊Î[5tÂÚÓN≠°b˜›HÉŒ*dÃˆBk¯bíÃKêÌE‡œ¢A[7\≥≤ÌAœ–°=∆åà~kﬁ∂6r¸¸$&¯ã¢°N7˛ïQøª~≠Q„åé	píe±l>Wë_ˆ£auÃñ·†¶—u”DsÆ]∏a›ª¥¨`Ròo‚Í{ãXäÿ∑d°0“Í>G˚ò†Ωjö#dﬁaïÑV«ÒwpAS^'∏øa5G€òuàz"£œŸ7˙néçÆ	˘x9ût›lamk€nY}UG£è®÷—^¥-€ss‹Ωewm‹ÇKò¨ı¨6⁄4]´;L>G¯Z˜ßË›aRÛùï∂D ÒC‰a	Kê+Ñ[EB/Åª0∂tf(ø±†Ÿ’©!-&EÏ∆TÈî>S?Å1ÏÛ‘Ò&¬#ôÎöÀ/7ß(¬Ù≥‘<{∫¿—˙íˆ;Â&¸ëYËG‡
+JO√_E\†El÷H∂◊ÅÈl`*^úô≥ÜÌ˛∏c∫EÓÚË%2ÿq∑øêzIÆô_RJê¢†P/’Ãh}»I∏·ÿ√=¬*
+#Ã=ìÆ¶e´à+Ë§õºh{{ƒ‚4⁄0úéã.„Õˇ<Uòt_é¨œ$óQ¬è¶Ó+ñ`¬ØKËfü˚∫å#µá,A 9˝Io-ÓÑ;Áb˙g±êø<C(/÷)RI.æ	:ûNsÒCRÅbÒÔ‰¢©ÊòñÉõJpπÀØ`q≥Y¨πy∆oàN^∫Ü¨q_‰w∏∆“⁄z«];‚æ»ÔÏn∑o^4n‡ıÊa˝.øØÉ˚Íôó`¿Éè≤´%€Ioª‰T	Ò¶™_jPM†˙⁄™ø**8"yÒaf[Ê∞ãukëÄ/≤Õ≈œ’ƒQ)"5!¥ëH6”ÔN¶> îLj˝ÚM˝†ë{4€œ˛úØÚAjá8ÌèàÕÊ#∆˝k|ãp.AÂúO∞íŒ|ï»3z$MVe©7&∆)À
+ [($Ä ∆6^∑AF0ÿµ˛ÕØ∞ÙÌ;ˇ*+këÓà¨∞çtr—Îñ'£˛Q⁄üIÔ3®Ω≠œ¢Ù t^ã Á£ÒrÀï&}◊•Ó˘hª:e“uUœIªóV—µ⁄^˝bΩ∂ˇÃ¶ﬂAÈ„1p∑à÷bûZH±oVÎOëYòCqAÖÛrc∂8X1Õ§VW	¢+,¨å$ ú„Ò5—ëZZ‡LÆú?4∫F¿â•˛ë+Õ⁄éÂ°k¶cÌ[f]qlâmQ.ıãx*W^¶ù±‘•h≠˘Åπ¿1dõ∆W“¯è?>Ω˜ü‰‰ß| »©ØC}L≥üæ°±#"°∑É‹ÚD∆ Öò®{(?ObÑ9o¥üVÊz∑‰óÙÚ#”‰NñU%
+¿°˝Fp÷
+˛xg¸Ñ¿å±˘î|˙íπû>$çK/•È÷Ôb»”œÓJ<RŒ≥í#Dé9ÇÂ|CÒw_¶ò¢°•@~óäëc˛ µåN◊l›µS>¿Ñ}˚Âøà˝S«&\]/Ar	⁄©^´_"(ƒi¥qµ—‹›fAÃtöD__´°›ΩÕ⁄ûäX"œZ‡¢Nb%· ëwQ"˜iêÍò¿s=ºÌÜvâ∫_[ÜHˇîì—¸DTVhû
+Àæ8∞ò0ß™lnOâ≠Xí˚#Yé)EÊ3+ÀS–fôì*MoI›vE∆,2´ävÃ.yœÜ·}ªãäQ2LI›J°SPèÛØßx∂’ãΩ¥‚Ω˘^Ø≤øﬁ˘‡ˇ0πæ⁄5áÌC‘Ø96FœxΩ±ºΩ{ù±^|œ◊◊?¨Ø∂—1áhÉ^_˛=„ÂE?_ËµE∫Ω^Xc◊≥œ4ñÿ–∫cô˚ÆŒÚ·%qûˇ$äÏ‡∞Dz´†Õû®µ&Zma_§*”$ãÓ$,;ôª[¨˙o":€TJR∆Eu“sr¢ñfH,Åí§ê¿∑ﬁD’Kµùç◊B-Vü≤¡"πıÚ"ô·u>:ô›55¿O%YNÃ/1ç“∞^ñÚç{ƒÍˆV?˝+îˇ1ı˜ΩÀC“ ¨ë)÷‘∏u9jÁçÊZ&ÇNƒ–ìQSp ‚ƒ
+iá≈I#ˇHL]‘ByW‹çîL~ô'RhfÕl?≈B†–`&_ˇù∂õ¨˙ò3ªB√ø"wP<‡è+µ˝´Ë˝$Ë!ÿJﬂ#ËîÔìß<dc‚[g?dX¡_∞—ÄIûPáÔ∞K¬Qıü˙êª€‰tåMÔ•m}œ∑iKÏ≤FïÃ”òU1‚ö\B2ìa®5ÄÅæ»,ÑR»@bÑ;•¶AE√-‹åIRªG4ÁUƒ¡«@Xœò›π}kÿëcÕ'ò)	ÅÙ€0›9ÇÊç/¸(y«<MnΩ¥:´Ïµ≤pL∞ZB∂@_ H∏A∫B÷-;4é”ß\ª˚˚âM≠™›]Ωax$Ù<o‰ÆŒœc–≈ì?∫xî›ﬁ\€Ãèz∂gó ï•Â ‚ ŸÂÚŸ≥ïReÈ‹πe„Ãπéa∂.ÄImíäÔÙæÂ≠µ{t˙`Û”?_[Y»l≈ñy√Ï„F4Ì⁄√‘†£—2M´‹î…/m˚PA˛’Ï´¸ÜéÈ∂k"ôê’Õ,L<9Ôˆl«„~Hioo<h´œ⁄Ãæ‰ïiX>{¶≤r∂|Æ‘1[ïr˘ÃπÚô3≤9X…û«Ä0hø9Ù¥•2∑êrèy√2‹¿]awrß‡˛Â˘Ì#jòw˝[Ÿ◊Ù}¶l◊jØÜ¡ÀÎ˘V˛¬,9òr≠¢Ú>f¡HéÖ#Áp”8ƒ/Zö%çvÒ‰‡oÖ%|˘æixc'h˚
+≠xΩ LZè{Ÿ
+o»C¨·`Å\õ˛©d≥EÕÆDõ]ôN≥gΩ˘¬ó˜≥∫·ªO∏^\°gíùX™:q6⁄â´√æ5¿‚YÁx:3K°©·wäç@yÚË•¥ì)˝˜å.nﬁÎFì‡î‹‚OJÚF
+°#UZqÁ©»^ÄJ=Ñø…RäY»!w|ﬁπ»S)*O¡BäZÄSóe14:Q<|ê«WWBMh¬d‚ “Q9m8(K€√í0üy⁄KKÚÆ§Õü∑]‰:m_4ÿŒ-dÙ=v¯Á-Aˆ_è˛c∑ ´è›ñpùíjå:cá$eÇéü
+ú–ÉÇ“ÖP£o…/`∏…<îŸ+íZQ$—èÊ2íÂëä»õ¢˜=aÍ¡◊Ú•Œß'?rò9P7Ì7V!⁄3)ΩÁ◊Ç¥ÚDÁLıOñ¯@Í1„[rU=l^\‡í∑Tûﬂ,É‰K{y1…¶ﬁò	+ñh`E.¿Ã≠ûë4ÉËLp˘-5◊6oLÃ∂∞eÄOß’ñàñC	WC»D˜ìJ`@ ?d ﬂä√€3nî'ãbÅŒ¯¨∆À_$∆Y‰l@_(√øØP…WƒhÛàVµ~Ë©≥…j·æM ã¿°1“›FÑ;ÄIùByLô¯á‰lNf/›®n÷∂_CªW˜™ˆ“ eÙ;©™ù4Ù	±õäË48Òa,R≈I£ïŸôÅÏ6'®?·3 &≥ü  åWbÿRr˚Èc¶g|I¨ä°ŸÔct:f0Ω√7ø	Äœ÷x*¥@“πxL≠—4ÂƒØü+º∆ù}D“QÓBØøÎ«HÜ˘+íÈeî¥¶ú˙=˛ÙÉıﬂ˝»◊È»ë/`±®Àle˛n`m«Õg≈7NjÖÏÊ¿câ	Ÿ‚øq?hrﬂqMS\ë#Á^(=éC˜‚ÿUED°sÈrdH˙`b¶,,S?kÅ›§@kú…i|PÁL@ÂÈ-ü∆ôó!ŸüìØÚJX™.≥g®"¶4àÔrﬁÕG´¥ë÷–ıúq€≥•!€*¢X`ZBb>ù∂á}YÍ√èŸÚt]{HçÁ∑P‡VæÌ3o¬03”Ò…œﬂ~ˇÎ…Ù©lÁf(^ﬂm›âSfb[Qi-ó÷§∑˘≤víÂ^tLìR£Å>AZ05zìî9.íŸµ\Ç{î3∞D¿…˚≤0#≠Å,ÖÜ8â ]£z≠∂IÛÕÁ—≈Íµ›Ωz+w¥¬ ı›ΩW$è`k˜“%Z\Â4∫eH…Üˆî@$I?£Â*( I`]◊Q
+y-0Æ!éZ•Ú"§îó˝¸Å§é}›4›∑0´ƒ›2úÆâm§ôÀ¶B◊iÙì1—~ìÉeUuX-∞3	Üf¡ˇ|⁄Ê‘d¡ 'M5á3If•…õQIßºÄÂúrT˙å◊*fﬂ±ò1œ$VÎ7÷1r:ﬁ/z3¡`…DÁî©”xZùl
+€*F3hM§m˘Kæ9Âî]`<òQãa*°pF·PÂÒ1ãó" Ê≈ k*5OÆAO¢CK;w¿·Ø	ë¶˙œA í ƒÅ^˛öäòÖ‡1TÇËÒœüﬂ0∫ˇ©‡…àË§z N´„ä˜bJ»m6Úß®‰DÉ≠ÖÜÈA`Ç´]x"Ñ“‚ï±|ßÿR∞˚cÁœf«∑(Êä°æ2bubã[°°Ô6˙ƒªr–Hßò%”YqO…ŒfÆ3?,é
+`ä7Dö·,#ˇVxR¿l˝`=Ò4jÿòoÙ¨ëã˘Ô∫·ÿÎQ1†M‰j-Áò0Q§L˘ï$ÛLÆ1˙˝ÇèJFjÓ–ãDÂ¨H2w§tõf>˙‡Xl:…Öù∆ÂïiK"[3H¥§U|Û-Â¸Æ,
+D‹˚ñbö}¬8ÖoeØ˙TM‰(eÌIR ÑçÁÀAƒ1(H√Y·¶(9„Ä+‰@…tbºI‰/§∫w#›§AÌ†‘¸Ãp€ƒ`Û◊;ˇ˙ˇ(3|HrˆaËÇn$Ω‚¯ÿ≠ˇLm<î@}ì˘ Gn˛ˆÀâ#6<‚	1˝ıŒÔ>c °°¶\jJõt	É;Jß4,áVl2hz*¬â®=ÜúZNPé‡÷i.Ñhß>ÑRZ<…F˝9ØStCÖfœË0ÜwOg£ÊÀèW—©D◊o…†ÿµ«5¨à∂hòR9§¡o·"#ê©5=íÀ¨H∂QÊMJ8∞ŸÓûõƒlWÅáA	
+>‰«?yƒ•©‹ô\–J,ê±`"(÷fq€ZÉÒ -˙¿úÓ≤TåºC‘ã‰≠∏*à^AògÀHY+1üü"∆ä£õkÂ˜
+TEâÛÿº‡,ì¡≠D+eó&p€ ∏≠|Êxl{ÑV±zÅEt`‹, Á01û9wUyg¿êóh≥∫!/≥nkôû≈O√†∑Ç†¸Oÿ*`˜ÆÁÿoô•r[û§Ñ∞¨E2Ø!À?pO'3˜•BüÊøª\ŒﬁmZ∆5p<† \°Öêf‰Ω+≥¸I\ã:o≤Ú:tŸBMeq∞2@‡Ÿøiä!È8(‡–¡†	ä4«í‘ÉHˇø‡ øáıâ¿˙˜.b tèò≈Ù€ˇu˜øû|0‰§ﬁ¶√«˚a»#è-í¯Õ)K?ˇ#bú|˙Ÿ›)ÿ'üùÃ(¬_RHø`2c±PïKã
+5‹nñŒ0®ˇHT;_áú±¥l$›≈’l¿2#50Ü5÷ê8˚e^bœçY7∫RÎ!%!Yñ√Ï$5±K7≠r5%sbå3+¯/∑_càfõ’∆Âı](«HÄ–äæÀr˜jìx3Æ "ñò=ÀË≥uás†9R∞H Ò≤í¬ﬂË	Üøπæ˝>èl◊+çh·QÚ}‹¬;•dÔÔ≥[M◊≈Ú∂Èﬁã)û”b™|)Ö#)Ü¨¯R»‚Ù≠ëKÃìB*QølB$¡ÉDZÖˇ≈Õ
+Ag£‹Ã®ﬁ§¨‚;ô-çíu#TÂøa÷p(ﬁ"Pò	¡C∞ﬂƒFrâd!ÚÚàd
+V'˛X¨M	LÇ0m"ÒN@)“Bá°\¸cB(ﬁ•‹ı¬vøb^∑g¿bóò"x[‹+7ï€çæ!'+¸orÛ'¡˚i‘Ùå˜>Q{g!v3Lê¡o©µ”#ªk—û˘Û±ÂòùÅΩR,xMCËä…X˛F≈L ﬂ¬•í<oá˝ÇœˇÉ˙d≈Äº≥Òµ3ã¢Cˇ	çoˇÇF® ≈~EÿÕo√•¿…Küq◊›cf
++À‚ßC≠∑8«# ¿BŸ,2Uøo‡˘$˜,àΩ˜#≈∞0mzYÿÜ€å#>‹p¯¬ˇ…E•âmëMâÇ»∆¶ë;L'èIìIœô√ÍÿÎ'q:Dò∞Æ!ë√ñ$R#ÂgEÛÀaòtJÂ0¡Ë,fWJ9ÑEÁëÕòdYì_ﬁèOx'Ø TA&{•H^™‡pbô^K¢◊ìÁÖ“|∆¢™ãÍŸEƒÃ»xyÚ±ZÖ›Â+8◊JTœR°˛Qü$RZñ{ë-¢|±Ü°¨Ó£C
+Y1-|1≈Ùl)›Í¨ù
+UrÒ˚ CX;Œ1A¥ÅF≥æÒÍk®π{]ÆUÒ £”Ëb}´â?lÏÓ4´ı¸©∏Ykº
+óÏÓlΩÜJ¨úËU»ÍªXˇ)ûåm|!˛≥˜j≠ye´∫QÛñ´‘®á) !IQX@ø¿;AZ›¢Öâ{«¡◊µ˙cÑÃ©Hpßè˜∑ƒï∫,a…Öò]·√
+º>îâÎÅ|:^¯¥H
+<,¯ÿÅ‰“ªrƒ.ëÎƒà’ëzŒô8AbMkõıçjèÂ∆V≠∫É÷ØæF&£—º∫Y€iÚ⁄j8W¢äiÒÒÕ™!|qö‘±ØÑùêqy±Ê ©†Pqñ˚M.‚·§S>ÉW“≈u¥Uo÷p/_√ÍzΩym◊ˆ»ˆ∆Àè'W+<úõ˘åÇ%¨©Ï»>XEMH£@/.˚>î=ç∂Õ·≠¬&+Â:AXPZu’ø&{ZÜCBE¶∂hû√!S‚d≠¿⁄µ¸O<v^j~–˘-„–{õÜ€kŸÄÃìœÜEïûæû ¡èv.◊{/ÉÔ)=ÎÃåˇ§‹àƒ˙¥≤Ö‰µX8Ω8£	<ÅYØ˘4ÃPñXi¨~[6ú›‘4’⁄¯1ßπ›®˚ôF9•Úkb‚øù°ªNöØ6!!êπ,¸.eﬂdVq–Cc\ÎXûO{ï¢ãÈ±läcãr˝YâÖ3&◊gFgíH]YùJ`Gkß8#—oπ|««Ú[Sil™ TÎÂ¨S9"tp…±.Z®õC°NùkΩ∞Pª3¸at"±	´Yì>ÅÆ∆çõˇ °ÚÌúsNƒò‰ú+N±Ï˜\πä p]ƒz¬˙ÓÓ´TyØDÙNË[Øäe\ÚxmyãÜzÑ a-aÅÖá*∑o/à•ÜK)!Ù¢<e˛ùáBEóÌÅ(|*hy∆ûP€˘À¸q≥Í¸^√∫1¶æf±–íÌ7Ë8mcmRr‹rw)V{GîF‘á-˚f»Hˆçæõ^Vû‹µc„•cµI∫Æ´x„îÇ´îÎ‘nE l¸•Ÿ>>Gçb‰'NùRã–K âr5_≤b£ÔüL.±É2√„¬El6/!¿∆ør{†SÇbÓÑJÁ©√°¥
+nÔøF¸P∂ASH*!¸D≤D√	á8∏xU «ßÕE öø„ie¶”AìD6ÿÖ˜©œ§^MØè∏<fP‰k1ïz àØ7vÜi◊§	4œû»sU9~†¬9®p M3	9.¶⁄÷NUÊg&£,«Lá'µÉHç
+9à∂8®äß›œ{&¸8÷◊Á*o†„¶‡KsË€OﬁæÕÃ-?êÓº§^#ô¥˜Ωt…r£=R¢Há4±0'1ÒÂ €P@º˚’˙ã¯M™µ+¡≥Ÿ±L‡=ù”ÇË.+GíªÃıE
+V◊[ŸGcÆj_EÔ+˜˘\*,”bíûØÃçE¨„¥ûgq t·•¡úcù>G)ıa`÷x^∆≥V≈ìí∂ˇ≥ê§RPvHuÑÌﬂ˝ÒL„Z=	≠ÊGrÉ,‹ÔΩNˆÍπ—ÏDpK∏¥i≤ΩnˆÂd[µ€ìëÓ!/±méúx>Ñ;
+iÙlËv¥€>ô2;ÃA∂’óIµEÚ¸àˆ,_ì4"DRõkÕOr¸¡DÚôH80ªl$œç∑iÉûà8ê*3_≤∞^¸+»¬ cöé•Ã¶€¶ß9äd/^M3ó˝ÇC ®wØÂæÚ‹Â;Õhì}>ff&˛5§TÅk6´ókõËÍN˝b¬KkçFmÁRmèEƒ([X§1ì◊/É'˘‚’≠≠“ı˙fÛ2(l‘™{ó—O!ò≤÷l÷w.5–˙’fswGûJ⁄êö4±/F…ùM"QQi–¬JØc≤◊.ñ˛ˆÂ≤cfﬁà∆˝™’{°Psx|sA®ßßöÓóΩ˝°l#ˆk.ëzÜ#v	LAä»*€ÔÔ{ıYp¥5DˇPÍÂ Çîö8µpLÚ¥Ãÿ8T„c‡–ê‹Ë©] ô$ÆûÅ‰älI
+éYÅQåºˆ˚-eàKa|ßwÜı¢zÊ\‚FBmM¶ÅƒŒØ§Ê\¡rYì»z<ÄPû[ë˛»ÙïÖH©é=‹2˜Öò∂
+I+ºæõ]V*#N»øJVúA!Ë–Ç5ËfÆjRåA@WÊR^7k"ZπAÙ (∑ô}{Jòu≤ﬁC4¸ê'„jªà…mF2&+M∂iŸx•_∫Åò®EÇ‘Â¶_ø±ã
+˝PXK©Q€‰íx‹?%∏í2$©∏œÚáJbd3ü#séÊ‡™◊â¿ƒß˝‰‚z0!Af.˝¶éŒé	V¥‹9r’∫—Èö§z]*÷gWdÈ? ,\Ã^#J´DòÌCˆ≈SˇÉ®^6¿$/f‡—0Aò%p¿JK"æ„à™€#Â˚JπÆ_éW| ›°} …Ë$π9,©‚—ºz%	'ù….HG[ZîÉ]ê1ÈÒÈ‰äi∆®ì>ã‘F”Ù÷Ω!ZCª=‡ŒÃuMØ÷7·„˙!ñ†B£ó<L~A€»î™®Áø`ÜΩiÆÕÃ≤¶iÀdÒ•öâH:!KY∂¢©.¥5ˇHèá#s’_≥:¶ãô&ªˇùñLtRÈ®á)ûÚ*%WÎ.Sˆäô‡eﬂ◊ÖäÖ¸ˇBIß∞PØ¿xn˝8^¸TkV:]⁄œÄç»≈H–(nüUM¶Ó˚8È⁄ΩñZ®%‘nù≈eh_R%ûY%¥˚X3ÉRU`Jú_D%≤¨»eáp"{¬¨·h,+WœJ6†	YãÛÜÅ∑¬⁄— :Aé8õﬁÙ|&8&ÀÕŸ<ßhŒyPG«õ#/KMœÅÉÑ'˜∞Lf:∞k®’õJ2èfc’∏Ç˝¬™¯®ÇdHƒ [æM‚cnn.kÑ @‚"&åÆ:%Ú-O£>÷ G¸°éâ,õ]8.‹¬“™H!†é$µ˜n’{ Ö¿Ù‘´ˇM¯%¨>ë:Yk¯˘Û>öG&"K
+~¥‡¬Âûëùá[(Û;»HbFû∏Z_ìä»∏∂".e.1Æeß∆±*@3”ö:›ˆî‹è¿ﬁL»_#Ô@‹üOU€#Í;DòE.^ç¢>ÏPº“l∂ZÀÍ⁄l≥„Gt“ô)D–±œ'øeØ¥L·läói¯P2<1œÄwHí5Ω:˛ãgæîâÏ≥wPì˜aJ6‡Ã’Iû%∞O√ÙKã.±¯bE”l“¸∏F}πÈÒ¯M∞d \s`q`+©®î¡xX3f	˜-µÙôxπüzÂJ≥∂cyëƒl‚§üö)3ÂÇ	äˆqOyN&˚*0˛èıÁñ)ß&FäL/úAq
+B„wxÌLK^TZMì»åœ¿Ê'AÓê›#ºûÇ„Q¸¡ê\‰UÀ%á$Dˇõâ—&.t¨JÂewã Ÿ‚•íO
+([:$["¢‰\%Õ_ô∫d“e4Uc0±€f‘a˘¨¨	ùûU<ét∑gÉÔ6e‡1‚ˇ/ße\º+ùÛp “Zóã	,˛Ñ†¬ÚEEVIıÀÂ,Á0qç?.QØ8˛ÁCﬂàLtõ`|]áöûS(›ãûEFEBrºû)©Ü√âπd0¬Å&©©ùN¥+!ùH◊¢†$v–˛yÖ+{Ã/myÅ Ü°N‚¿Ôü”Ò{∑_áñÀ˚òƒy@ç˝πÈLH≈ˇ	¿¨ˆàr´$x1V	`/-^%XP≥º2Iƒtg√˙YrtÀÓbÇ;¯UåòÔ¥>evÖ‰¥y∫™7)“EF=iiIÅ˘ÜÄ⁄ﬂäÖnvöq^)≠%%>¢™içÛ,¡XÃ•ãêá∞O√!Ã3ÁKØlZt#∫˚ﬂ•[_3PU)'˙†ÖÔ75Sñà∑êjôÜgÙÌÓ	\‰ìÅÆ)%¿=€<1’ïRB÷(®ëY_ÆªÉ‘ÒÙÛÔûÜg;ÚÌ£"Ç#ç
+_SÿWKsJÃ<⁄$¯‘7¡Ü“€*˘%èô%å.â·‘ óc¶Æ«ÿFf˛Æ¥∏5í'X≠ÏE∂êñ∂W¢˛Ûr2o/ÃÑ”E¢ueàí9G$lbë˛±‘Ú˘t‡N~˘K¥îCZa7/œE°D∫¬Û‹∆¢Dª©g[+f:ﬂÊ÷@Ô #ê™¸^@Ö˝[†PgÇùOH&ë ÜLòCyˆ4Iû>¸<Ií:Ù∆±S§ ß9o:ˆ∑?MT?J-¡yΩ$24›Æ®‡Ä—åS#ÀÔ#Î £}Ç”ôqgπ¢‡fm∞äÃ`75EÄ©ò€?üõ'ã?ª‘ü
+Ü{f®Pv
+$IÄ‰πü¯;ÒTœÛFÓÍ¸º5 ¢ƒxËbm◊ÌÕµÌ¡¸®g{v©\YZÆ,Æú].ü=[)UñŒù[6ŒúÎfÎƒ¿ÆÌ€Œ¿NÔ[ﬁVGß÷0˝;˝ÛµïÖSY^?íX…7L%˝,B{°ÆÎÂt )Ö©˙±*õ@V¢‡$0n§WÕÑ#XSÇ≠
+¨ÿ±=‚ó\Y ¶˚,x™©ø‰ì≈Ä(^±G„≤pÛ:¯l‡œÒóríI(Ó@ån≠R–M∆5Q˙`AQR‹”#E¬ñ1˚Õº_‰≈ëTJ ≤evpLåuƒ¬wh¯.¥æI∂ï3—:gíJ[ëÇ∆ABpü⁄F"ò +Qc9Xàî"g˘¬Z¸7™$r√qbi=rQ4zDË⁄YLHŒNõÆ—C!sTöQ≠4óBˇUÃ÷&*°ï∑Ãÿ¨îf%ˆÜÔ˝Îùﬂˇ´™ÛÎã0ΩÑ\≠ÿB•–8ï§Xˇ∫¯˛<TJ:V¢ávÓ=2iv˛˜yÌ'µ«dÊS–Cê¢º2ÀŸÇ-ë∑%™ƒ
+bàDÄò2Zô?‡≈Ω"éí•®)•öìÁ˙6‰HTìo»jπÊ‰ŸJ°nÙ ú[‘m1‡ë¨¢e‚ë/“Ê“ıÒGüx£≥≥tÈÒ¨6!±ãDíw…ôsïÖ˘e©pÚL6‹ñ››{©€çu¥wT˛¶ëX≥ºså;j‚ãŒßˆ,E¬Œ
+*L1˝då7ãû8ë>€º€9«Œﬁ∂j´dAE∂zÁÀÒ›GÒ[b4*º◊-eTU‘µîggvúË. amqŒ.Ã∫û9	t¢“i1o$1<ãhcwÎÍˆN]⁄´o@EZr:(4Ωä∂jõ®Qﬂ¨Aæó—^˝“Â&)©≥+{w´É‡Ä1πò€ˆª´‹◊EKM√«e(ŒóYØ9q∫C≤à6Ï˛*ﬁÛáx%0ª«éq√ÍR7©~x⁄'œƒ@ íxa‹tZû¿Õ/’--A%pÓ´9-NÇvF[W«O∆+ÚmÄF-~9ÍQ=ú7$,ëzﬂï∞ÒYYIæ’¡Hd$·IﬁïalJj-º2ƒFàdJø7Í—◊äı∫5JlK‚¡ï–!'E Àa$æpb,+qõ bÄví
+yj‹2—{»z+/fZBª◊îL»…¸;j:ûRÔè*áÔ;≈Xﬁ.	√F;ˆ¡©W≤ÖFÌ7EƒSµÏJ≈¯}Úƒ…s,ïÙ¶∑$Ur6+Ü§OåŸí¢ÎìŸTIgq$†,â H,©(«r(¿–a¢ìjäêo¥#cπ$ÍË4>˝œ·‚wHÏ˜ß<LÊLdÎO*™N∫92=≠5i¢Ù√¸3«˘øñ‰∑™Œyˆñ}`:ÜkgÊìÑ∑Áˇ—}yæ;ã
+Hˇ/å<shy-P2÷oÜ	T-cL˙;H
+XΩ®iwªX\x-ï6mÌéhÒ"»•y™Ùq≥dNQÎj˚˚≈Ë72S’$;N(è,ãy‚•¬Øâ÷ †ºi€˝∑,èÙh7µÆD{çﬁR®6∞ãGÕ!˜÷ÜF´ov4‡9á
+v3,•}ë≈ÇÀºO|—_›?Ûh„ÊB
+≥XÄ‡Æ
+&Æ‘ÿ–?˙¯üô¥á¯5ﬂÿ›ôs…ª∞@©Û∫[”Éve±Râ%|∞
+Úëgè»tq dj‡¯2~«Êê_(aó¡ﬂ=∞¨B|›‰√,R0Ò+Gè(·©F›•&Tp±RXœµ«£Ù =8‚[.sñh§ﬂúöÈ~Ï¥oÚá±ãñb ;	ùa'ì9“¡ªp*±Äp–x@ﬁPƒZÕ[i#∂–àÅ(ﬁ\rr%aÌM6î>^°ïiQÖpP…˘(>exJàÄ ∏ÁSö˜ ƒ÷›áƒ'Úç˝°µZÓ“Ëˇ ªÓöô&ÆÕú¬C'~A⁄ä{ÀÇªˇ∂Œk“:üë‚*íÙÖ |…5¨√ÃE©Q-\⁄d∑ïËî”ÕX.ã„n‘ÅìÂÒô P˚ö1:%X…©m±@KY9˜]S	n%˝ät'ˇ ””t€&l◊9AÎî&a√ûû8≠©%5ˆ¸¢¥∏êCHUıLä"¢®qn€vLê≥YåiÚ¨¿G‹qƒ¸ÁIp¬ïÅîKì$Æ=∞ÃêÀgâ (!“ Rö°MUXñÔˇ¿œ∫ÑÀ>'¥˝}¯Î√õF!EPëhKÓÃÑÿ"0◊◊L«√r°<˙]]ÉW⁄Ñ≥$óZvÑ°]√ªL¡Oöf»÷Q«‹7∆˝LP]87ôZ‘°R0óR‰!!óèTó:≥úVA*ü[!üH¢	¨_`ö/Œ?∆∏πûé(Î#KíÊÆÒhd:m√5„·∫bﬂBY⁄≈…π>¯˝∏˘êäíü”‰tö~êå_ö§ÿ∞Á’›ˇˆ€¬Ø|˚—à∫òu¢
+‘¢oB‰ ﬂ	tu‘m∞•b7	^ˆå‚m§€S+ñç¯˙û[0ç›ï≈–®X∆~Àâ+<◊é∞â3çÈ‹êLû…πT<gäπ4`èˇûl€ofTÇoëæCˆ*üÚ9Ÿ¿üìœO eÜŸÆ≠.¬ÒÛƒÛ(næ≈9‘8∞¿òTm∑Ò,z®a∂3ä¡G^(àAï–IigÆpb‚◊–%ÍÉD»f&‰<!⁄ªqò?ı8‰ÿ†ÑÃm`‹,ıJKgl£˝>ÊÉá%på*í"”‰nYÆ770F≈">C®Yñ4ƒµOÉd“„-ÛjüµÁ¨é˝°GNzKè ∂…_ô§£™ƒ6x<ì!˛˝'MÅœ¢{Æ1n∑M◊›vª≈7	!¯1À|IV‰`¨)¸Ëà5¯V!#ìåwíkóhƒÃC/Ω©Ÿb∞#C;¿A—À®KH≈¢úËª^ıÏ‰qôxÃ'{≥kˆ˚y^≠;œMk`B¥] Ê'&æPòôEò6-h5EQ
+†G49ç
+1x(®X√#±/ZE∑ìá¡oqL^»Ú¢îFsÇ„ÈÎÂä‘[Ωúe%»∂dGèUT–¡MØ≥πîñıû<≤,÷¸° f‡òn]€ƒ”≠Aó’‰l≥ú¨∆¶OÒÙí<ìòH7ç;B|UÒO6,˘∫gbQÏ§Fêà≤"{ç$ÅÊßFﬁÁÿ˝ÔSÃpö‡Ü£Ç6°ÛŸï&≈Ö’7ëz–<=f,8Ùπäc°ß_/"ægcÈæﬂ«{∏`^	_û"3±ÑØ%óÊ.ß%ÀM&Q(≥pπ*ØîcZx**ºU=85Ö>ñÏu¶s˛åëd„jPÈh⁄„¿zñs+ù}µO√ú¶AÙ≤A≥.ö»ïÕ{tTˆŒ„7¨éŸ2úÙX.ônΩÑaRrá…Åu≈Fæ¬ÑÁõ£õ‘¶ @V¶¡å˘£ y(Ç¯ë¬aeçó@Z∫ofMÇLáòª(∫[$ﬂÓ1ΩÊz¡?Ä€˚€QÙëdhÎ~ª3âªAOd>±à©ìôëˇîJwÖ™“:ª’ñRÒ#èGÅ"â≥ûgê	™"%Oì˘É◊ó¨ßÒ‡^Åáv˛åä™£Qà!≠AiZêNÃzÓ Só£3&Ñl#Œ∆Ç‚\…Yïúj±srlîwÚ4¢˙„≠»RŒUqÁ∆`1S2<ª¶S“,‘v}Ù∞[‘—ï⁄´,ËıLCπo◊ƒ∑D~Eu†ñ∑˝	yÆdëïfI¶z®¶ﬂI:ï}˝oVñ/^|„:ä¶HG}<”Ài˜„Ä∆Q:L¿DÑt“›=
+´É‰˙
+ZP ◊ö… Lf™Ò… &…‘T§ %⁄æ47˝Z/¶‹Ï◊°…`¯N¢≤Ì¬’∂?v/“˘-˝˛˜PËˆáMëY §`ì2ãFœç∞jæntSYÖ‘—3!Îò&Ò8.QùÇÁhP˛`∞¿Ö˝´Ñ"º|L3dzL-BBÚÃEzŒ>2€ñ—∑\è⁄√ÒbrºˆÿCE¸È`àÈjˇ\ﬂ†É†û·"Éø≈ƒH'ﬁ	Pa>\,îòXC◊s∆mœv
+ê=,æ»Ë¨!˘ù
+ÇvgÊ,7l‹Lñàp<hƒ9¨·‡öΩmXC ì¬Ç+jè ^+uÿ·ê#i£®·=nr‚„nÀß%Ö‡“î∫ÅWZû Wx*EkE∂}ãßíi⁄ÛﬂgÖáæbææ	íº©û˛€iÛURª}_Z·+óœ"€U q≥çÓ ?»åÙa˘≤H¸Æ"ÿú¯ûÛ°á™XîWB ·ëqŒEêqŒq‡21´Ω‘e∞Q€iÓU∑Puk´Tﬂ)ÌÓ‘–ı⁄÷∆Óv≠Wwv† ËE€Aªx{›¿¥HNõımˇ¶BÌîﬂó3åÔWs`çË≤ÈÿË∫Ÿoìi∆pòÅØúpæ‚m„VöìèÆct,<%œ.9hﬂ±!õF7,Éc—¯ä'A1$.2øﬂEAÆQ¶Ë#I àÁWÙÄkÇ‰í¬§ `¢∞Ta%ÅBÕÁÍèäoLI\…º∂AZ=c”…ì™ >ô%0#xï≈Ò˚Äî¨Ã[Vˆn› ∞≤Á»*ƒÚ´£Â/N±É‰›3©È… ±ÒäPï´!´EáNEªg8UØ∏03ÁŸW¡'G+@∫§Ä©¢‚<ïlj∞çÈqHÚ,pM\êyjŒ≤É±HöQÚI{8+Æâ;2∑^RÚfg£◊êÎ¶`ö .Qì†Ü◊mﬂ|C£j97KZÅ“©®®îá]RæIVÅç˚îæbt˜?SsVX◊UY…îv•πåü$&jÏ~·û~vWa3◊î∞J≥„¨àX‚óÉÙkÿm4´b¡»≥£+ïÈ©jT2ı0®ÅzaÆX|ËŸ·IíLªÙ˙äúˇ4õ@
+NVb¬ÿé<âÀÈf?Á£±§∞ÌRΩ±@CeG/yÆØÁƒ˜›9~Ô5*¢à4•UCUÓ„[2ä/»A[RÊœmŸHMï≤ËT≠UÛŒˇ  ˇˇÏ}o◊ΩÁW91íàjDI§ñyc≤$«∫µe]QvZF="G“‘$áÂ√≤‚H≥hÉ¢{7ã∏›Ìz7»≠c˘&Nb¯©,‚Øb‰ÏGÿÛû3è3ÛˇIY∂5hcëú«ôÛ¯üˇÛ˜„∂.Û†%S¡s÷dª!˚2,ºı•buÛóW»•ïÕç’%âM[ÿpªmüé„-¶±å÷-VAÍ¥ÍdŸÌﬁ§ÜEFX%ó∂∆•ùUiK;ì°rOcœÈëRÖ|Ë4nèLë≈[é◊`O‘Ùk8≠ZV
+n‹˙õ÷_û“Ï©S®ÍÏÆ\fÿ’\6AAmé˛êÌÆ«¢´foz…ÂÀBi§mKej∞@Ôù8£ÑÓ˜
+BG#B◊Ql‡L)GÌ•8zS¥Ó:{ÂÀieë%ÙÂ˜Ñ≥ Ëf´Cò,=xµqf/º8¯œ;Öê≥«;E-/j–pªÒ"Cgs%Æ€ÿV´xn9k∑ÇºlÚ‰;eŒΩ‰ZÅÕ˚°È÷Ω>è&}¶lé{∫¿X˚1üö7ÁXnÇÅZ'ú≠—j¡UÆ»∫*∏6˙≠Ì:Vßœ
+n≤¥€cπı≤‰÷_πW\Ê‰ä1&è_\|i=ºdÍÎÛ°¶i˝ Õñ¯íxıÖŸ ›çå Ùüi‹˛dóß\®Ä·Ø⁄ß„vª<"˚µ„r_ˆ88∫˙2$ûp¥‹'Òy˚ƒ,W™Xõ©ê%øŸ¶õÑ[?ñgG]û=SÓ†Øïˆ»Ím≠jf:ÀÉ∆™oÅBÆ∫ÎπçzjÖ‚+$ÍÔ∏¿´©5{¥E⁄¡¡ãÉáÙÔçÁ@åãW´¸† ò&ÑXõ≠ë&O•⁄íp·µ#*‘ûÓôGö /‰˜û,k˜;t·ÑDô¸*ºlÂó@AÚÅæB¢l–.…]ßÚ2‘ÆﬂÛi˜TAW=äxl‰7*‹Û©*FMœ!∏ )ìÙÎ-
+P*ï¢◊%ÁlÊƒÃa»5h˙±N¨∏ÕÒüoóv-üëúênçÕ¶-ß#ÚR;{îÇùŒÔˆ§≤A≠Á—Y¸˝∂‹ËÑ8Ä›Y√#üÆ– ë‹8ç·:@Ç‹z£ﬂM*VÅ◊Æ˛{"˙@9	èà>÷qŸß"∑≤≤]¯/ïr"¬`%òúO˚\>FÒBÇ¢PûN"A¥œˇÏ©>¿~‡*HÈ‰3<VE√eËæÛghŒÊKüÙ©’Ë«”.Ò»_Oùfá∞Ê⁄BÏöAWm—i˜›´1ÌR!eèg^‚ë1K‚∏±ë	ÿT‡)gÖvèBµc÷A¥Î2wÉ:µ©ˆõMß#¯FªdœÎÌ≤,@)õCÇxlêà:7ÁÕ ;gwÕ¢s‘RÖ\⁄◊~’`¨c‰é•ˇÎ‚®ÓÄ’»%íñ”ÑÙw@p`íØt94ù-+F€e#œá¿o Q§åúö·@l»€”:¡ h√”Aƒëçâ=1áŸ*ËpQ;	%53JIÇ
+ò=x!èº4·2Úyõ86@6ÈRíhdôMAPó’+	…øíeü¶fO å¢ˇâ+ÖT”n\ÿbég6€‹¨Iıúïﬁ†Ÿ>èï"àÖ2πÌµÍÖ[N5Ö-ÈÏk”◊œNä”WÎ„g'9{ãLù$o–˝¸Ä˘ÕíùΩ¶:`Ê€óY—¿˚Àâ'≥∂$ë[}Ÿ†æUUîÁ≈|âïÁÈ@l®Ë<∑DıhàBâÁÒÊÒ	†¢Ô<≈ËÓ;hnå°ú·ˆJYÌ) s)ã}Xü…+|hSé'S˝ôáåˇ§Á[ËÉú|¢‚‡3æ4≈j|áMÎPu \ô∞±•ß•üììÔ+øëP6ÕG∏u6+ì0Ë¢ãUá	’˘'ß3í∑#5k…π‹0Ø/ÄÂMLç∫^˘Å≥læB≤3Cá˘2@Òhn±ïπ≈&¬˙Øü¡f)'x}-∂ Dì◊>ÀFjAZgáæ"ü>b#Üb=HEﬂaÄHä8@÷@£2ò`«V•y#úUâL∑ñŸà√9ª⁄*·:Úˆ`∏ß∏ üaËÅEÕa‚E_∫í˚4T#œ®¢QN∫ß¢ûß"*F◊irÚ≥ÙÇëc+Ôï±Ú‡êç™»¸”7≈¬ÀV1S/U-2’
+∏ïôòYîff“N93≥Œı#hg⁄≥%>7'ºr`)8á
+sÿeÆüS~§++Ò{fù^Y[=ø∫≤L.\9GM‘_íÀÀ+UÚ.Y∫|e£∫Re∂x(cÈÔ®’üÏÁ˝á†ÚK¢*§Aã≤˝(Ô?Ëœ
+V¬€ä-ñﬁKù‡∫dsÒ\ïú[‹`Ωˆπë‹.™ŒˇH~ã≈øMË◊œì˚W‹=*7Ë`9Ûº2\/˜‘)ü%ü¬DïôS©∆ÿñb0≠°m|¡‹∆≥¿7È∞Ω88ò$…„ïâZ⁄p‡˘,˘6'æ≥\ê{ì∆mÉmMπ76ƒ∂tÁÜ⁄êƒJ27¶∆éﬁuTÍv∑ôûÂö¥€®	IÜ¡s1˙A_Fp  –Yå¯T"°»ÌL|dvT»ò°Œ'hÖfqí±g¸¢oÃ¢LÃ‹ /:˚~ø∑Ïtw∑|ÊÓCX[J ÇT•Å∆Öı∫Ò™ëŒ≥®‘ÄBqÜTzÕò(N``õ ∆j!∑M⁄˜ÈCÁzŒ}2EVD*∏∆ÛíõH˙∆¡[teF˘>ñp·#æí§rEUßêrıéLâŸ‡Ó8®Í¬∞ÌFIeb©√T	≤æìx…˛˚—I;‡ŸÑafmÍh"Ôôz‚å]bY\b–∞_Ù·£ïaï∂∏Î‹œãAöÖÁˇ1S¯‹Û1ã√Oësçæ˚Z»o1ùæ4Ø;ﬁ	ÆWñ}·)úx8	ûñ€Œf8$¡}Œ˜o≤äÄ√ê⁄‡q±âÌîﬁ;LÅëIÈ˘ññ+df4íË!u≥áÁﬂKı1]]]˘êLW¥ﬂÓÚ’ï˛]≤«©"Ae#ò≤'„Òî/¡+ùıˆÖpﬂ≤€>œ†¸H±‹≤X9¨ª∞è‡„ô’ ¯≤éö9‚ª≤∆£p…È’v†ˇvâÖæ®$Æˆˆ.yó,ÚáQQÿkCQL/ˇPÔRö$fh—¢…d≥ô'îÑã¶08}”≠óI∞ds.$9OäkÏ‡Ú°çT#Õw{NGíã?Òèúu$éGNQÍﬁ‹èTA™Õ>n˚ù¶<ª»ø‡Ì‹0/¶≠CÀ™CM˙.Ÿ£¢AÖB5/"µõ¢‹∫éL∞ÌLnfÛb3õ¶X¿Bµëwmz≠‚¥’ª3±@(Õó„YR?w]ßŒËÄ âÚ˘bEªu%‘äøÂ–Õï™oßfÜ$ˇV!Û2xŸxEOÔŒ‰G5—Æ€Ù¢Ÿ6œa(ﬁ—][Ï∂˙;‡Hsñ¯9‘»10€GÒ◊Ü“õ≈.≥ªé•gHz‹MGF~Ü§¯õçƒ…–ã‡X~¶>?[~ÊUµﬂ	
+êBGTàŒDıOô∑ˇˇÍ@ÊK–êj‰èéµc°ÂPD;n›Î-ÖÉØ∑7é∑"Kòæ8¯œ∑Ô"Iöì¥ª˚5ó~]´Mü˚aÈü‰=RC…õÙˇÙ€“4=∆ŸW•ŸSttÌIùoÇÏÕ^GTŒJÌ’»∂Ê…ùVt˛c!l©S::28DÎ)˝¿I`+òÓk,Ç1¸y˘Ñm"Ô[Q^åH¢xff˙M≈qˆ2ƒ2‡îLÁÛ“ÂKÎ+V÷™´WW»˙‚//≠¨míw…Ê∆‚ZuqisıÚπ∞Z›ººÒKÊ∆OˆΩãjŸ«|ø˙€ãÉèÒŒË—e}Í-c÷®$’µ¢ ßˆ:y'8πÒ§Í
+ÑS¸6kiô¥∑D©àDÌ^»`ºö…¬í.Zµ~â1ÌU`V01®(›pkÆ◊é‰√sk±◊ÃâΩ&ç@ Ea*írÀLY-f ^±Ñú^/∫Cñ3<JCññËÈmG´ãÇ˝“7-%˝ÉÙ´üÆ/∆e∫à#	°‘áU∆XÕ”Rx)§í1ítrõ5òînb.gk∆&EAæP§˘".À^xÉx™≥⁄S¥bc≥1e—‹4.ìD„yâiˇu%Ÿk@V“â8†K\.%»5–í%î…ì_˙≤Pπ∂Øˆ êoÅ\fŒeﬁ4*qTB˜3pı$õç0≥$ÁÃŒƒ¥=ıK9¢⁄®ÔeIM,—∂ÙrVœ Ò∆WjÂ††
+èÓ“AdäcH˘á‚®73Vç∆õ5π⁄¬ÎÖ_,öÖ9ÜÏ]&
+e¨|	´1tèÊ&õé∞Ù.z›Ye˙b£OcÅÏó;8∫Ã‘CﬁÚZnù¥ù}±$∑FGæ∏∫Ê∑Ë[Òibºkóúéfë4ùv°@œõ ^˝6o\∂ºzÖ‹ÿ‹¯EÒmñi«@œÒ«d«m”UÓÚ]∏ÿºŸ+éMê±±Ò…n´+\M”dû˘üÆ¥€ngâêÜÆp„Ú∆2Ωmã–©yc÷î÷≠U÷ö’µ´¡Â”%ËÂLéVÙføÜÕÄäD!âÚ<Co√∞L*ºﬂLXì{¥L“¿0–≤oxA’”¢a{jg’=^E*ô˙´ˆH¬Azı≠¢æ˙:¢˙*¸à¢•ÅO±D%“4ÏM∑∑Î”Ab£Û)s!=ÕÖÓœùÓ.œ<^svú:∞=u™Gã÷‘:.s¨.ˆËÕZÓY¶ü
+°G'˚-‚ÏdÊtaﬂMq 0ˆÌö«¿vü¨hI2O{G[ºáø6G74ÇÒÖ∏srÿØª¬åÿΩP{"˛b‡{πç›Oƒ}¯ﬂl∂ÀÈ˘ôj€3˛bcdœπ;>˛OMHH0±çGDÿ5–+@ı&»∆ò [⁄®ßK¿“RgåIùÖ¯uR‹(sôñ8°ç~!m∆Œ˜çbµ«±›-≤Ïﬁr~õÔ0ÖK+kT|.ÆBÁ\ fÁ†¬ r˘C/À^,ÿGπl∞dÌ´<Ùr€v]‹ π∂∆÷7W÷ºY¨9u∑πTÿ`O…7˘Àπ&ˇ…¸∫ó?˘◊˜ÈÃkëÂ_;≠üeŸØíst%∏≠:YiÌPuÀe˚zÚœÂô¸òœò¸t÷#&ˇ∑«ì?·»7˘grM˛˘ÈŸWhÚØQsÚ◊]Röea@«kÏy-NøL.9]j~sÀ=˜g 9Ê~µzë⁄7M∑Û~<“Í⁄„7l Œ∫éRØ§Öyz»≥q{t]e.ú≥	™"È◊&''c-ü Ù€¯-aùÎmìÇÍZïeÃûq†lÍ∏Ω~ßÄG<Ûg>î¨îûC5ã¿-
+=51;Ov’”˛”¶å∏5∑ä%‚∑ùö◊€ß¢ìÂèÉ†j0“†B3@"LÁ>ëŒ\¸`Å»üºe∞Ñ%v¿ }!sLN=Õ∏#ß◊πm8r`·n⁄v‡{ﬁt˜O3˜
+Ã3Ò«@”1—Y}”â‰’AFE£8w*”-≥s{íÌº˘"1¬ü¨l“°ÜMê†ÀV„ˆ™å›¬fø1ÃıWÎÜø«x√Vó'»&ÌŒ	Ó†ô êrÇ,
+gR∂ÁUx®]û^Éëk‡Ñû·√XÇwO(3g‡"n2‰i3\Y#&øìñ∞≥Ãô÷@ﬂMøÂõ"—h:òlExuË8Ò7E¿	'˜*ÈŒ)ÎŒâΩœD,ov∫ƒŸq6"JÜæâ°†Rú∞ÃÉÆ˝ÛAŸ&á;+Nò√ü+·I?}¸Ô‚Eòm1 óÄf3ÈÛÅ¥®\m}Û§UVé¨1È+z˙‘¿ÎLYKπñóQs9g÷\ÜgΩ¯n6;Æû…πÊBÀ{∏º-È¯v‰[ô¬–}Î“
+W4î"Pu0yˆû¬	aÕe˝íFùåTú ≤…„ÇÔíe∑ÁxHåZ?r®	 |fòƒr>˜‚∫˘úM7ü”¨¬®a≤æÉ¥;`˙y£ê·òHWë≈Ö‡˛‰ÿ"Ÿ ‚Ê!ÿÚåøûeg,=8Ù>¬Åuóoù… ]+ö®[˜˙Õg¯ÖOAÎê´ß∞;0[Éã"EDd©`÷ÿäû–∑ÃFNá¸Nx"kL¯Ï1u‰¢J
+éñsÀ€qz~g≤÷⁄∑˜Ï‰^ávÕ&ù(ae ÈìÇÉä˛NØpÉÉ∆ ≥ÿüS5Eö,ºkˆù‰d.ûˇEˇ˚÷‰ì@dK¡∂Ú "7ŒR∞Í Òd‚íQ£íÌbÜëmÚYº,	b|>Ã˘áÂ|2.Oüï Ã≠p¬Î˝%øΩˆUñ9¯^Ãyf‹,‡¶ñØêGz!CıE/s©ÀEˆ”}V"Í@æU´È)»ı∆¢cw«…˙Úy¢ I˛»œ} ˝±_j÷ÓÂC.ú±èËJhi©ƒ”pJoúÉÑ≠€≤,ú¥V€H¯@NæeØ’ù∫e6oò{b?·ÉÙ¸≈√áÉLl¯xUz®ßé∂Åª„ÖÃ)
+OA=Á”.j*cä|–wËúÍπ.YÛÈÃÃSA_éUyg§Óœ§‰‰G=ÌfZ˛\Z=‘ò0k⁄B∂ÛB¢E=ì´÷q∞jC{m{ €j´ù«±h&î#?‰+`Õ	œz¢ﬂ>|áKPñ˙D]Ûwâ~Ø–{Ò’ÉóF™â›x∑õ1#ÂU∞ã∆ÉxÏÂø62#B qäÈóuÿQ¬˘W˛S '''a^ª	iÁÃ‰"XÑ¢Z>ãD7ã BByL:åÎi8öπ˙Ìß?¸`û†ÿ0:%„≈;4lmâ3L)b©w…‚“‚Ú
+˝Ê¸ ‚ÊïçRΩ≤∫πí&[»è±ú ≈_7õ˙Æ+øX\⁄$’Õ+À¨Ãˇ¬ïs‰“ ⁄E•Á¬ÔTNx0Ùƒ¯ù8GÖÿ)Ωƒ?Cé˛Ÿzƒ_#ã‡( ‘•Ø•èª[—÷{≈ìt#;â”bê1ôHÙË⁄?»fˇA«©˜9DÚí”ø l¬∞¬"ÿ»Aö¨IQ´ºÉ'ÑñÀë¿≤◊â˙	¬eñµ,<ÜVÎ9?M¢xÎt¯µõ U-ë¯æ¡iI*|ı‚‡c≠!àëıÛ∞˜Åê‰á∞ÛA≠Q3hT›Ü[ÎπıºùBãNÄ•ƒÚﬂ4Å›aioÊAÍa≥võÂ8M0?º±‘à€Ë∫–á^ı‹ΩK~›-åmı˜YÓ7»%#AêãdÈõÍ’D4ãL [5cth/GT”’˝Ìm⁄5Fdö4<˘o8Ï´èî&ˇ(ù‰±Zˇ¬Âtüi≥CÊP»“6¸é˜ÌkßA÷Ñüõuù]R$U:πÆPE™,„µÊ^Ü)!ˇ3¢5b	∆]i‡—Ò¿Ä≠Ä#¸áXW#’]ø”sÈR<Ù?L4ı˙tøËQµ‹¶ÍçÊ·a™Êæp&ﬁñ#t∆Ù´<°ÿÁÃl€∆_dÂÑ'Y‰=”¡(ñàäÄ“/∫Òû…O Hó8ûa¨LæY7Ö∆”~‰ˇêÉ≥†¸zeéÎâπÀÄ‡ ¶%‡J“π£ƒñé€4Né¡GN0∂^l‹PMáö1\;Ñ(≤#‰3ÇM_wëûfŸsàtOó≤‡q_Åˆ8w∑¶7Â€Éﬁ˜LöÄörkÌ3knP∏øÜ$·“)Z-IÄÖ
+@zêÕpÛn}I¥HÉ¸ˆ∑dVbŒgvˆP…˛8≈ÔªGc<ä˙ ˙º'¥ÙÃO8ÅΩºV˜æ‡ˇ»g3∑é∞n@g£∑”‚Ëˇ« A|Èò›÷8Ú0Ê|2åé]?0`·èÑ¯Ò™)ÁΩœË9\¡ú¬6ÒL¥◊OE»x®é ⁄"^u¡ﬁa∆ÛÇπìûxÆ=©√Q"®zÕﬁr1h"´
+ì⁄‹x;˝4©fs7øAn—„‰dú±Ï<á°™%ú⁄Â©ögﬂÂ¥_eÛ	º4Ö¢Aˇ(Úi{ÏnHZ]°˛´øR(Ùgå:¡/:V&íèWMô∏Í’]ˇp5â–‘µ©jíΩ~äD÷ÎC5	ªTΩ˙ÄË5[dh¬ÔÂ˘"‚ù≥«W‡.ˇo(*<‰)£“B∆§tE¨ù˚“Ó≥PûZ”àEtFEÇêﬂWDÍtŒﬁÌÕ≈sdÈÚ⁄&KÈ)W»“ ∆ÊÍ˘’•≈Õïjz∆íuîjná
+fèâànn*Ïô2ÒEdı‰%vJÆ1•!*ª“j$"È>Ë‹ö“D˜,åv9H-‘j–˜u≤®ÄyÄﬂ(Ag•Cú~°Nπg¥†Ê€í1ªL+ÑàÎ@îˆ9Ö˛âP®*—é#I’Õú¿â3òÈ™€°/‚÷a¬ ;Ì;#jKıÌz≈§lóLbŸ,6∂ûÁà0lµ—`x9∆ªà◊MÖÌlîóôÚgQï“˙ÄLfe©6v`	‹ˆ)(›í2˙≤âÉÇõÉk âYÕ: ˜n>ñ{gIÂ ∂è(:sÑ˝g	Ç´$±–¡≥#õ=ëË/ö* p°Ù;º¿©$À.T· EÍ3ÈN;¯ùFd˛¢"˚–Îv˚ôXî‘r…*4dˆá:kß„‘YÛÅØòôXFhiöÈÜ”ëúP+ö˝|6Iv~®6⁄†∏˜ß’À÷ÌN
+ÌO¯â¿l‡6À•JÆπÑå7UKò\ò≠º÷í¿dA_"—]<‚ÔO∫©r7[éö@·N
+Ä÷Aé*‘meÅÊz+$OÆ
+‘^D)†–Eg∆bd:Æ.p†Ÿ	/Jœ(Gø±€Îµªï©©vœmyt˚Õ©[L3‹ü
+OlL!πQÿîævb∫˛Ìë˘îıâ‡ ∞’∏√ZŸÆn75∂¬∏€Nîe´mè◊„¶.=·¢ILMç£ßEæ?*hÚRåóöÁ_ÜÊ èjµA+ˇ ßçgHÎQó|ôìô
+Y¨VW?XcÃß¨ÙÎ¬ÂK+^ﬁ¯yNﬂI(Xòª¨·:a/Tuwÿ›:À#ñ<•JÖ.¨π{„‰∑∫¶O∞ê¸ëV[d√e–∫‚◊g*¯L’ÏW˚µö€ÕL9F$∑E~ä$`ıC	A-÷'H√—)Õëû"F§4˚≈ÂÎ21W–DÅî)ÜΩ0÷r˜rQsI!≠¡#Q∆˜x$¨òWÔA≈·$æ∏X~ÏÂ¡õl,;)<§oû{∆ŸF¸»∞O¿ﬂ·sxΩø»Tì%ØSk∏ˆpö£-kPm¡›Ó	Ào»æ◊_¶º@m∏©ÿ•ôıw°†c†A?Á[<°≈ìè;5/à-x‡¡òƒÈŸ2@’
+N˜å¿¯—	∫ˆM¸’⁄¨:º’oÓ~%ﬂπÍ¥–ÉÏX¡…oËÜµƒJÑi´í„yƒv´ê¥xç6¨AVœ…◊jÀÍˆ∑ö^èZÄõN˜¶ÿÆ∂ÖàÌ1	‹Q ˝ml¸®li<π”jyŒs*»	_µ˝≠+^·Õ›‡T ◊hZ˝hlá3@Fﬁ–é¡è™I¶Üu%ñÏ÷Fï!Ø—^ós!ôÿ,oËv0€é~√À>1m"ì≈ΩìÎb{)ã|ótj=≤Áıv…EÜ∑ŒÕs¬ Ô€ƒH˙‡LGLÜS[ø©-/zï∂‰•?eVar],çÂ	VlF–m-FúÆ®∑Ë£ê<£u @¡Î.ÒÍX†Ó∞:≈V:˝‰∑6‹∂_ÉG*3n«0TÒ∑ ‹€™Iöúf˚∫6«∂%˝—pYõ6å*GCµÍLP;J¥ìW$óñ»Oä‹‹à2∫C_9n.=ä&”"zâ`lM
+0qh¢ﬂ&ÁúNÖà
+~¬i–ﬂ£_3àüK¥ó∫Ù”2UŸ Éê÷¬@Ûìè…ß¶*E3ÏÇë7∂cÆl•€zöÀoX~ÿ…ibÀvL
+æ∞»ﬂ…dV7S9†≤¿Eî]+-àº]t/–Ê"U¿E`i¨dO¢—±Âu`íπPnrÓwÏ±	+Ê+pãOhst÷$Áb⁄à?2“CíıÒ&ñ¶Œ˛‚¯¡Â/ùsÄy¢Bé«•0™ ÚM-I2”@¿ÎÑˆD˝´,óÖù$ÏÚDÕá^¯å´∫î£9®`ÙÌÚÆG}‰¢<€
+gu ±]ÏŒãoKõ≥›VGÏ‡E√€’+l'ÃN£≥Ú#›!ñ)ñ%â˜∆‘ÓR9»1bq¥~FÕÖªùUO‡ÚïÜZhzov©öÛT∂1[-–®ÁÅü=!y;Ü™b-^ÖŒBÂÉπÑì æÅ ˝A§TíÇòµ[N}«Ω,jä= ﬂU6Œ=ã⁄6ü§∂±!
+-h∂Ä˘Ù∫Õw_CΩÁn˚+Jhﬁ1=√—æHRyÙäe¥~.ê*û∏˝í Åï¨ÂñÓ¸2 h¬Â9ÆBo(»≤“,s›xúT ù_çÂkÇ]‰1Ê
+\ L~îc‚#ΩÙ
+çy.YÔqTnÜ∑ønı<mÙ<Jî!ß‘˚ª≥U\I˝c0ƒú)í(°Ë˛>ãh~Œz≠B»?Q‚Ê;.˛◊
+ﬂ.¿K|$(ZB`ƒè≈{Ñ∂h7ÙÒO9Wò“≥ÆAQUÿ˝“ÚØ’°‹ÂJj:SíW{ëÌ·Csj´îç√Úk™?j~Ô¯À $‰Ω1∑„ﬁˆm⁄€û√ﬂ.=ÓÏqhè{"xîÕáŒ_{ˇ#·xtÌ∞ﬂ90ÄngqA≤◊Y[áÓt∆∫ùáÈx\œùñfR[«≠åt,€MHÈ.TSLœaÒ∆©,ÆH)À[lvC1mx' }f⁄HÌ∂Ω÷Ä¥Ë.À8ŒX·≥Vﬂõñ1∞5Ùπ˙E+ó"‰xù’ÿæK1ﬂ⁄ó¨Ô2ÍîKö´0Çâi˘}`G!ë„òÀUò«Y»ØJbW/'qN⁄xqD@x*tIı:~kG∑Œ(÷Yß1.>n|≈|Ì¸æy&8ä®^\í◊c.=∞Á]∑æ≈flµÂµ€no!◊£Ëâµ–Cô{ˇÔã{,W€∂Íp:m∆§˝ '$ß/”t;˜x˚A_ˆ	vPñ/àÂÈOƒÜD?3ﬁÕCå∂Bù¶Èæhó©NnXNm˘9r˛ìnî€/ö€áç∂°/9ˆè¬öâÒè⁄ıÒËÍëo4ÆWøNQ´w1§≥Ò˘{ŒK¯ià∂êìÜ<èH«‚·9RC.QºXƒÅûäﬁy æ˚å±éÿ:Õd9÷œ˙B>ëü.x∞ˇ,Ó%~ÃæzÌ|≠3ïå:õï[N£Ô:õ$«ÎäuÕı™´é§Ô5û7˛¶x_ç7?ˆøæ∫˛◊ ˆøö∞f@¨I‹˜¡™_èΩ∞ÿÎ_	/¨¡Óò	>
+ı∫p£Qø´æ›h<Øâµraˇ+=Ÿ⁄øgRL›Ñ`ˆKq¬Bìåsv∑êœÕ¡≤äë”’êF6ÍÒây0ˇvBso?ï†™∑öäëOí{‹œgÙjæîÂA¶LŒ¥Â£‡'˙˘Ziy“áﬂ†ÅQÒ} «! }á ^~‡˙Îπr‘|ÛO∏ˇÂ>ﬂ›üb¯Ì7=ˆ”˚È_ô<Ê»˝W¬W/ºÕèD!B»Áé±ˆé≤ã>;Ñm˙_‰’ö5à›JzÔC4	n¸Ø’£ÔÒo–§DˇxçÙLmYøº~eù\∫ººx±BŒ˚_ïŸ˜©ËÚ/T7‹ˆßYï0‰=ëŒo≈˚3ˇøÙì‘;qó,ÍN◊‚>ÖX˝1'Ñw€≠Ø’u{tÛ˝®òËäH†êóïsè–≈Ã9¬Ëøıéﬂfú ∂TJ›∂SwW!&–5mº@«•´…ªÂA_)À–;¸è›‚µS”∑vØßmJ\œÿ±Ø”πíÿ∂ƒùÌ˝∞Î’ÎT…ª\C„Ä◊<Ê.wôªì›ûﬂ^ß=ÎÏ8Lq* Vì˚5Ñ˘¶Î‘v›ŒXUﬂØg≈Ã–™˚V’=Ö d™0…√º∞ ®$Á4‹ﬂ	•ç…„@*Dƒ	 C`a!í0!∞Ó7´(ãò«ß…l®(Mh„D‰=a’v˚€©“z¨ü6{NH‡àão(æ˛ë!(ÀÌ>X◊äcÍ Ï◊êÿ+Fa(ÕöÚn9]7ßÎ∂ı/ ”gw√8°pDDxºQTº∫E5é<tXÌPΩº0k¶ç$∂sëNxÒ€·4#!ôÓ<p◊NöpÄy»t=øKìY*Mf‘phû†ûtŒØÔÆº3Ze‹«ÿÛíE%P÷Ç9Iƒ§ÏíÇÕ¨±ZP®ﬂ§WìÏ¡tj*w™u–˙à]j6LL£’3Ñ/0’ikQ¢lJ‘‡;Ê˚ÁΩg2úé*ÿ!AjNˆ–øÒ¸»á´ 	Bqg'zLåP ¡JÌnÃdF,Œñﬂi:¬Eóò0Ìé[d:¡P6¿∫€≠uº6óÜBÈ4‹MÃ!%¥œøiwÄ¯¸P±ƒ=ëY˙àßf>›≠6aoÃ}#˘Ù´sK\(”<gÉ›!É˙xÒ’∞"å•=ÀµÚ$©^9wiµZ]ΩºFV◊÷ØlVô0˚^4ìD‹ÅÊK∞^˙úª /˛c¿ªGˇ˙J∫‘>ÖK∫;oŸg√ª£™ªıô‡˜V8¡|â™» ˇ1`on˜P"äƒj´›Ô18‹ãtªGÙ0,Ã¸¸Ü≥Â6B¥·‹ûGò4ÃQ:ã|smæ0Ø)[ _pGÁè.CbG<U≤Ù€¥¨´äe∑È¯]Æàù8Û≥<f	Ô!‘%>T75πﬂi‡≤Y≥{⁄L;!»¢°qwù÷é´Ω^iÿ¥ÓdœÈÏ∏ΩIﬁdíLõn˘Ó.ùTnÁÙ	≈(∫„ıv˚[úQ¥ﬂu;-:~SÌéˇk∫ZÖ¥˛*yb„èÎªê¿=óm‹[	V ‹Ayrz:â¬ yãM2∑˝Zø[Ò˚=∂y
+îuÒUám∫eÛÉnk&!˙Ö !– ≠"OÜI¸öã6´Ã≤ÎÄS"ˆ'v›yˇ;W˛ï’	r’eº2b—≈^€È∏ÍM;˛^˜ÙùúHë]ljåFvq Ï·….†¢®“π*¢~™äSÓáPì¨6¬&	π¡°ÖﬂüÖÓ999˘Jà¿ë»Ωé€ı>“ßE»gaèú„Óë.ZÙÖå˛ûåi$ƒ:py	(gû8Ú∏Ùƒ1 ¯æ∑M
+oŸtù…^«k∆«—w5¯«j&∞‘S±øÊÎ¯æ˙˘â0êr™ÆÊYEZ@»¨ƒ3P©Ïˆ˙ùˆ:tÒùÀ=“r˜XY9ù£˚ΩzÖ‹`ôu≈∑Ô,S°0ŸÚ˜
+„woL†ÔƒΩ„ªâ«ónjπ~©
+Mü"í<ísﬂX9Ki->wûâjè˘”>t∑®ÆuÀm¯mvnÓˆ±«ı6Æ÷3[∏ZÁË÷–i©më„âº°¬&∏X9«SÑ/¢b8"úÆXi¯{1_	oòäQ#Ô±’JÿJ+åOˆ¸ã~ç
+@ˆëU∫∂v
+c[≠‚πÂ±	rá^ªO/mıiáy5˙Mìn¨ªÙõÜO€4Aˆ]F°'w«ÈÕ«∆sºp Kü∂|–~æÜæyq0°f$«Û€t[…zº>G>˝?hÜÛÙ›ø*$cg√ﬂ∂Â≥ë∑)ÿÚ∂Y^‘'“gJ7ªÉ/î*ä⁄ó™>V*0ª‚@Ôh)ÓS”c(qQæzê£3q `g·°2¿+≤Áx={◊Á‹«¸»»dj√ﬂR_ë@R†=˙‚·ˇPøvƒóâ ˆN~,Gév-V1¯'lë‹∆ä∂Ìé{ãi◊§Œ0A®›¬æº>é~”≠CÏ’Û(É¥—Îâ¸V∫·Ï_UOﬁÊ_–GqøqZS–
+ Î ÷Ú#K%ïŒú≈£¯Éµ/ëh{Ki¸tˇsÑB¯LÂˆ~´¡4Rc#°ıˇV¬Ú5°;‰›æÁ¬Uhíƒ‰°1{ÒD∫ÀRcéÇˆmëÄjÄÎÎt##.d‹Îêo∫sLËj§GD ÓÉÚ~ß∆2T+]¶ÈO-åêmÀéWéK£–7¥rÑlÕ¡∂Ä¢,÷ΩLO¡–RÄƒazRåâl¶°|\ë†í%5HWΩÿúœ6>^Î›DV»ÌQÆŸøì†7ö≤ß©üIv^B,∆:Zqï˝‡µ»∫ﬂÓ∑…œ¶;&úêÙìÓ§e∆π˝¥¯4lﬁ∆ÃLpj,+Àâ2‹W∆›ˇãÿç»/^⁄SLò5Ü¸À∑«ELŸÌ∏€ß”Åu≈â®∆Èø¢˚kÎ&N‡2#¥q˙DÀßÕr;úha«(xÑ∏d”∞√s≥-È^d´„:7⁄Œà°sVn˜X∫¡ì0íÛ≈tFfIıñ>ÚqÌ8®íSÑò4ZûQqg≠æè∏ΩüÒøû>3Á“ÖÄÿ@(Ë0éu∞òØ]L
+HıëÀıd˜âÅÁêÎÄbP;0DÍﬁE¢;`¨dÊ‹π!≤Ä„
+¨ë≤Kﬁ∆8C≤“‰"–y®:K∆≤±µfßêCa,§SsÊ¯ó„öY·ÕL!]ö®i8tÛtÿ(ò2™iwo‹EÕB4ËZ|˚Œ#1Œp∑»se{lx4Ó…R^+LiÆ5o_ππ·∏brœRûó†Ìdb$‰ﬂKC<W(æìQV6û/Il#; ﬁIG∑µÖ`µºã&ØÉfîÓôxRR≥'^¢£&ùE;°hPÿê‡§‹Éô…\!Ù îÇò;8/ÃKå ù8)µM◊ß)^YnÒY∫º∂π≤∂If+‰‚Í’≤tq±Z]©íwIuÈ¬ Úïã+©˘\w∫Ω~ùÆâ˝≠EÓäﬁt∂Ñ
+’†ä| ªŸ––6“l‡ Ω´¨d)v«|^ª£¨ú˚ÈŸµÒó©¶dÓ@h &∆UØÓ˙a¡ƒÏˇ9./Ä∏ înJ¶Ø¯ÍQuJ°Ù$°2…]ÍôN7ªØAèH·ﬂﬂi∏‰íÎBÉ∞’ó§1I÷Ñ∏§∂ $–πƒ;©§ÜöZ0$6ˇ"¨ÛØf¶£‹’Ÿ]¸”_>ãf‡=SÂ_2·û⁄Úü”˛ÀÏ§ÏÆÑÏ‘π “ïñJ∂¨¥:~£·÷ fW î◊ÄË‰ºqcº∆ ∆£µ≥# –∏µ_XXö≤¥Ì¿%–ƒXLô‘FP3|.>„9Ü∏ûÔaﬂ(ˇjV-öÑuÍo~v¥ª’J√†’&∑ú^m^éà*<îåiÉº ô6S†!`†¬ÚÖÖÒx3Ìá
+ÎDØ’Ìu˙µûﬂÅ{éjX˛›4√øõé®«∞â7a©—–âw
+1Ò¨ª,z ÿyp√
+Ô¢ùüŒG÷iHWmNOÜ7#œd+1ÿrˆ®hçDÃSƒ%óL±Æ÷v›zøÅC£`	æ¸~WÜ‚wCÙ∞eçÑr∞ÜC}À«√PMu‹ˆäåY3•^<±7x0í1C¨|Ñ3ÔFâ8PjóøË%÷IKN£Q∏—§ﬂŸ†%°§k_’tÈ%£Ω"¸TÜ÷“≤nw!]ˇÑΩ	[#WSÇçe7’T™ü∂¡LW|˛¬}5†yû!úyì!˙KÊ*dqïT7Ø,ˇíl^Ÿººë”M‚x≈^üjRhâ	áòAYŒA6bq«dÔ!XX«ˆÄhkàﬁíò^∫@W‚BD+M	´Õ„È-$Á…—8òâyŒÔÂ’E°æOËû50å3]ÇÅ:¿$◊óB≤ERúü'ÈA¢sÄ -î∫O4zÔÖ’5ƒaê†∆◊m“◊S/æâ—FMµ©K<»ÀTöK$•<÷5üèî´Ëk£Tü]˘øÕ<¥G∫¸Z?Ìá( ê—7,x™üÆı“â5¢›tA ;Œpça√T◊‹¶◊Úk◊E*ﬂ_íÎM√Õ”fî‚ìÂ(iw ˆ◊«€d˚“%∑€uvî◊≠Ÿ›ô ^˝6¬˘X6‹=GÔ
+Q#π!q<›∞¢]¿¸˙rì]ó%Èâ≠ôÅµ@≥DÊá¡~c∏u¢€|ÙµÖπwÆCÔ*5R ú°.y™k‰›CBãf}œû}ª°häÙâ^wQÃÕ]ØuìNX*Eíﬂ$iÇ«m.@éÿ^qf¥ÒÛΩÚØîM·oÑ¬˛ìììCÍ~êûé◊‰5«à@≤˜d´â0h+a≥·À∂Òåòf(({z'‚Ωw¿cº¯≠üª˚À˛^Kﬂ"Y¢;I%≥êÖ+LÂ6ä˘:Hh
+Å®õæ€°wM∫¨÷+Ëµ9•ó≤‚íïxQ^ër|ÇØπä|˙›ÎËgâﬁ◊“W£¶–Î–_øÈ5]ü>á)í÷;‡HâÍFxh%Ën«”ù}#ûS,Oº}áè…›ÖÒâêRﬂΩ8¯oä2$ ˝A:)8p7C◊|™O¯ªrYÿ5⁄ºÖ–≤µq©Pçˇ3æ‘…›“^°lËV˛¡®óÆÓxO√Âäfﬁ◊TÔ¬!#AéD≈t@RH◊ˇáJ›z`≥¸E”≤ÑABeﬂH’ˇ~Ó'"p,l"Ò–U)|H·ßMª∆OÅ.-ÀŸvËº≈›	B∑@–…Ÿ≠îéF ≤¢s;f≥EçJmèÖŸíµ‘ò'bxh¨Ñ2◊#áU2?TæÔöÈƒÄzøs :	ß§ÌX4î-Ú6»ú€„`õcŒ≠q#r[<ﬁè7E~ ¥ÕA6DvÿÍ¬Ó∂Y#ÿxØu¥M|e∑©¡ÿ#l°3ì78£ëŸFØB±ªœ˘ˇhƒLÊ1,Üuò°ß©^∏¸aï\ﬁX˝`umÒ"˝· ÀŸΩ∏Z›$^XY#÷pSsø(†¬∫c9VÊ≤BVÈ}∆ﬁãU§w‹]ó˘-ó¨≤π  -›ıE◊È¥òw¶J‰˘‰í_wŸDv‚&‘ Ìq≠M‹N\ùÉÃNG€Ê√¨n∏î¡´ˆdæi⁄9ÂÚZÑ±‹±?Ú˝&˚∑ﬁÔp∂6ÆèÈdiÄ(†e#{^oó,5¸.#?Á‘w`†≈¯∞û$WKÓŸ„è†‡¨A¬m$ÇZëFœ´m⁄∫Ü€(}kêƒKKL£ﬂnªù#m¢≥∆6ä‚û«'\f‚|åƒœ®Vƒ‰b¶≠–…m◊°≥ªâ#Ö¬ekéÇ´ÁÌÏˆX"'éU:Ω3Ñ∏Eˆí kò'◊£ 6Ù%∞s-¶K~ÜÆ€&eﬂ ”Æ˜êt%•‚AÀR≤ÛùPË(‘gÊ]âzIHäu≈t#¨ÖoîF/–ƒ∏q2d÷∞≈N«ﬂªËnÅZI%c≈ﬁÖ5˝ˇZ^ó/à©é{}÷T1Néû∂ö2†©fRπÌb<vIµò)IÇRÏwí6µ4êBz…°*≠‘˜Eæ„z√Ÿß}≈´h◊*ç5èzh”›∂[ÎoÒ˚”m^~æV.Mù∫Æ(û#Â@r‡Áíµy6ë“Ÿô£ö0”ÉeŒﬁ}å≥˜}ØπÛtjß≥4	⁄‹’¶≥#´Aç◊‰˝Vó^—›ÂL5Ì]øÁKÛ333sÛ•rynv∂∏]öôù)œ:Û5◊=ÀrNo3N¥ﬁª€^Ôt≠„∑ﬂ›;]¢≥ˇ›ﬂú^òVè;ç^f£ëÍèô"‚lu˝FüÆQ≈C.zW¸„o1û"ÔcÕ}jRyΩ˝¿Œb·Ì;rªÀ¶'≥Iœí1y&=aå•k®èÛscê‹ 5CtR«ﬁäŒ’ùUAÈŒ]§√÷#€j(”˜ñÁüç"=)¯<#*<!yÃ·∑…e⁄_«´ìMgJ¯`]ô±“òâ)uÀ÷AôvÉÁœ∆îç⁄rÇ∞FùttõC3*∂∏¡œ§¿˙∆eÈABÙTfëﬁaº+xa6˝∑N•
+˝¶ﬂ—Ä$%6‘âTëbıjªT√Ñy˘kÒ≈¡√ﬂ1£ Å~|$}á©ÿj'ánrÅfäµ _C’û”I¢ˆﬁˆç‡ÈxÕ˙‡Î…ﬂ”±·˙ÙÔEqàQ∞≤òR„ÔíË4∂èê)≤ÓÙªÃ·ŸÍÒBgò¢®ZIÀ1o ºP>‘™ R%íaÎ|)ºﬁälœyâΩbâ©Œ%ÓÌ•ÊŸøªÏ_ª\◊ÍøQ
+ÑdWüjÁØa7?ôÇ% 0ûKth√†œs#ÂÃN–y‡xS÷$>$ kº ò€ﬁÛÅˇ];R∫Hº —›ÖÖÉ™|üéP´O“6ü‚SßóÌ.§„¯Œ‚mézce‡ÖÌ]1≠Tƒ¸ã∑KU@Hîãn∑Î∑÷˙l∫[…Pƒè‚íMÕ¬¥·÷˚∑©¶Ï7nz=F
+D[z…iQ3ã”©øK66N˛ÖgZ,vjÏEjÃﬂ=|¢dKM
+ﬂŒUﬂÜ3uò•Év`CpRª1Äê*óŒL∏˜‚‡øÚò¸S¡ΩÚ˙Wëˇ#p5ç›%?}¸Ô‰¬2)M/L∑iow\ß9ÏéA!.SŒ˘t55ïø√PŒ9√Q‘ˆ9kø-ì »h˙-Y^Z®ÃŒ!≠ç°’˚È;æ,Ù9«ãHÎ∂]∑ﬁ%ß…µ“)MñÁÿÈ ◊qDä˝Óvoµ~õﬁÆ nLj›Ω}yª ‘6oôQe?2é¨“8yG∂a≤·∂vzª∏«jµ.tg˘k≤9Sv†(A¬T)0†Rm&©!ÑB+¿∞û¥¬(v≥√¿›ªì0^wo˛/B£A ï;[ÆLO#W1¬ÚY&,89==µ0Vıw˘,à˙y#cñW8ÖÌàPHP4.Iá~4›ë'H∑∑ﬂpOﬂπCˆº:'Øõù{gåN˜Q°  Oπ¸ˇ•OÂjYsny;é‡5[gG~øKu§5∫ÇdñäÑc&õÏ™—e©î	
+WTR÷{√Ωçáä‘›lXñ≥M[&gÿ ﬂ∂t80~+˚3äÙP˘˝¿¢Óuù≠Ü[?mµ»˚ßI	§∞d'HGO})êû5JVÀ±ÿk$=Åmã≤π-ø«Dúøá¡\ı±Ixë%«ñ˘ç`á≈vÄbxh˘*ª¿d∫|Ãˇ˜D·}≤{Û π/Ë®∫QÚK¨M¨$N˜í”÷≈åè.º#‰öd∑µ≠ﬂÒÎÚªiˆâ‡ßﬁÖ≥>Ç’Ô£'s¬Ë±/£¥f∆äô∂y2BñiÍ€ôXÍ±˘KRﬁÊI}XÊ⁄rœ‡”<ºe0Åå»ß±–ﬁπar$©åÄ\Ñ{8ógÑ∑GñEÄÇ⁄(œnàõì¸tˇsﬁ^€Ÿ!ˆËP¡≈µùõÙZ™÷ÔìÚ4R∑ÜÏMz«Ì#¨F#¸s™¯ÔaT|‚2–x«H.\ŒÌ˝≠Ñ√êÛˆ!˝„-b‘Á=èVÎÍ2::Èác6¬‹“jMt´
+›ûãF P}£X eﬁó¸å?Ú÷=’•o¡‚zŒò;T„(í‡,·ôÑ„,%T:7D„À¡d‘j∂Ñ„XªVF¿/»
+@C.Ç‹5ÁE=´ærâ`DÒ;d›k4`Ÿ_Ò<+2¯xRè+˚ZaæîÜé˘¬ﬂV˚{áxu∫ŸÒÏ—±	“p∂‹ﬂ¸æ5¿Ä?è¬h“3Ω˜j±xÌ]òV/≈`~≈ª,Ù<;fß~òH°≈=Õ—Ï6°ßÅ®¬Õgü˜Ó&Û€·ˇõæ˜QË¡ﬂEX"ÓqÈFüy_?ÍÇ€h˘∞.›pj¥oÈ\=ÛY§‡@VÎ2ùÜÔ‘ëè´—Ì∆€ˆjtVFó*Îıc˜úˆôøi9∆≥8ÚS–PﬂúÅAB¸uÅˇ÷s∂çà!≠“òBNz˘${.láó{]°?08H…U÷x°*Vˆ$Åœ N¿¿9æùh<ï/Üà¨∑@∫&“ „≤0∆™"ä8]‚¥ˆÛ‹Öe]à€	èpb¿G#;XNwJ⁄<O0 'WX°.’ÇA≈]SÂ∂¸¶U™<¨ìÈë Öñπ>Z˚Ad¿£h*ÅÁ"‚§ZHP≈√oîV>L≠∑€Ütπ*√‹9qÊé^:HRf\<aXì(≈ueqÛ ∆
+Y^Ÿ\\ΩX’
+WWW>iÆ∞:eµÈH  iÉoÕäAŒNìy™s§ô@¶,Ã_Uëmz‚LäqÆLÓ Ú7¢∞†ÖâˆXz|2€‘ÂÙ¬XË)≥7yg˘#˛ƒmz˚¸PŒ‰¥Û'AËToâ<7ü1X@ãäüJZ˝fÖî&D’/›!VY\Ω_–>9ﬂo4ä’sòâí‰]≤“∫Âu|n≤Pã¥◊oSù∂ﬁgXKÂr…kçAUf£!Â†!+’˘˜»?;∑új≠„µ{‹Ú•*‚∫√ ¨vö,?a±ªﬂ™1ı‹£?;]∫ˆufÊÚ∂a&h√ÜKÖ)-¸*™Èõ^Ù∂›‚“>5z∫‰ÇÔ3`≤DW°ﬂufs∑†44a±ﬂ€•œe÷ë	ÚœníMˇ¶€¢è_¢œÛ\÷Ä™KıV/'
+5ÉFPÈï∑'Õ~àg”Æ¥vºñ;A™T›Âm02j◊Wçn(Án¡B–ÇugüO¥Ë£˜®)œÄjvD.)l˝‹ÈÓNê5gá⁄Ü¥3™ÈxQÂ‚£Ò†πßdÈTh>4z^”%∫[UøF7$:
+Î˝Ó.YÛ•âIƒ:ÉAêìeßÁê*ù£¡¨<ï{eLù¨–•ÜﬂØìe∑›EñYª:tr¨N--”ñ\u©≠›zbNMK`§·Ÿ "é´à<Æn°5&È´bíJ◊LsåÛñ†íIRAnV9S%πIA≥Í4ÌJß#hÀkhÅiiº{Q∑ã∆h-»:'ß„÷íU¿YOiÅ◊S0≥/§n¶µp	óƒ
+Eñiz≠‚XFŸaS±,Ø£J†dÀ-·de„Egââ¿3aÎàd„‚’DF£ÇL≠¸ç¬àï$5Z⁄≠'ŒÑãvÑ¿Æ∞?a&F]Áœ¬i%7.Z À  ƒõ˛m?›—≠«òÅºÜõúl®§çm:‘∑¥Õ™◊t´{éY›s#∑∫ÔRª£›Òw:T4±:©ÈqÚ>aÒ/∏D≤wD^Ìõt£Ωb©ÃRÿ„@<)åXs!>UkÛ∂§SŸ“¡a“cÈ◊£™-´Õ0_pû’ÖéÆîÅ“ÕîÓƒH>¡gjó9=>y<≠Ä'ÏtûÒ˛‘Ó‚%Ú2Ó˙æràQ„ïé™ÆÚ.
+/.¿;„¯G˛¶?øƒ¿`ˇ^Û§öò¡Ô˚Ωô¬°üy∆G
+⁄H'ê)Tè8üŸ√ø®Ç»øﬂûWËV‘Î¯≠ùXoÎ≈Dw∏(π˚›¯1”\Üj-æ£NgàZÿÈ„ë‚úr¥4]Yé“M¬µ;Åÿ⁄çêŸ*wÊ‡Hx‚àV˘‹x5®7pF›®d‚då
+õÅ0:º_eybœ˙ˇ   ˇˇÏ}{o‹F∂Áˇ˚)*æI‘¬µﬁÀZŸÜ,…éˆ˙°ëîdÓ1’MusÕ&;d∑eçb Œ‚∆ÃŒdw≤û`3¡z|Øc˚:«`s=¿EÿO‰ÃGÿ:ıbë¨"´ÿ›≤ú∏1„®Ÿd±»:UÁ‘9øÛ;©=]:k∞¨™ $"pÅóZomlØ]Ú∫‡:¬fû€@´^”Î:>ßà[IÏø√—L†IøÂÀ˝o…æP_}ˇ‡£Eƒ¡#°|Ûà≥:~	ò0»N†âNp›A°4wçTÀ'Ù\≤Ë√ª[Y€‹[XòùÍk&u¥å €ÿÖëuè	‹eŸo¨û”Í”o	∞éY@Úk#£7î¨ıGÅh∑k^x£>c¬§1≤µ§o∂í-Sekmõ-¨;ﬂ_@”I√hºÓ{ùùØág∆˜"<lÄL´	⁄√N◊º.a;ºKÕ˛Dzrô#iÈGxf™ãW˚≠\øÁcãDYi∂s‹™ÜßÀl)Élç’b>™fG”œ“Jÿ…∏£™PÌ≤∆VWıŒC§-ç$C…à‰Ö˘gd|eø˛ô“*U‘+”ÇsELÑ\ˇ”æ Dq¶xa‰§2Á¿ Q ∑‘ì›xIÇ‘ÛÔã1º íî[D±ÂÿpQÌü÷7@Ÿä–vó?Jê±(UÛIÊ·3≠Ù(üm∞∫≠y„gfP	~S¨˜∞l‘TÉ ˘Ÿ—°‡Œ˙Ä∆¸$'˜y?‹qèﬁÃæºã∑|ﬁû˜†*ZÒ]‹‰¶€	±ŸF˚√ú”jEÓÓ©c‹rƒ€—Vo,«càV„=uÏ}<kÇ´«†|œ©cAàœw£?”“≤ﬁC%kM;{≠ÊÏÁ¨r€‡>N[±?|ÚπÒkw^7ÕÃ)Aß™ïÜK©uS›≤ëç()ÃU—“Ÿ:π¸sh3ÛeêÊ<ıS£…BKò1Uñ/n4û-Âs	’xGNÓ˙´®?ò*∂H‚¨(‚74∆ú«à»¡ÛdÁY;ÜMﬂE]∑;jN|ÿá”åÜ`Ó,R÷ó¢∏„=Ù˝Éoi Ü¶&}«ºd•4í6ÃêÊœ®6⁄ÍûÛ.}k“VﬂØçPò»Lˇå’≈"I©ƒJvó¢X¢ôìÆÛL5çl˝M“é[ì®HC`_rwGí}sà≈n^úûêR+áù0®Ω0G7h:æ7¨dÅA€∏VÑµyM<ù±ÙKËX™ïd7WÔüÌi»2LcãuJáuÃÀ·Âub.Wô'3}ßÆUÃ‘WÑ∑Ì"Bz‰)A‡Y™‚ÓíŒ‹ï÷ªáL›}N<°∫È)/b¸XD˙U¯ ˇoëT,¯	ÂE-nª œê"≤ä˝[R]b*˜VW6¡Ú©…‰gaRíﬁ5=6cïSk˛M‰’IõÒª≥ŒÃ©¥Ü&©9¿Py¡ÜcA⁄_ÿ∞˘OMê÷’~ã5Ê¥ë®¿ºÖô~kåò/2›—s®$ÆºªRSﬂ¯èXÔ¢∑◊Ö)ü.µ˛$]j˝q¶Ó^!vQ^XVÏX∏ûK◊∆ì…åKw}öö≤ñ± i’ˇéˇ}/K.Öﬂﬂ"¿Æ	ÒPTYwÜøÌ_—í¡Ù·T%¶ g&$^5∏N˚-G,<M˘§…_l˜˘å˚Ä˛jæy¥[˛ÂÍœh|ô◊.l•@.‰˜°7!bôïnmÜΩÆ£tÕ´€'˙ê-[‰À#"ÄL±_äí-—VoßÌuÒç!Õoïöc”#ˆ	/Â⁄Ü[÷…lΩO∆'Å°Ê»ˆÏ^àıòÿ'éÿºtj∆Õ”ó[Äü‡ª}$I¸]Ê9´•_91¥M£NÏ©Ìﬂ¨9˛“n±òΩHö")|+¿ÀäJÈ◊‘tX+zEàÅ˙;mÙ%ˇ¢	îq0i7áIòb—  Ø√ÍzAß◊µzhJÒÔÕ|ÕÒ{Ó)iÖ(ÿ/∏jóg+-'h‚ñjÆ` µYs«iàkú‹÷2óã∏«ZXd‹H>õË≈n`qõhÔèu¢™±⁄ΩÖ˚µ4bÈS üJÚnXÔ≈ãXï˙^‡övÚÒñY˙í∏êÜ”∂ß´ÇO_ < d˙Z^>«ªë◊Æç⁄–òÚè P‹*Ú∂(înµvPåŸöëh	[0 |(≠òÌuv•g≠lO)Y^ôçUÖ ï~$˙TCKSÀåjh˝ºV¢M¸ÜGÓ	`E?≈∆Ë±`[µP´4
+Â∫‘_XH±È‚=ŸfQ±Ló.7‚i∑õD*»p=∏#2ûÓ
+gG2çs¶#ò6î4≈ı6c6tpÁ‡+Ω∏†!Ï<‚∞á”»’ „˘z‚Rë[¯ëúGÇ∆PÓ¢èPçrﬁpí°ÌV/∏[Ì~îÁI±ÅSÃƒgF1wcwÚﬁ≥Aö˝[Ó˜_≠`#dÕ∑–l}íW® πI5æ|<Ê≈S¡,&ZN!,nÚËŒnôÄŸÒêzÀŒÿxÀ4:ÛÍç±`‡Bt}ù˙kæ†“úê€"l/º◊`g™u4:ú˝E
+î¬ ù‚òΩg[˝F≈{ø/ﬁ;”#6î°#<ÉËÕ z,ôø"}Iç6}Í}&?ÕØ˘Y_
+‘Œ·u˝ò£SËˇ◊AÙïªºÔ—#Ne˜)˘„SûÒÃB¶	z8óâÃ=º,;ÌñÿH˝3Ó£e
+;›„»k\∑dg‚Ó+ÉÉp4·{Yor3Ñ∏?√™ãRòªçÀ0íjUÕªÉ+:S‡7≥÷öî0f…mÑ–πG Z?Üı≈à◊h>ªÿgËçä6¬l’∂e;2‡ã=ëÌy•'"≤™ïΩ¯«Ü√»÷t¶Æ"Ê˛>¡
+»z{’Å,ÍÃÈ«˘ÜÏΩ)ìlY£8uê—ä0n“yZcœ¸Jt;ñ~5S⁄ö·ÿ◊Xïí!‡˚SÉó‹DmÇô2àYTo“öoÂï¢ 
+iY%ÿq\ŸÁP@ÈÖuÚ+ÆÔa•ˆö–f$ÖÑﬂ@µÂøGÁÒLs)óS∑–Ω¨ªaxŸA¶LV˛:çÇ„"KI Ìk∞Ã:0ØÖÈ…õ0a⁄•ÑGÂ;¯!P°ƒèeØ~D(©ï∂éé¿fÖÇ√X;IêglÊ°ÿ£•*É∞}\*!õV`ª@ÄC[QS]¿4|«Nüw€^‡!X¬Ä˜Qjœ.ÙI©Ìx€¯¢Ë¢«N”çÈÊ´7´læ™P„Znª
+©a˘Ñ¥‹ı‡ßè›†¡8\G rhª©(®r—ˆE°£zoaÓç_ñ†’Äy’√ƒzzr“Æß√"g=ÄÇ≤Ü;òù<pKç2±3{-£˛U"˛<⁄OóÄu∏ü˘+V∆¯•ñ™G˜√‡‹}†®M[©ŸE¯÷xm°ìy‘%±Q‰«¨.¶u£> \ßTZk/ßó_X}OÑU]õŸ¬túÃ˜E÷ãø®|O:J#∂—J‹¿zÃöÿny¡’J|‡§ùmØÌÜ∏’ê Eoœ⁄%T°:6˝H√„xbpÆ‰ÈsëÉcØê1ºqå‚ü"%dVFK˛^¸ΩàR•∆p,©êÑuHTá\Ù ©e†@§‚§œ…a∫óπU’\ﬁXß€[ŸÈ˛}}ñ¬#"¥üí;åvz w∆ùFc(‹∏ß˛+ﬁ ÛC«ª˘ªÓeøo,s«ﬁEÓzæÔ6»ÉFÓ•8”@3Ì’CÈÁßdKüÓ.Ÿ≥uÔä5^¬v.j&”Æ„«∂≥È∆qÑ7=vÃN∆ÁZ R®,]ùo®∞±XV
+û–à0ÉŒ¸ûF˝Òt5Ws=<6ï πC∫q¥P\Ê˘¥ñË≠>ê[µ•R¿ˆH¶Å*·√W¡}*‡¡®ﬂ>ïÔ UoE≈;Xµk§c·tu‰ZRl~D◊±l ˚S·§JË©∏È˚}æZ~´éP^ÁOE‚a≤l
+ÏDçˇ¿s%≈ûÙ/7ß—ﬁˇM‹‚˜«0˜1‹ßî+ÒHÔÔ·r{Y¡XÑz¥Vé
+o†º†•>mS`ì“˙àåË©à{ﬁÜ¬ìeÓ»Óªù2g8îx§DPúÿâ1∫‡a›3F∏r—˙6⁄
+ÌFiπGùo÷é· Óˆn–]¢Ï^⁄3Ê≥£‰!Ü;COÒ–—Ü+g¸˚q{1Wÿ¬⁄Íö8©M∂:…ÿ˜vCKí>-G∞ò°xGM‹’N˘,3f"ATvH!aÙ&Z«ñK‘#Ói=;£B°Ö±â∏ÎD]‚Zö1X¯i+€|`ÒÖ¡ÙÓÇÎD^πÌº-ôãkBèÛZ®«Y-Æ≠ﬁŒ∂≥c≥º#´÷≈Àx?πÍvœ∑Ì_re“9õ^ûi¨å$â\<G†Rﬂñx†÷"S!ˇ≈ﬂÁeìù…§úKä	i
+H∫î…ºc≥¥Ó¯ÄõôZ\v…k7ç«!éÍbë´C◊€ÿ¢5∑ ø+Æß≈¢™{ºÏ˘O∏Œå1“ù¡Ô˚2´â≥á~Ø»^ÄÆ1íIIÏëâiÉ™9!^MΩÓ˛Xzå˘QB ëå≤El1_:å∞ÿ§,'œ˜4◊‚ÈáÇÊ…æSV(1áÉ=üÖ5–=í[ÏEN«ÊÌ™XWÚπ±ú+¬æùòöÎá±àœúßa3Èlb…m∫ıñÿä‹¨Í€jªØ◊.#‰î|EÛä¯ù} kÍaÌUÏﬁÍ0 t@5{X>©¥˙Ô[•#Ÿ∞»ÿ>√¥g*iú˛j© º77¸XÙöà◊QdvxÜîS[¡b€ŸJäxi¢5[-uƒú¥2µ $e'-ˆÈ˙DEÜÕ∫X•÷Ω_{=±O±D‚ößY∫˜[ºD’é°=Ø€BÓu®tπÙ‹¢C%W‹wII36<Äñí!O3xYxñOM}çA`tµÍ^ `LQp9ô9ºF⁄ç7êí'Èê`b{Iª„#E±Wµ‡ùKÍfK=7!Y“∫·XÑv£∞-Îè0¬|5<E%º‹xZîª41¥›∏LÎSú%⁄xQÑ,Rπ,dè>D<Ó9«,:Ë{‰W=€.˘π¨‰SﬂÆt‚ì˘¢ØÇæ4UÚÃ˙h0•à,zâ©(AwT{‰Ã‘u'∏ÊåÃg”?9@”k∂@.∏í∏eël2⁄≈!ÈïÎ—∂Ê-‡˛&—Dr»Æ©ƒfKz#Umj3î^P˙∞]ìd+*Z"ﬂlhH/â|≥kÄØ‰¢~¿vƒ⁄ﬂ≈ñ‰|)Y_≈∏•∞k∂v?€§|–Æ9:/È•ÎXY^_D5M?YµÔøGS’o¡&“…
+æEî¬C4Ç€¨ïﬂu‘Ó∂R
+ ¢Xá*µ¿˙¸∑;ø}ú”lúﬁÖ¶õ&xd~è∑ÇD€¢2Ëí∂É˜≥≤cò1éù¢i[§‡Lö@≥Øê∑LäaRì ∂`,‹>˙W‚îúû,®õIEó≈!NŒ8ˆ CGsUÈ6<úR°ÓÅﬁÇ©V⁄¿÷åö^,44V‘ããæ2ãxØÃ"”^ôEÊÖY4´'[‚3NG˜TƒU4R®ôÔ˚æ≥”ã˚µt>˚B ˛®°ˆXÿ;üe…¢ÜeÊ”Dºt^†}A<rRÊ¯	≥TªåÀ∂¢icY\Áô:Î¡n®Ò˜V∞o¥¶≈·ò73ã≈ﬁÆ∂ËÎúàÎ-∑—Û›∆®±’#B+1d[—}X¬Ù´XL§ˆ·{*{ërhï]Mï¨™A€U≥¨`[‘∫®}5k 6÷ ¨¨ÅŸYC≥¥nk¬⁄“{ôt´¥•Öî5¥§ ´UJ‹J_eıIÜ˙Çóœ¥§{ÒI~ÈÍv9[+rS$T®f%KéÕ”+[oÑˇöòWpd6áá£Y£éwÃº ÎàÇg	å/§6Íep®ñÅTœ¥JŸ0·
+Çèd?Õ.Ñ¡à¬V¯b≥∑†¯¬âNüÇ¶^ôRŸªÎM©∫·ÕÜ–£WU∫°Wï˘ÁïEeˆ9ãj@]U€Ye´yUÔV÷ÏJ≠K˝⁄]ü~b†áíûˇ»åØN/¬Ç €_ÏH÷cáıVòtBbà±Éy[å˝ê5«ÿ·C±»J∆|fŸÚû5Ÿ,3i“Wft⁄hπ!®…J-Ωˇ¯ÆÁ„ÅÆ’Mç$0éÿΩË=Œë(œS4±‡4G8£™'Ü‚ÿâ&∑bâUﬁÉ£}ﬂÑ8ª§ˆ©ª–§Yv	  OøQ^öÆ“ºñz∞-lÉ÷[™√
+ût
+)/Ñ{nÏAfåÏÓf[Ö:5%”w¡VS›«=âkå¢?4l(1µ—±îÙ¥b≤nåé˚n–Ï∂àLÓ∞ÚÙÆtïgëçÅUXïì…ÌH^5ı)í!õ
+ÓÃ(Ç;†€◊	ó£·˙Æ»—’|Qa˙ßiyﬁ,MRf§ÃIm+∆≥EXS1LÚY†Y^ïØyQ‘Ö†l+,fÛò˜Ûû\R„&˝ÚœÑËãQ==$t…7O(òKÊx∫hÈßØÓô>§≈æø‚Óoo∑ÚÀîªO∂™j#éÔõ6bhFÍ8KìuU{Ú÷ùdö*Ç¨vŸﬂfíN0üÚÿb™4ÿM3∆sÕÃ¶*!)kc©`ÒQ∂≠i±»¥øﬁ;ÎkÔËÎ‚?¢Àõ´kõ[P‰ˆQ"]&ºøÀ√µ4ÂÂ„ÔÔˇÒ≤=™Z™<çáÄEã]Äd˝ãx©ò©b È)π∞–kc{ånâ„Rbr3V‰^Dv◊i∏Îe91ﬁò=∑ÓY√íE÷ìP"Çp±ÃJú)Ê ûäñ\◊¿eküÚf ékûèòfç®ìZU é)æ“•`f∆≈V+Ït‰¨”T?Åcé“od≥·lQ°R—
+±„•˛åÁäYi
+ü0M32◊¶∂˛ÛJ∫Ù&+Msﬁk÷ÇûÔ™K|Â;ûªw1l∏µëùﬁ>Ÿ?_∫,≠=µë¶◊å-.Ê=^¡R◊£˝⁄»≤πöáÎ[·ﬁñsÕm\¸}+J4rs∞MÎúπÅÇØªú¨ƒ5æ
+^M6Ω¸ùAº¡∆∞W’F⁄I Úê‡•G y3iœ9◊¡£±÷P7Ï,¢…„h«m9◊<pÕè¿∆Œ	∫#ÜNA#€Lül*˘Ër	,êÙz§Ω®åHIë¯k,‹›^òÈÑ
+àË(™>ÇêPèî>õÕ≤ñ⁄hk)g+Ï°>˘ù˘Rgf—ô-â†∑∫N∑s›œí/Qm´yı.ö¢zsvl%Ù{Ì ùèºÕOè{tâ|£zËáQlÕÍ¿&4ˇ`€«è±≤…™@fT⁄—l“z<=:ΩºñøœJØõ‚)Hz˛"≠ÔKÎ93‚ﬂ€à◊‹fñÜbc0Ë."ºâ:€€w#≤Ñ≈‹∑Çñ	«ΩxÉtˆÚÓ.ª?ƒá∫¢ƒM€)a˚}ßÈı˝˜…™7BœâÈêì≥)ı˚N?5«◊üB~yˇ‰˙æ≠7ÿâ¸≠@–»ncDı3øô{Ω„F›Ó≠1{!‘d^·°e%$?øHÃƒdâ1|Â^†ªá6*!«Táô…|ËBlT≥?ú$µÉ{K<jT√–æ
+Í´‰mÿ4µŒû>ı‡”¥®`ˆ·'”O~Rı‰¯R£€ﬂ09…b˛z¡˚‹πm=wø ≥ñÓp¢ ”IÓ_ü3`«ÔY˛…$È'ﬂeŸ'“íO•‰û…K=mÏË»<ÈOF‚y•ß=ô⁄(Îë{o¨%ù˙ïÏ¢‡$ùıÆO9w⁄;nîÕ≈¨†Û[àÅßdQßG“≤Nè•Ñù K;kËà;ÌPFﬁE/Âg>©xÊ%ÚI4”V‰¨6C|)‚⁄ü‡+ÎrVK™Ør·//úöÀùŒO——ôºKôi ı4˝¸'ïœ?¿…¿ àÔ;íh∏ŸãÈ+Bß–éêQ∫∑ì¬Ùª„^c‡1g;p*°Êﬁ5dÂÜOæöÎYÂ÷†Q‰ƒ»	ˆ+Tw=∏“a¸h◊˘ÿ2’Ö˙§àQ‚ó0Àë„[[∏GŒëımXpè≤4À—"å∫<Ôõ4≠äWùïLê	by À¥-iú\ÜáöéqÜ	ïÚr©ôc)/Ól
+¿ô$I´⁄ç©¡í82X©U ∏QÛ"Ü§îª„DıôÛQV…w,?◊˙1Ä⁄
+•^3pòëÖGÆ™PËˆ:0©SCóù}Êã+\¬s˛©‚«>Û„ˆ ?¸b·ã|Ç›À+ªõ©Å®ÓñÚr!°m∫&/©˚î¨BÎFFRä•ÿ ‹p[∂+dõ©ÅR<€ôæ h·xùE´˙má
+#(ë~[Ú-_^¸noîàH ¢ZÆ4≤e:f} Í™UM_êj£’©’áº9§é·Â†ufëÔ•÷L_ê∫ô§ˇ´óóÎZ3&]-÷Õ“æ|J+m*`Kˇ&#ÈûBõR˘DÌC<§U<Qr&»•íS8_Ã§^…!ËÅœ)óÕ15….KπÈ>êo©>ﬂ†÷^¶aµOk\˘ªRÁ¬	
+Ìm∞q‰ùÿtÎ.6^g˜◊à¢¶ÍBÎW›5q™~M<,∆Ω‚w€p#XàXóﬂ§¶ø6¿ù±X‘Õ3Ë§Êå‰Aœ†˘9|ŒÙúIË›Ù…Íÿ•¶ Ÿﬂπ¯∆&&∏˛iÕÃ}(Oóaâ-obÜîaIéÄ£FÂXöö4ºM—;∑Ì®p$≥nÚÔr'«o]Én€Is·}d_Â.ä(åEG©^;èÙ√∂2∞Ö=taL—6NLe<wÈ|∞ƒ≥™î·CïM)¿!zMèÃ+ÔI
+[JúYTõâòN…¡±˘|pLÍ∞$⁄Ç€oC6*˘Ê
+Ó›0∫zŒãbÆFBÿ?oãùÛ˛˘˝]¯]h/˘Ækº∆xΩÂD+a√]Ó÷∞˛öf∆xπzêª≤¬gÀŸ˝-¢⁄’
+w@
+ïﬂôÏ`7]ﬂ≈ò∆r–ΩP‹]nﬂqwªÖg%nÃ¢÷/!"(êpS¸3˚Lùz©¿Íw‘ﬁ˛˛˛«„„„∆y¡ç∞{∂ô	˚_ø0,‹@z}3nˆCãƒ`z≈N7»ı8	·C'ùôYÁˆqÑ⁄qÛ,ôûâ‚ ƒ¬*< ìÅ™o˘ÜZR™§§ùÄá!ÑItø¢
+ÂR]ì∏ΩBâé`&]»‚”∞ô~3ÉN(‘‹ïÖ’v4˙V9ix»¬Z=.üíWn[TWﬁÇ¬Ä±VÇkØ ≠¬ÑJc§NLV≈#ÓÅ3Çj96r:d9¸g‘PÌÁn´≠∏Ä
+oYuâ¥o¢?˘Kêô¥«ÖÅI`RX.ù´[Y‡lﬂëôƒk%ûvÚn9ÍD[fA2ÖÖúã£ô‚¨q}£m≠¢]±”Œ¶…Mb˜XoJ‡ßÿ·Vœ‚Æ€ç‡óπAw´Îvn”Ä3k~ËÒÉäÉ£[z[0ecSñç—°R65m’îxˇ ∂fåÁN◊kªêŒWÉL•{§óıTÑa‰8ÚpÀãh≈ÎWÒâ:å8Õ»∆})ö%ıü≠[Õ‡qY[ow¸–i‡éˆˆM*Ì*˛Ï-∑~ï˚ò6B•Y,uõÆs.¬ˇ!ÇıF¸ıv¸¬tˆˆ∏z∞'∏%÷‰Óub©“ﬂ/bôwö.=í®!x∏ãEŒ’ú∂(K9>mI-zg–>49jÏÅ!jç4ﬁ˜‹›&K8«†À«QÓmcQ∆ÀPªc¢9,0x∆e	¯ééÖ-„¬¡ïÚÔ‚ÃÌÈÎ13+ÿÅv#[1ïø.B∫ÇV~Ã«≠≠§%»Ò§éiÃ¶=Üik“7Èsv∂EIAVËf‚ŒtRÜõ']L∂ëñ‰Û£BÖ”7”C)˝#È†ÿ>XÙœ8¥¡oíx~Ã,F#hùyuG XòZDÃSãﬂÏÆÁª®v¡›Ìé¢¿l}Ω…ì3œB8’6Ωf´kŒ;;<*”ˆ)ãÖN⁄‘Çœ∂πx)ËlÍ /yÌ¶≈È≈QùÆí4Læ|ÕÈ:7“Ív;Ò‚ƒÑ¸®1÷/q˜≤,ñùVÿ«¶ÊffÁ¶NÃNù81767sÚ‰¨3≤·∏;g Prj7å⁄N˜Õ]Ø{™Öù7˜Nay}ÛÉSì#6Ôr¸Æ‹IxQ§ãú,Ê≥vÏZMÅaPˇ?]hw`cÑ$6É–ëI!¯zoNÜh\|ñ~r`bg'˝VNc;a∑∂	∞w,ÇC˛‹#j§EïI∫æ[ÍŸ√LÛ?dç'Ø''Më?º√Ê5ë…Èô`?áå	G¨⁄‘óŒ§Ô´`MÈÃ	∆◊i_Oû~‘íOçÚøê˚õ¸_‡ﬁ˙Ñ⁄Ïñì¡çŒÆIY÷E%≈ÖÛØ˛~∆1«}¨KÓ—n[âö∂^¯IÄ¿ÛQeà¯¥WJË≤ô‚„ôÜ∆∑…¥„Ã:Ü~¯Ë_Ë®s,'Ûw›¥Í^s˝∞”∆2m5¿∂√kı^ÕK_ì≥USï‘≠¨á>õ≥n–‡$ˆZP3ƒRöC;¬+«{799?Ó‹/¿PØ_ÖÌ¬íj5ñ«v„±Ô’›⁄ÿ¸Ëx7|ª”·»WÛ1≥±ÃSìƒèÈÇ¥ï»K2NıùfµÕ ±ﬂú¿Á≈‡\ÿß“^%Èı·°\R˝µﬁ∫$=>åãËÌ·A]å;Ü˜>˝®íÉ+{$”™E˛MÕ8´Èíö0˘I0íÕ¨∏	&ºIB…9|‰ëŒùõ1Xtøπ
+6ÌÈÉÃÉ™˝xπÁÕxøøˇ‡˚Ig èõÂπ@≈·ØÀ¥<€u⁄BØ⁄hUæ”û^DM∏ˆÒ∂z€i∆ï∑—‹-en8´¿ˇfnW≈AØâv"◊π:∂áÁvl°êâ6&Y5Ãj&î¢å£Ë© %I¨‘ÊsŒÖyáÉÇ£‚∆Ÿ#"ù∑∏hﬁAµwÒ6H<¬ÿ3LM†Ájm%íA´dT‘j˜~L(ï-—nX—Í÷ú≈ë„Œú◊¨Î¯+”lêuø∆ŸèÊ}6\ √èˆWù}íV0sœö˚d]¶©-O≈,z∆◊lV3Ù[¬¯mÁﬁï•U+@Æ/á}hgLÀÜ}ö”ñv’Å&*¸BF|+	@"( ‡áf:˝K•∫óí?Á⁄h…á6∑á¨–g—4Á#<€k4›.:^GµãPœ	`Ã±æ‚{êÁô⁄’ùÊÜ¬iÊ”ÜˇìËñÆbÛúb≠Ç Hzj8qÀmÌVé˘æ]'3Óû9≈‚™r…û´µ≥ê1ìH8µMÜ∑Fö˘K¡ùeÁ4]:ÎWÉõoE˛¿bV’hÏ≠%NüƒdháZè2Á> A|ßM"ÚXCN·…19JÚ°°ﬁ7pèÕ⁄»N0vvuƒ¬?t§}z‰ÌEñﬁ≥#59oeM}¢PH°*∂È§{–;Cµdå£öâ√‘~∆nµ<◊o_~·§≠ÃÑ.Ód7A37ÌcÊ˝OY&7¸˚%“˙FÚñu÷”#Ò‡VÓ9º≈©V6…Ï"ÇzW<`øÕ0k‡k`ésb£TµB™ôs˙‚:åD{á‹C89,‚6ˆxŸÕûÏÀßR^˜>`:n¬µ`#∑Hh¥LTYN_ÏÔpáÃ©P…√°N €=dbEDU®—°¶<;⁄Îi∞› ïE Ûƒ{!sÕ&Œypx€˙±Uc
+#⁄◊::◊Ë§Äm¿rJı2¢œ`w8ÆW√≥a±õ.Ód√≤*‚Ü:dO´h‘Ÿ±gõ(ênÿ¡í6íÊªª›±YD° P“d*Y6ßs.%X~9ñÖÿ=L±òÙc÷y÷ÈDÒgªòR6zëCæ¿bf—ù∏ªÔ„ô}ÄˆºF∑µàÆº~Ä∑’≠Ò∂sΩ6{’rHÓ	4É7◊haaÙ∆Wl ¡NãùAŸ !FøƒSﬂŒcóÇóS÷ïˇyyçÎ÷e–Ù* NA#h)á∑©≈+%4–VX´ê«0àv…≈¯ORÆ“Ìå>‹ÑËA˙X±Ö&2™ëåüÁF¸Å◊Ià§¨AC9AÇË$ËÈLd≤î»SRkíc∂Vf&ZÜ9Èá OÖπ+UIúÍŸ9K˘g1≈>:®Cí´A”yê!∏qÚq(S=r’«≥à¬Ké‡IXıà;ˇXZ,¸s¿÷û3ä¶¥a∫Qx’{oÜÿ£¯ëóƒ*ê:[@&·4;Ï|¨ÅhÏ≤úùIÖb!eFûLcs`ãüFù	,÷]c{ï0Ùì¨ºg≤‰
+27ôÏ’ÀŸõ™rm”≤êMÚ<4!+=•‹≠0™ˆ®»J≤`W≤ﬁ
+F64ßò»so†7p¸Ó>ﬁ˛œºÅ7˛A/Fó¬ÆWwQÌRàhJÏq˛ßnÅËW8@ÏÕÙïµ“ÃﬁÀHU-CöÎ§AΩÀóz'A>Îù¯?9ù¢=õ|?Åºï√á∑ÁlÎF∂„˜®?LÀ¯í‚jh·ÔÑcıçÂ…’äoìC˛Ìzuœq&E~)Ω…}9Ò)˝ë¬†oΩÃ^µπEºÿaê‘%c…|xf≠∫]«Ûctˆãa√Òôì´≈Ÿ±1√#@BèH·!Ä∑KÏÅÃß|∆Qkne´6Ÿ˚Çﬂ 'Nyà˘¨/Q*˝êı& µ"RqÛ hz—ê\‹ÈÂ"]íŸîhøR≤ê1~ø"–ó´H∑Ñ–
+uœM≥˛¬°Zˆ|Õ‚-§—™J|lã∞ÚOæ`ƒÜ≥œh »:AÏ∑™çı#§S…÷Z1ì√ÃîY6NwAÕ€”xJçu√±ÌFa;%ı¯hñ˜+uN“+|f3r› ì·bßµ[#ÙıBWV$&ÜÄ4^•™;9ø¥qÂõ⁄x∆¨ÜæÔD[^3–,D’|–9(—cjk÷ËGWƒJÕ≥∞_6@(ùP¡Om^˛>∞ÚKılˆAµY!_¥ˆr(Í è%O‡g)T9ê&ï À·î
+Çc£ØäπΩ•ÿk‹∂d∂ö≈ÆÃR∑U”lïäå”÷ÅõG≠π◊†ç⁄¬É ﬂé#Œ—A©ˆÜ⁄jˇv‹`•Âtﬂ%®kñJ∞±àÆ‘Ò’c‘Ä|ùsT\1%Öbù†œG9nΩÜ›≈±Ö£a÷,JÈ©ºjVÿ˜)√Úí≈ÚãÔ¸wímAëóÛX…w›}®GFoY©ö§.˜ú±kÀ∞ t|6†êÈs˛Ï4‘å∑∫7EN-=ﬂ&èˇÑhK3“_£W?°vÏ'|=x™ﬂ6ˇ›Îπ¬®vÏı$ó·∆±Q
+q}JwÀ∞Ú©Å âüì[∞ø≈>˘0í_›ªbÂh2ü·0cee»¥z»÷RbeÌ¶
+%◊˘áÏ©c˘·éÜE£ø}ô@ÏM€∑P9l>l}–s¢b'yZªx1€Ì•û∆V)»ÑIß—$zÛM´pú*cä";à–Eaú+4,9Â%YK“(k¡{S≥¬◊ß®úfã[ìuòË2„Ωab…Zò‹yıròÿ|xÔ˜ÒàÇuﬁr-KW~i£¥BŒƒ⁄Fé§˘OèÃ“&‹ ï◊8ãebmX+œc≤n>Áµzæ„Œ=[,ëÕéŒÿå7<±T+óàJÔSp‡’µ^–ÆÚÕ˘πsÁÂe§wC∞ù[gmsslk˚/¨°ãóW◊6/°só/oØmfñ$U‹IÂª¶E∫¯Ù,ŸQœJıºËlwÉ¶Ô≈≠åÆ(M÷i7ìØsdBœÁÙMˆ≈jÚ}UƒXK≠ŸîÂfÃ{C_ƒ±”+4˜“s„•â÷¨‚=_ô{,vÛ$é¶T°Kæw˙<^ãZ^=&·(Ò¥4ÅèjN^ıö^◊Ò—E‹Y∑ã˚¢ìﬂç<8ÖúxRº¬]é◊pC|˙2…Ø/9˘b/ˆÍprØ·ÖE'WÑ”n≥Æ∏ıV—ŸÀÎhÀçÆ·D¨>mi¢Ágè™Wá*%ÁBûÕ61y+‹C€kóº.◊†ÊÂ–sWHQP¨∑∫LnıÁ˛¨Á¯^wùÔ·¡/FzÛÂ ﬁs£óolŒEÆÎ;AùÙ}„s÷≠„Wé>H…˝ä^*ø*@À§Çk·®ÜÌv/Ä±z´∑St"~‹^˚•†≥x-	¿[πËZºgåÿ–‡©dΩ"Lù o(!√ûØHEW±"z[a/™”◊“KV{¬ˆ*⁄¬∂ÍÀ5°*&ÿ  -ÔÑΩ.õEEoÔ-◊Ô ˝fØ”	£¬3∑#º¬©ŒÆ€-úbëwÕ©Ô£ço≠
+œ‹v£vå¬›‚q6>Â±º97omÕ•Q∫x˜E˛é∞.…Ê˘‰ê≥Ö£eH,™æ¨√T¸éùÊB°ﬁÚ–Ω“ˇ˚7æS©É˜†.∫–må£È…Èyı≈JÉﬁÏg”†Ú´#x\:Ôá;∫Ì#ÅÄÆQ˚∫¯Òøgtvu€¯1u˚ëˇ§<v'ÏOûY?ˇ÷ˆŸÀ?ám…Úº+ŸDÁﬁæpm≠lÆ≠]BÎóœØ°çÕµw÷◊ﬁï6+>‰yÏÑ◊◊€&$˚¡2©y'«˘⁄Z–Û˝‘∂K~’ﬁu∑Åº _46ôƒ)swÍWQÿÅÙ£hÃo¢_¨¶‘ﬂ ûÒQp6™]ß·ÆKú‘[’Â‘P‡ÎÏuü¸’{oa·Z+;›‘%Îwìy?	+$≥LM≤ÙõîáA“ÄZwçh∑”Œóúú˛<=ÊÒ,ò'sÄxBh‹‡A*∫ùjïõC¡1LXÑS“ò}_@·{å¿◊¿ªñı…ÏØ	Çôè‰4…ﬂ∫`Ê≈zﬂﬁ<•mN›qB1Sï_7Ã”µ’ım</ü[ß.<W•ŸË≈kØÀ(Æ)¯¶ÉBnZŒ≠Ÿπ’nœ-AGü"ôœL∞¢yU ØLS`C4√f!aΩgcI∏Ò°OIæÌLôô$QaãÊ212ìj◊«øÏì
+Êg˚∫r‹j§Æê—ºáiü$›Q,•y^EéñYª,ÿMv»§õÕ9I5¸¬öÌâ˜πåwSã-Õ€=Œ.nd!ÉÂ¸ög"xÔ˚˚_âà(S™;*mNÈÿRá‹D∂zı:ÖdcL˘ºıô€6î1VIYÖ Ÿu/Eå2´<w"ñº|Ö’Ù√óü°Çïz7zîÂkÂ÷è
+±¥ÙÔx∫mıv⁄^˜‘AÀ	æ˚vßÅÖ^º\¯ÈÜrª≈w9◊U|v<ÖK$˚£‘T÷‰«S:ëcß9T˝…"ﬁ£@É [yAßßF7“Ë¥≠éò\s¸û{Jñ=Ë´⁄’˛$h‚”k._∆÷“÷‹ÒÆ5›Ó8iX„≥OM@∂POP-ú‘,hs¡r2ûvâ´∂'äé*"=:å˝ãÅÂ¯öLõoπ∞<ì	ËîzvhÚC(@+	πÚï¶=f†ù˚ˇI5µ≥^8Z((–éπérP¢p/>u0≠±º†‡õU|›+!9L!°ÅÎ€õ¸’∂Æzæã  ◊zøJ“B/˝…
+åÃB!&∂êÍ&äw±œA$Uri‹›_eù“>DﬁFÊª®∫≥ì‚æ˛§w;–◊®FX,MÄYô±>S—{„›¸ ÂãÀ+xCy„ÌR§j˘ùµUt~˝¸zΩªæı÷Öı≠mÙ≥∑◊W˛m≠moØ_¬ø§6¸[Œ5∑qﬁk∆[nBƒÒ ∂˝s/ˇ∂ÔÂmˇ!Ì˜…ò˙a¨µõ;Ù„jÈ œ3u¿_U\íÁ0ÛÊ§_ÿ˚´‡Eêêßè‡Ω0boπ¨⁄π±2ãã¿Kç∆NîÜU≤æ(ü‹I∫Ñ|áI8«ÜÅùê’-‰p6XD/¶Tt•sµ „e	øëHÈ!)‹¢K©™¸$&±}≠-„¥aµ¡cÊO™\-ãx.˛¿ˆæ ãª«±˚î©Û;°nÓêC„Ø™ﬁj(˘ïPa9NÿX¶s|.jÊúŸñ˙·b∂¸¨7‚qØ‚›ñ=ß	`©QuKù‹à‰]i»Uï%,®t≥˚LÇU2O·£˘˚Ñ$‡3Dˇ‰CÒ5#æ]¶kc[ïLágäÁÎò‰rÎÕ‘8⁄
+Ò¸∫‹!¯à“ÖGªSPŒO¢4ieê0dΩVQÁ∑2©ÑzB©ˆ”ì™eIWoi3Ï‚´VÍ{*é	É‰:Ó•˝úÛÁ
+ô†ñ´ﬁÇ˜20.g˜GuAWÂ«àƒ|™–õx†*≥}@2µF"ﬁ‘»qQk˙ownˇé>≠¥˝òP—c!˛wösì?”Ωu±i÷p'ÚÍÓ˚N\Oµ˝ªˇKÁ¡ƒâ.û ¡o“`√Õ∂¯[D…1»4˚´}ª@Æ4•6¯”ˇÀ*„ﬂx*Ø± Ê~AËÊ¬Nó§‚©V≥∞?-Â‹ÈjK9ó#ˇÛV^b„a±´—÷ëcsyøtSzp•ì*Úƒ7ë@a(ªÔµ^Œü&Mem2},wîp·—ŒjN-⁄b9uYâ”¬h…„˚÷Lø∞•Óö∫>±Fè¬{“2?È1¸£ Ùú~ôG+º»Ã9œÔÿ∂?Q√ﬁN˙ÖÆµﬂê%ç:⁄?ß9àõœ8ó${Ù•Z2’ótV§NﬂóVRF-~ˇYÒ
+å7íπÂ?œ#i·ÖÔ∑í√«ß:ró2~Â‚∂ÚPÙTcüqG6î‘b∂Ì„Ì‚vs∞¸T≥,uñ˘@À4éhTB¬ßö˚î(@µˆ£Í
+o@*´+|Ì‡’_YË‘©—{òh+yµﬂLeîYh≠bMïÓ#ÂnuéêæF5I+≠o„∞µ“Ã8⁄ ˚≠FamáÕ¶üß≤V1ÒÁH≥ QÅõÑ£i’‡WùUìñ)ãì*7çÂîïr√w=Î˙æVπ	*#Mcéã.Àœi55zË[Yˇô˚◊üí/â>|&≠óJÏãFà»aÖ∑¿∞ã∆Ypó˘â Ø‰“*©GH(·)≥£,q<¢Àäﬁ˝Ç^ºVî»[2ó}7Í&º$Í≈îV¯≈¢SË58WùíŸ≈f¶n9ˆ°¬§.9Mw¸⁄Xrk#ùÆx›˜…Z˝>€ÖíaÂ»™¡muî(7`5Ø∑–ÅZÎ0~lhAuΩäQB¡ë¶≠>ôß≠ñàßÎP!NÇù%óïZ+VåLV•+„Œ‰úˆJ≠ê◊∂0‡wp%M ıMXÚ·ÓNΩ°•D˛$`,ç‚÷ΩÑ.Àvt«ÆèÕR_ÈàR™°¬3≠ÑkT◊Ï8˙Yœ1∆&iÁ±Î®™!m™Î'£∑ãjÅsÕk:x:é◊}Ø≥íZ}∫π´8y|/¬#ªçgVmè0ç√áw2ﬁä‹]›|U9[îﬁı‚ñÔ≈›ï∞„πç∞!i⁄¡W@•ü∞◊≠•m“L4>vMCô3Â¿ê#◊1ªïI
+∆IªÆ-X§éÛâÄ}∆P ?ë∂^u¶Iﬁ®)6ÂÕ!¿!ac‘egçbsÁáF√≠π§∂üïTÔ∂ºoöZs	ññBgüÒ®—mÍñ}Dix¨û:bIqwπüÓi∑ZNT¬Œj¯∏ß-ÇföO¢¬ñùﬂ∫hàd±/=…O¶Fø√6‚óÉEõ≠¥ÿ€ı"l=I¥’ÏÖ0~⁄{‹∆ÔÌñ6>˘ú:Dí®à‚›≈È¿Ò”M*gàÉKüëõ›ñÚ√3#£zE"ôü¿Ü˜ﬁ/¥‹E¶d∆òå‹6^•ˆd[#⁄;îÿé»|aÆËî§dÍ%úíéeù#"⁄û&ÈôÀÆ’903iÌU1‰Ê±Å Ã*
+!)ÁÍv‰ƒ≠ÏÍkK…æî˘-S¢L]±Dî‹ªπÚ%CÁÚ»,:˚êî°∞B¸-ÉFIàΩA„ı‡†≤Wå⁄QºD5xï£ôóûõ™ªÈEtysum–uõóˇÀ⁄ ˆV!∫épΩÇ÷˝∏†uöA}Ö´K_˝R„Íí0ÓTÆvpZç•™YıÖö€Ú=¨∑¬»˚%‰˚&ÔØî‹Pqnƒ1J˝∑wÖBïS˙rWJ¡nj®€∞aäû+‚±¥£«À›ªü‡
+ÉÖ·ÈsèæÖ_‘YE«oL’—6∂–÷ûfÎ´8æ2éøÅõ˛â˛˘¢u’i≠†øJË™Ô»>['t<úùÅ‚√f‰:…ZFÀê˛cÇ´∫Id˝◊≈¡i2¨q
+±ıŸ}≈Ù)n•bU‰¶õ˘Ìg‘&ˇ5oÈyA§ªÎÏTét„kÈæ|¢ıÓﬁz∏ÔΩÅ6+Ò»•äX‚≤ò‹k£›a¶ü$‘M˚™›EøL–¨Ñ∫·mº  ±1y5™W ¨°É∞∫˛π‰ñ—YœáÄÀRC~e?åÂíﬁÈÌ‡5È˝%∞K/´_|îµ<»*˚ﬂ®Ií≤ãl/Ä÷Ie⁄ıÈü≥•E¨Un9"´RΩ˛_øA‹⁄bäV8?°Ó≈2√™≤…Ω%.rï#¡∞œTıƒ’1VÒ`!Vg{˚nD÷∫t0îU‹'2ÿVÔ±VÎÏ(;ItO¸
+e%> / dµÍ˙6†*e:ââßøÇ\Ω4ê´ª<»B◊ Ôú¯≥µvt°W
+˝¨} pECS˜8‹ññ≥˙W∫5πÒXd˘Ñ"≈ªPHôÆ?a0V®ñü´‡=IH÷"⁄ÒÃ∏‰Ó!Œ˘<@\˛MDÚ‚M.Çﬁ≤é&W(FπŸ†âÏuÆc-ì÷€ˆıDC¨RΩÓ>∂§r•áÆ«)µŸ?™GDK¢~/¶Ç›ÈLâ>$ä„¶»Î˝N⁄-=—;∞'≤X‡‘F´4ö\~î∏r`+"><ÃXûgPa=Là∞#áûYD◊∂∂÷.ù_€,å?C)47h‚ù÷´Ùè)≠◊WQËÙ’/uœ/ÚíEö»¨`‚º~C–¨t¢ïæ<⁄·gπP„ˇ!“Û•Ï·=2°Êd„}õ[•c⁄;ƒúø%Ã –4 (©∏ì-0_|[%À§‘Wxà≤°áWN";n¢ˆvµ”x~Nßóÿ◊⁄\O–ÅbT∏≈B:Ç7\E&}≥ƒˆ}(ï~H1œ%ö¿V¢Ωr4):˛µ|ù∏XêÔ¢⁄Úû≥?™Ø<~h.®LY€M7±àGú:∑,ätü]æÂø%ÒíØÿB@XO^¨ˇ	õU£-<Mƒç§*öœ•Çåˇ=.⁄∑p4¸-”„àŸHvAë¨†ÒJcºaÖlÔ˜˘ÛtíÙ›æÄß<:_»+2]∑üã∏ÅïUÖ8∆ÎÀ£∞^k‚…Ü&——à%Î˝:ıSå¥√Ú”U]ôóp44◊è¨¥úÆ5ÎÀàEˆ∞†“˝¬!Ä≠f˙[i(±≤Z¶ücù≈—˛œØ≤˚é!Bqñi∑:ñiw†X¶Deıv∂ùe⁄µ“"∆y+eFH€Vıï"öv_!ö¯$‰∞M√èöı„ãˇIÁVn≠]∏∞∂	âîhÎÌ≥[+õÎ€Îó/© ‚i◊#è˜¬ZD]¬t‘*]_‚BX%u	•U™¿Ë¿*G¶œ ÉÈ›*é#ïE´^D)B’&üG_
+‹*≤ˆiN÷>WF÷û]XL"ı≤<‚≥0ÍV¢p/Ë”¶KY0j4Ö=NJ	ˇ1¨Jﬂj”Ò5Gq¶'ŒØ•⁄Hì‚Ì–Óem4$Wé1zê‹d√N&U¡ï9y¨ºÁ"◊EæìWâ*ﬂ€LI’¢j{òú…6IOmnV$|é◊òJß¡¬ëﬂdË#∆ÔêÂzJáº˚…V\æÁÔ‹ü‡é˝Á
+?æOœWoKÏ∂Ÿ……í"’È¯Ë_îQàáÚl£Q}$•‹›Qó≥óı W{áÏ‹h+Oÿ6N›ÿ“D/øiS°·›àBKŸïkñN©‰U•rs≤ô(R°;[^£·ÑVJ&W	mf˘»Æ-Lö˙‹“Z¨D|qOæ¡ˇÄ´¸ÿ”ìÆΩ8˘ô±˘Ñá"o 0¥¯‡æô!Õó/≠ÖYq(Ω_â%c ¶lÔ¥¢lØ“:– ÂdE√n†≠Õõx nπ*D¢à/Gı?¶>yz÷Cëc}[înH©ﬂarßÊGUœH·ΩQ».⁄)bTÚ*n&xÁîºÅ¶Åá\∞œ\Nÿß¥aˇ)I%åôB;÷“™S·d‡™©óX-;Ä AR±r‡•À€ÎÁ÷Wña√ΩÖV7/o¨^~Wπıñ√µq_€ÓŸ…‹.;ÓB°0>∞n– ªY†<ù?™Q≈Œ:ªy.Öf#À∆gj7wv—D¢ Z…áá+Ÿ˜èﬂ”∆jKbÀn%•∂àvQ(bxÔ êÂy|ózïÇd	∆#◊iåñí6™wÍS©ù:ß›™XeM¡¸6]WTÕ∏Î7R—n•≥Um<öxZM%M^–˚/àE•‹∆í∂Ï˚©lﬂ†¥^Ø<.)˜í.y!Âq*LgPd∫“o-˝®ED–sbÙG2mÓÅôfÁnœø˝ÎVπsC„Ãºuà¡•úUôw8•y∑L∫“cXå0◊0Kπ ãﬁ•°ŸØOªâzn&≥^[¿ñÁΩvô)∆f£&ï<≈äc∆«¿Ωﬂ˚cÛ«NsJV±d•~Hæ‹Rl’4¬ÈæCD2–$Ò{”G#m0“à9!X>dQÜ•£≠j…a•ˇ?Áj”≈ŸêB=((;©ºı·áh$ﬁèÒ™:¢ªüÔíÎ.êhˇ)4Ú√w©KÚØêËL¨Mytæ-kË¨”h∫+ 
+–ö‰ÙK¡H%4˜@€>–ìƒ2»›#zæ_îz®ø›˘›pàïD ™°ïS'Ök;ÜîèùÚÕ•›%IÚEÍ¥ÇáøÅ\<˛Èw–∆*¥yÑ
+ÎI⁄Í·œ,Xkø„E±÷b˘Ã]◊ÒSÃß'X>j«Ÿ«Tõ·˛≥x&ÍÑ˘ñ8~EqzÃÂ@«˛!+ûe˜®Ô(ûU·õúRÙ¥∫ç◊`zÛÇ&YV›Æ„˘5˝Ûv≤É~¿Á¿ÈkıÇ›pÚÇ	 )zíæ)æ¿,¬_Âß]†H>DÂ$Ø{1˝ˆıó∆x„ÁF†~†˚…7≤nlØ]BÎ€hãÆÖe≠,_sû2iá~'-µ∫›Nº81ÅwíM7Ôq˜´5^€ùVÿÒÆs
+[sS”3≥cŒ¬å≥∞”ò;±ª„ûu{
+PlN˜Õ]Ø{™Öù7˜NMÕMæ˘¡©Ö…Ç~ë¸52.G¡yX·¥6≈I5ÿfÌµŒSz≤£äZr¢¶€›vvHs¸ã˛¸0Úö^‡`yPõﬁjÄ%9n¬:î≠>¡ 8ZÑééC7⁄«8ìRnäàñ·6<*Ë$ÍB‹ëbﬁë£ÏÏd…Óô{#‚vˇË{∑E≤ÖiÔhêÁ§·\0ƒ*Ÿâ~ÿÓvÑπïŸO≤´Ãvc?ÃtnÍŒ–WäP>û´>À∑˛,"xè@g∞6±âﬁYâç'?©≤	¿”«Ø	Îû1pOÅ3Œ FP∏π6qàEËÜ2‹Cno--‡’√º›ï ∆∫Ü3;e¡ŒÇ°»ÔπaÛX™¯~O‚ÚΩáxr◊ÔôüˆáO~WEÙ„Nô§À%˚Ù$N:VM84?åéf©Àh∏ìÅç`˘¸⁄ZøtˆÚœUn‰ı`'º~D†[/ÿ≥|T†[È!yÖŸ:ß=•X§Ô˛"ﬁ[Tı›Î÷èæ}˙Jøy‰^õ¥ØˆÈ˜õíüèSñı8d* }Gk!∂·;oÇ2R<z*@°P:⁄U^ºOTCzõ∏–€Ü.tè.süØ¶Ó¶Ûüõxœ5T"E.Ò)Ÿ!ûÊòZò,ÙêÎr∏ôw¸î“5ﬁg-ü∞\”w∆3^c|0VäÂµK¡ñ§ü4!j7Õt…|ﬁô¨√‡en»e≈ÙQdûZ9ï3 ^Âv‹¨ÊW∆¬≥úöVƒµL÷:ó¡©b=-“à˙.r´Âœf˜8H˙.ä*ù_^qÛê˜.©/W‡ﬁ¢.vÎÇ≥d7úù|/øj3ÙSW¡˜Ú´∏≥(πé)∫“ä„¯l‰Ëµ ”⁄Kt.]aST`ù¢s%á“‡|F˙$(¸&¸.%&tŸBñp¡·ÇO§G≈k7uC’ÈRíıR3RŒÕÃŒM/úòù:qbnlnÊ‰…Yg˛d√qw¥^ IÍ•<¶ì8«Ô ›°—ùZ@ZEl˚pX)«Í†]t`¬$+∫Míâ’)Å∫J†
+[
+zä)˝e9õ>erÁÄƒª“ﬁ—P;àï8!¬™Ï/v2ÿ{ö⁄aJØ⁄πg©ﬂ©–ÛT†‡uÂ:RÓ)…◊$|Uq–kyˇ¯*´w—i¸T˘Å'®ÚÌ]Ún≠«:Ü^ß„Fuøé›∂G›OiUUqËÂ†d"≠˜*≥üa™F0èÖ_0V7” ∆ø›˘›c}∑´ ÿê|[9sù¶ˆoÚêÛ”ú™Çú±ãjŒß≤’€i„Uˆ†ÊjÏ=wx3 ¨∫ªNœÔ÷ª◊<¢Ìi∂Ò–éw#Ø]eÑ*‡†ë≤!ïòlRa˝·ûºª—ôÒÄá◊8ÍÙ)G±RF<ÖøE-[$ Àv· `ólá•n·C‰Vu<√B,±ósÉ,’Ä£µ…„{†(¶∑Öö!ÿbrú^ZHêT‹ë˙"1^ÉÎÄW5J„pö…ùØ≤Ó¿~ÉÀK¿ﬁ¸4È.µïAÆ¬yßnP.bÄNvÖ‡ù/qØ¡ãq∞ÅóÎ_Ó≈ß¶Ûks‰~–√2ö∑±ISw[x±r#`ˆ4ÿÚ=¶XmŸ@öÜ@·ùB@ò||<ob\s¸6ç≥ùä∂9x%Êπj‡\?'ÕÚ°	H=G‘óF"”∂Òå“6’õMÈ∏ó≈wC<5±d≠@≤<=D<X,§/â/1Ûl˘4-OíNçj∞I,º⁄uqTïV)ö…í9uJVVÈQöîıGûZ˜Î≤¥ç"ÕaJäSb¢ÄÚ≤=¸¸i„®NÂ0 ﬂò6»ﬁ  Ÿâ©°*KèMz≈“(˛jA±µ’ımt~˝|>Ê6<`ä8Ô5ma$ŒU3ÑÕÊ\ÉÇôn‰Â¿Xglû¬XåúLrπéöWG∆ˆs·îC	ÂÃVå·ÃêÓçMMbœ¶™¶™Á◊∆íqWßTÆaILﬂÚ¢Ê40g5QüEIPÔFë>'Z¸sZ Á+∫#…–ì|°íàj‰i¨µà•udAå(ÈÀŒSK◊˜g«©Ú¯X‰é"π∆±`ufkQ÷RëBÙ“©ä|ÏwM¨?µ O±bk•ì÷ó_∆oLØxc?7ìhs8≤˚ìˆ{ÿl¯ÓñsÕÖ7â_„ïQ≠^"˝Õ—µII·¢nJÜ@Ái°H¨"iEµm ;çjÿ“¿mtz*6µ9‡Ü*áù÷ÿ¶∂K_÷∂k•2¥◊§k çlµô]F`q8F∂ÖE≠$-TÒ!îpÄLÅRÕRÇ‰≈≤`Üh ÿn*úü≥ÿymÖÅàı¬	6ûÎªuuº%-hº5m∞N'm¸BÅ˚—àú6äídrˆnèm@—Wß›∆≠°7—∂[o;ù?∂4AØ2jÚ|‰tZ^Ô—™{MlÄÊY5∏Í5ΩÆ„£ã¯≠∏†ÈéùŒ≤jØ·Ü∏/ÀƒN¿¡È‹!´ó◊—‘ﬁ∆‰cß•/Vçl≠]∆8Ö{]<Ú∑¢fˆáL ≠©ÒbWmYG°«û†ö(R∫ÍÏ«ÖãÖNóqmÙ ’CÄ¬Ú|Í`J=ÈÒ6Â‘¡Ã§éÖX´
+≥kxÎuJæ∏vâ<Iv…˙±ØY¶˚î">!<Ò–ﬁê¨N9´P±í•t≤3‡PU‚ı™Ã•sØÇDàœù«ÃÌ¡ú
+o)ù8œ	„:Îƒ^}hì∆Bˆ…õ'Ω±ñ¸‰“˛Â˛(xa9.Ω	∑î≠ˇ  ˇˇÏ}˝r«ëÁˇ˜%¨DmbMÇXQ\R8É“ 
+áŸòi sLèga,",o»:ÖB´ªÂ“⁄ìKÎ,\í¢tÑElàØ¬ú·Íª´´3´´g ∏¬ÑMaz∫´´´≥≤≤2˘K∑lÈBSJ¥¸ƒ∏|-µÈˆ(hVéçà©u&eÍÍAã˜N–‚‘K%iZi=„±…g
+É˚XH◊B3‹¨nm·í˝ÈL∂‰≈'¢ï<¯‚‹&¢Úíp.>“@SAÊ˛°ä+‹!+ãs§∞ºAﬂZù¡ÔgVÎ:TTGÚ:U‘u'éï(r±ßNd§=‚ ÔOlì£ô‹≤ÖFÂU\~zõˆ&§ö`Œ≠G´|"6©˝Ñ–ú°ÔKiÔ˘‹UE˘[µˇÅX"·8¡»¶bÙèyCë4˜Æ
+Mg…™<—IpƒíÍ·¡Q^Õ vÈ¨Ù5¶>‹·=¡eDE´/EÂ‡=b‰QY/,XC:biOã"lVrsLét∆5ΩñﬂÖtG|·ƒ†öî#µπ˙“dæ˚⁄äbï’rRuésX(-^û_º:um∫D¶ÆMÕΩ≥<;Ωî=4¬&G¶◊À·	·¯ ]â‚BÿCñ¢3ÿ√•†I-õf{ƒ/R¸Ç±îúsQ'h†H≤xÙ}â“fóﬁUllüpﬁÓﬁ""L?K+HŒn…ßqdÄÜÖƒ›O@æ≈Ìåq#?[ò%”A≥í]¿;Ui"· C¶;`ˆ:ù≤>ûG +[‡‚xFç	ö~$s|,aoÒ=_ﬂΩ{Î*Ø@L˝°´4	v«|™ò≈ªÖÇ5[A-lM”±k3Ï˝iÚ2Fá¯ßdtdËt±Õ± ú°,∏ŸøZ∏4”1Êz#	NMëC˜óﬂ?%?û(éΩ&v_íÁ˚ˇÒ|ˇg^4Ô˚b0MƒÀ/[ˇ˚˝ˇw)·/Nx_`år-Ñ¸≈ ’ì´âÒc"V#≈a&Vü“©)v∞äüÔÙÇ≈BBı›“L]õ´z.∑lç‡%åõ#+jºFÊÎ,Á«-;ˇ"…Y>~üèb”Tr¥H˙¨ﬂ=ﬂø{»¬Û|ˇœT9Y§ÍÇ<¶OÖ»í∞ÜåÚ_,Æ≤ÿÒ≈¯Dû:EïY¶Læp-«U[≤ËÑ™µÚ>ﬂà£ﬂâ∑·ÿ,íA≠⁄ﬁ!WC˙∏Âl„êÌ≤›2>÷ãíaÄ}π1meº@$ot7.7√:À[^i Æù<•ÒÀÑÀ8‰iÛ%—…&†ÒÆé¿*uëÇzKKÂ®¢D6∆2ïTä|<Ü≈'≈Õ™«$]9÷üaå2cv{@e<˘ÀO§Ô∫0Ωºà⁄T¯Õ’4^úxçJ7Àå’∫ﬁv4Üß4ßº Ií¥tôÊNÒ]fW%Énñt∞äñ∂ﬁ=;˛ö]ì"oJvn4·qíÄîÏ6˜Æ|m,x¬läÖ)™”w–b€˚E⁄VÇ•‹Z}o∞Õ—K(K⁄/ã“ƒÿè[îzvªØ≥ñ‘Q™Â;≈ã˜,+AqN
+KAª⁄Z 2úW≤4ŒÜnì˛Ì€_l,Ê≈LúÒ‚–)põw!bŒ™.A>∂Ç(ûw,!âÏ°z$äô}
+}$ƒíøÇ¢õáÈΩ9pˆê*ªYë∂ºÓNÖæ°”a?Î „ÓD8ÇYWÊÊ/MÕëÂ˘ÖÅπ“[•92Sö+-ó»Ù¸µÀ≥ãWß‡
+ÂÂ®æVmnŒÑµ∞Õ∆~∂“cÜ€wœ”Oví'9"z[]› ⁄Ø≤pñ]>Õ'Ë‘8ü2jûD∂”©±á%c≤ïL∂£ôL∂ñ™O˝2b˜4_•_H·hoG”±7v9˝«¶Í’/{8U ,K7oä0krèg÷FìrP≠◊ÅX›g≠+HwéˆÚêiålm“Î{Fqp–Ì-Œu∞V∏Æî˙Lh4±çcKøﬂ=À/Ë¬B◊hˇ˝ãÈ=]*¨◊yí3–iÈFï¡Hmúò~ü«
+nßy*Œ≥FÑàäWÚ«˙ÍÀ‘S5rø]/, Ú\b!Ü%QΩiΩ∫æ	D.∞oåñ∑^)péQ∆{…)â“´HË(≤ãıYÖÙegÃ^¡VN±”y:î$r˙Tô)dzﬁ’∞æÖüÎÆ+â˘§}Amç1≠MŒöp(~D£û,41ÔCI+•6° W˛•Ó68ö`ûı1@æ7¬ÍÔ{ôyl5ﬂUÀcD1É¿úç"kêÖ9√juw¯Vr<√0∂ô∑Töõ+-í˘≈˙/5Òfﬂ*-æì∂Î*"¡éjˆyæÄ˝ó6Í4®Nêù_Fiºá›Lr–ÛYs˛u	éΩ5C<:Æ_ ÷?ÒVƒW6î≈m%*ÈÂ¶¨—‹•êz•QãÇ t-⁄≤ÿ°Œ“ûúë1–Œﬁ‰ªÌ¡ŒÀ?T©òß•+"0bò;¬îäA:œôâê&ÑA]=¥ˇTüavfí¸ç≠':˘Ào˛Ø]8a2•Dã´[;≈0 Î≤àÍ«@∑ ª/ñ˙K≤Ä"#å¶º'iÃ“áo´tﬂ'V>…}ƒ/®ˆb}o¸á˜6˜ƒë◊dÒB
+:5¡˛Sç m±yê√†KrHˆ%¢J–~ÆŒ?Pø}/ˆ2èò/ïo;Ñm˜àŸyr+#€E%Ö»ﬂ”Ä.11Ô KòURß÷H©ﬂπµΩ…nfåké2π&´L’π†î+’≠Õ„CxÛ‚&≠VÂO˘ƒÚÛÄ«cÔ®@m\Ê#Yµî…‡SR∏RmøπµzÜ\â¢u∫uõi“◊~Ü¸º⁄ st¡É}g©Ö[Õ$¢âi¶Á◊´Ìç≠UŒ3øπ”— µ„B∫Í‹.˛∫⁄êıÀ’Z∏“ÙNCúI^vÏ$˛D m)áÌ>’äìÂŒˆLx±ºXkë¯Ü˜ÉZN˜'I£ÒÍ≠h´IG¨U∏ÙÂê_ÿ0…`v›èXÇÅC∫ÎX L˚ÍÙÜ•ÌπaÈ"|ÊµÔ¥„gcF¸Ãï¸◊mFê<ÿmxMÎ“ªπI9…Ωie‹"Oå]|“ã˜íﬁyú!f”Ò7π∞$∞Wá˘=A»Î˜<Ã®*„πˆ)ŸììcπìdEaCw/∆ÖY‡¬¢˛ìGÊbœΩ}óWÊÊ»Ù‹lÈ⁄≤v˘-OÕŒ©,≈Ö˘Öï”ÔwCîoÁB  ∑ã\n[¿Ö˜ø¬œ‡ Q˙éÍ,∂˘µ˙XhÒ©G€T‹jõCÃD´’÷Ç N5Ë≤F⁄.–Jë^›ﬁjÒ C_C\ÒÀ@^“á6Íﬂ–∆lù3˛±˜Ïf™ı_6‰Ÿ`Sã!k¡Ø°&?∑è≈:≤Œfß2(÷/ŸvìqXÓ>m6òæ‚q˚≤:jáa.j5øv‘πF;˙z≤…ä~-µ√∆,ù¸7iãCÒâLè¶Éá>x⁄y=ØÈ&â_"p…0râxY¿#‡z|Å+FˇˆøY„(Nac”\v¢≠66öÊ)ÙŸØÌç"◊ïhûÉMÖﬂÊÔ°‚˘‘d„∑^†K+–\Y/w´√©VÈ
+jÌùÒÖ∞…r'ççßZÂ˛≥KQ}´5⁄M√£ßç V·YEVN∂å^$„„ÂeÂ≠Ã,{á«≤√¸ûù÷ºLΩ:]⁄ô˝E_∆‚TnâA£?m@Ñ(¬© ÚŒÁGXyg>^<“WéjfX≈¬¬≈a4¢"6*!U?QÉNˆF∞ŒôJñUkØøº¢w¥ZÂûâ`ù–[-Ì®Iﬁ‰°iéDˆ§¢ó€√#,6`ö»£)Ÿ$r·£¢ê#õmnGÈH TmÑ≈Û⁄ÙâwØóHﬁˆV≥{i‘ﬂŒ…Œ≠óÒ)àÉÁ«”≤»¶Êã+ËaıﬂUÛŒ≥§¥ê¥Ìf–EΩ™⁄ºCπ6=Œê2/Tg¶"—ó‰o(°É‰?qœ!æˆ˘»–£˚âbãN†∞0pñ%˚¨∞n”A+¥ßç°`‹›Îl¯X^`BÊ≥G@>6V·-Õi¨ƒ»¨:g_≤hf"È\¨9’!q`÷7ﬂ¥˙¡ÊoR«ŸñÌ“d¬÷ÃËπÑû¸Fü˘w≥√¸@™∑¸®›U~–£ü¬6 Ëec´IﬂÉÓß¸jÙT1˚*•z+è€˝ïá3zÉ§U_ƒ∑â∏+‚ÄŸq$’qÿÓánÓ∆ﬁı=l^æ>ÕòâçË(]DFìÎ r1üçª¶qOáòıY&N¸úÔf%™-6ı%^≥8ıâ⁄ı>„.˛˝Á˚ø—Õ⁄F:ø‡æÇ˙À|[·_}¬ÆË„eç°»πﬂˆ9KCÊ ∞wvy‹îÄßµ©∂“°M)>†ˆe•Q˜>/Ü{%¨≥˚ uk;IK "˚≠M≠mÛ˘	/%◊s;	>d+ÅÅDÙ·«Iü◊C¥∑“›ˆ‰Cä
+3ísìΩ·H‘.ì’q;‚¯ÚÇ_ãËd‚Ç⁄r3™’ÇUjm£vöJ%€ÍÂ∞jœ¶ËÆ,TDﬁàPÍ ÎÈpëÃ1B™ÿˇuä,ÕMë+[Á6›K_än›Ü:>™6ÇéhΩTXùœÅv4∞JÌüf¥iLÀ’`†JïÌzƒ£%Ùú¯7c∂&mFy¡∏¿Ü¿Q4¡Í≤ﬂ6  !ˆkÕu5Ñ√‚‡x∂ñM,Ÿ	Åñº=∞L{g@À&úe¶øayn‘^V úÍu[ïKAâÙhÀ¨Ä•m= 	°0ÁñXÿÔ$*V¿nrﬁû\˚ü™ìøv!Ç‚&•·Äƒv€¯¯Y€ôÈ√áŒHÄXûd‰øM}"ÿø8‹)¡7*Rå›∆àﬁ7pBÃF˚Dç˝@T‚îª$Œ“7C‡“FÎ%tR ;5¬iÇY‰˝∆;œ·‹˚ŒÑID≠‡≠®Sk†¡&∆è≤¡˛uhå8Õ≤Ñÿd>˛Îi*JVTÁb±⁄ößÀie+<∫A◊ôV∆à'X|;ˇ©ZÿlãÒÔf¯„âÒëJb˙íÔd†Øª—g¶&l √©‡¬#≥lûæB.”6ﬁÆV⁄ÜqS‹…&^1ß÷©S‰3¥í9Û>π˘Ò∆§ßç±‰qü†ô·ª¥änI!·V2Ã∞qÏ•Ns≠Ëí.g7"€ëÆgÙﬁû&OzMÀ˚®Ç
+Å∑|ÅJ„p∂Iô_«\ÔÓÂßêö∑ï`ß%6uOßÓÈC¸z¸Az±à&—◊I®€B2ñ 	˘ÓxΩ8ëòJÃFDwÉ«^d˛ç*Yïn˘√â‡¡Ÿ¨÷∑⁄·Òù«íeì„îODÁ8àN+,Gı Òëçr€ÙT˜~ììÆ	¡GçZx„ØëÅ™ ß»ËkÑ„ »“NãäY‹b!kâ◊ÇM<‘Á4jD„Ñ”ISÊè[2ˇ4öûå(Sùé§E	Û2Ç n®oàmO;j˚5‚ L⁄	Çõò?p˙∫ò?GªH◊™‘ú÷««≤É0|èvW—2e£À»…˝öäx~;Õ~tä§ìÃzÜw•Ú‘=gÜfùtáKpQL'ÕIﬂá=9ƒ≥ËΩ
+_Û§túÌî"ˆ˜w&‘cÂ≈Ä\˙ôÔ®âó∏–ˆ]»D%·¬x™Ω¿–•'≤¶|ƒ”ˆ~K ÍkFıó◊[ÌfT_Oñça•™bˇ·k"eJ◊rìπSºê€ÆéBUcü‚˜|Cóøx™%‚Sû˚»t%Ì∂UA„{Õ:ß.${F3Ëï|“ˇxM<SöÂ˚X“„t†=}â,J-∑b2HI)Q2~
+<∑¬€r∞Ì#ûí$fÿÅx¸gjôó?Q~≥gä™aÁPs	‡ˆGß∂mg*}§HÆVka´Õ`U:ªLwÒÔÅ(û<Å7ig‘£∞?°u8£Û2ë:é¸∂Ø?>Æ>È-ÑVˆÂ˛É6}ÿ±¶ìâCÜÊ˘XÃ@–ëÍ"ú&íª8nIÇ.è¬x^XÚ:JÊg]ò xw¯,”¸µp≠=0.	òkl8ãøÓ◊I>“Ùˆ»r·◊)Ÿô8écﬂ⁄àrÙke´…¡úñπu´ΩS/ÏÓímÊ4õ$◊_›Â∏“Õ‡fa¸)XﬁA2 ∞§ß˜^ª%E∞èc ú>3˝&M◊ZB.jÒÓûv6	¡.°ú>ñ“*OäX;˜aí›ËzFïZÁìDºˆŒx›√ë∑±äØ’¢ˆ¿äÉË˚.‘Çﬂ€&0)ÊÕå\>M6†Ô`“)xﬁ‘§n'∑∂k>QSsa€õ_P	l
+‘∆oú!≠Ÿ M4œH|,Ü≠(¯‰uÅe %Øûﬁj™ãp?ﬂÂ¸D˙'kÅ˛YdOã_¿ØÌü0ÔÖ;vYèˆR˚xcÏ„j6⁄7Åäv0ô+ïll
+Z¥ÙäUTÒ˙2NR∞∫X¶˛Ó˙Ò…œ§xÌû7≈ÊVÑÂŸ!<Ÿrå$s.V<∫yÛËrü?
+w,˜ŸHl3Îº±ªß>ªr˙]î÷	j"Ã~/xwîõ%Ùq^◊S'çˇcß‡>ˆq∫´‰))LÆxaÁìÅoœ∆¸¥ª¶ã«GÜô°“bÉ.‚›ó99R&£0Ü a/‹
+«w˝™∏Ü‚ä=kp›N&~Ïhö *L»ñá¡◊U:ƒC®çkw∑Ç‘¨Õ”€a≥DŸgEÇ˜Ü◊öÌäFã‰€M≤—K≈8Ef™Õ∞‹&WÈˆ(¨Ø”ü∫Vır‰ô—M∂ùÄÆúe3S)<¢	)kKHY„@áAç™skf-Ä©]ﬁfÏAìôˆ¸?&*k7p__i—F”º`FüMÜ√›ï#ìƒˇ˝‡;TﬁFÄ-|èúª|´˘ß8ƒ8üd˚!ªÅ\]
+*Î!∞Bªt/¨ª38”¿+¯hêäd8<A÷0ÂUx*9≠,ƒ£€]€,zj=∫$r ¡T∆r3§}™Lµ—pHG>`YÇ√™≥Å’^ÏÏ„Ç\cÎP‘+I˚Ìjùöã‹©VËfæLœJ˚U$ÒiÔ:æı„WŒ“Ü‡KÒÈbUæVœ«¨&£m¢ØLnDµg~~µN7Aç≠î¡:ΩÊ:ß_:‡ˇ˚AÕı«¢ÃÔ§‡mÓ$xL‡ÒââÎ^¡ÛÉçmúT∂G
+}Y"/†Ô¥äÏkÔΩØÑcˇëÈ˝æ£Êœ7&ΩÙ⁄ıù‰èS¨Õ‰ˇ~Œ/¸ªÀW_^GXÙ_èir∞BçõΩ,·ùó¯b∏8o§à¿ÑM∂ò/~‡ºëQ
+<	¢9§8-˝j+hb–9Øu9Q¸)~=ô G›uá%9V$
+‘∆åIFêDﬂ&≠µ,ﬂéöÔë•F‘˜‚≠ÉïÏé–„éÿ/‘ÁŒ∏dñÈıËJ.Ûíi*Ú €∂eâGä˝P˘÷—ê‡#£éÿCDµâQNîı∞{üºôxKÃ†{.È ^∑/Àí§1ÃfÌÁs“‘MsQ;Á¢r”W5ﬁxæø_Dﬂµ~üäE_@o9WDÓh;1*…qG,*ø„Q–˜ï0‹6)3˜È/T.ÓΩ¶π‘z#¬À_ãê·óbÂâÉáHú–xŒ˚E¿ ÷O¯(,ä] ∑ç’¸â|NA∂xG{h7ufÂSMÃ®®
+Î¸—DáÓà¨~‚ﬂãgsQå∫8è~0CGlÎ`}#˜≈¯≈öS¸wıÁmÏ$Í6®âü`K=Uua¬D MU…ˇTé›hÍª±‡K[Û»L¥]g°ûJ7’¢fvã µÛütíÁ’P|_:√õ«R∏G*/ï¸ù8Ã#∆µﬁ;¨ú≤Ö†6Àµ*é Xÿºì¥›Líﬂ≈OÁª√ Áé]5u›ÕècºÖ5-®ÿü“j‡°°°ÓÎIÒôöâÃ#RXòπ<¯ÛŸÖ4ß´à·JÆΩΩmÙ$‡`∆Úi°£Çl&è{§vsÕÛ[éßy_çıó	’Å<qŒånó›;^$ó´ı†^¶;A˙˙JA≥NWq:Îõaœ9±u=m›KA˝Ωz‘Qï†´∫ƒ∑‚á¸Ì‹;∫F–- Áı;"á.j
+€ƒm"Ràﬂæ~ÂŒRÜ~Ê¨ÖTÊy=˙Î®Lˆ…ß§ı‚—k#WÛûï¿1o Pñ:.8ˇ/90◊ŸƒY,Dvæ¢‚√¿{8mZ^8vßJìä8V0xeÎ@E$Õ◊ì¢‡°æIÅ)BÏhgBVLgUL∫WŒt¶¸Üm6úÖNªóîåég»KäÆEã…À¨<xM˚dA˚˙ã¯.àÌËaãáìfƒG8B…#ëçå§≥E"Iè√äpf◊HP£feá¥∂V7´mŒﬂ	ŸJ† 4©ò±úŸ<Fñ°¸&`Â7j€Z…ÿjp∑” Pù )“œ
+êˆ
+ƒõÜÒrªâ+ÿ/]ˆƒ∂˛ñ»™`S/#•∂ö¿å
+ïB°_8|#yÈ<§m 	g{íZO
+˜ﬁâÀÃ™úass´«5ñCˇ´Ωõf @¶ãﬁXõÎ¢ä≥KÜSQ5;o»›£@àz¶íπD¿πˇ<—:ö"ù‚’◊…Â(j{Úãj-g!ÉòC=…àú£«ÄAåáŸ†Ae.{I ÷Q!Ô™p—∑∞πÏÀÙQ‰ÒÒÌ¶ô	qb¡˙‡~`©Qc~m-lRE]]ct√tÑó8ü5
+ d´Q°/ÕÆ±ƒŸ÷AÏ´ë`§?Éê;=QÆ⁄êú@6ÁP¬Og˚ñø”'`Ä\˙¸´/˚r?˙Pªd´Œl6£Êâ≈ìdç‡Û1Ô rÇD˛}&∞â∏ìÄ;∂ÈUÁ¨Ö∏Û©ãAµ_ Xj;0–rÖˇŸ±^rÁ®ï!DÅh.u\	‚G?˝{:o_¸§“…ÈlRâ/«vJÒƒ&d*Ò|s	ˆÃ3´\ØÛpfí¡ |&ì»@¢ˆ$\?£∑≤÷M¢˜ˆ∫@T∫ºnÁÊçº∫K0‡vgH⁄cà #@fÒ°5ÙM∏´Ôs…¯Lµ˘}|¢Ω16”În%ƒä·Ë¸ûZ<º‘^oÚ∏ı†*e'∆¢ZŸc5Ïr¥œÎ—]W≠®Réû≠ıV!qı≥BI⁄’c´ê–≤“.Ò@≈g‘ì* }äJ≤óü®©¸jäÕúÑsì•dòˆå7€P.§úÕâm∑£”* ô;¿íÜx›À#öÂ*‰%òÁ•ùnºÒ¸ˆÛ¶~.÷®^Y!È”°“ˆhaNÙÄñîΩ”ÖdΩK+Ôî…¬‚¸ÂŸπ#¯.MØ,Œ.øCVf¶ñK≤éûQAØ⁄‚Ÿk2yçªœÊa=©x≤JLç{êπ7LÔ–y!Mz∆¯;QJ*Qf*·$±;îYF*oÈ®∏TTmùË˙Øguàb‹,¯§)T}®!V ‚t∑ú<â/¢êgèØE≠ê\‚Bïr\¬:?Ì–õÖﬂia-®µ“≈n1ã1I®1∆ sGP& Bz:ÚR” "˝ÁŸx)EÅ8Ô‚Ç‘®B·¬πT5V∆“≈p≠Ê´ıZµNßô‡˘uqä´8N`∑cUÄ£9O*ú≥˛®É'åÖØ=|ä(œ mU±Ââ*’˛LÉéà`¨@)§oÅ“"tí{£≤ÄABüÑ3=}•SnÈ‹ûÉ"Íâ∆IãΩ”aÖzù°Ú#é8ûsÇÅœcÔ‚˛¿ﬂﬂ≥3Dó?#¸-ãyó?‘˛˚Å8˘±§,ª˜‰å∞ùü(ÿ¶£ÿ3Îú˚Œ-Ÿ÷§H<≤X√€º‘®5¿u65ıó∂ eÊ$∏0f ‘‰ÙaRΩ sØ∂@ícaæS§ÖVT‹∫ìúÍf]∂@az√Yπëwﬂp•B”_gL{ÎdÏêÍI¿∂˜LÏ}©‘˚ÀQs3≠™≤ÉÆíK#qawÉ◊F\
+nÑÊ*πiÛ¥b"è√E≤∞µ#2u#hM≤äË£GÒEÖw»(-?!‰8ı™^gc‰E6DËuN$ÈX¢ï≥¢ô0L÷∆>ÿäSjR0◊Õƒ:ÀúU∆√j)B&ÏFØÚa~äı•%
+∫Vîé0øÆ∫πéÏ{ZÕÚ1◊Jïj[ä&€x*Wù˘Îa´∏Uo5Ëç7∏O´¡Üz`x|tl|d‚‹ÿπs„„£ÁœègœWÇpı"3d/∞˘¥O≠—…T¶∆˚©ÌTN˝Í¬ƒör‘⁄˙‘,]ê’°≥7µ€√g+ƒŸ§]≠r_Yôôì÷ΩMÖÔ‰B;C∫Œ∂Äq‚ s+bŒCfLh{5¢vÁ&'õ`V6}≈ùîIÑé!ù≥)l´ı∆V€È=bs{G7Ç⁄Vòí/ÏÌG,˘ΩæÍJ∑tèr)yi!,“◊√vë7ç¬ÌxÙhÉÆoaÛB_¨$ÑuId≈ûß´QË_®å…D2â¸˛˝6)¨,Œùé˝y≈b—K:≈∂Pﬂ#-q˜RΩAR:Y≠≤≤¢ÚVk2⁄jÛ='@á¸x∂∞yÔ⁄@RnNZ¶öIÚ∫ø?`x<”	¬L|_”‚∆Ô’Ãw}$‚-CoEÜuœÜ≤ª∞XZ*-ˇrÍ≠©Â©≈%¡o‹8C™í‹ßÇs{hŸá≥ƒ—Ü\ÙH>û\ˆI{Ï‹p–íõÇçP Ÿe≠µ÷√ùÄº[ˆÚƒÿ˚Ç‰"ÈOÎrN0<¨)◊n∂˙…§>ëw°4Y·Ωà*øj{áŒÈàPËºﬂ—üΩÎ¯∏ÄtlÀmpcO¨tÚyËBGﬂC†36“ôªñè√œ»>ß{KtLﬂë"Ø›C∏W€ﬂﬁÖPîY÷®Fye@¬rÕpÄ¥…r/g¡xï‰I∞M2)ËÒAMW‹¢ƒ÷h˜˙,3ﬁ°“ˆ≤ÕÉ∂¿yŒõ«5<ñkx•5∂FR$˛¯÷ßõ”õ/ó)ë¿ß hëºΩ¥[Sçπ∂≈¿«u¬xÔﬁ∫YY_ßª∫z8ÕF]”œpÖd¶'ÊtFëÇı>ú)áÌ:±lÑqÅN8Å‡Ã]ä[˜~äÊ‰ËıT8º”A£ë[È®}Obè”ââ°a*¸‚uˇDO©è$!∫≤Tkdêî¯è©ñr.ÎWY«]zÖ#]p•¢TJ⁄Y=hÓ1•ßÍè*T°Àfàú™T‘¨Á»ZÔr"Úwõ{Ú´rO¡ùh´YßÔ·Ô÷ŸÂÃ—t2ÂãFß·xë,–Òÿf®õc:è∆NòKUÆ∂¶≤F—fâ‚x§© &Äˇﬁ€iá…g‹ˇ˝@tMTò˘Ω}‚ÌáVæd¯˝‡n@Ækv[—∂ì(iîÏ◊úﬂ∫!"~_á>Jk$u∏)ßZRó˙9-¢ßTd˚≥X£i“øƒjqˆî}ïæﬁ%[Ù
+Ø§§y≈§E∏ŸG9¥expÑüü~¿Çùﬂî_û˙ÖΩñ¨3î¨2p„—Ã0…"ñÎãÜ DIàL2∏fcó75÷ˆ≥x/ÛÛ¡üÿ'Aës6t¬`Mâi€E:#√ÔQ:„™Xö‘…!XoFPdXt©QıeöB“^L≥1D5ò(R0ΩFÒı•çjX´`h®å›ÑkqπeCÖ∆…/≥{y ≤îEo–“ƒ◊$∂taÂ“‹Ï4ó˛˜“Ù2Yò_ZÜ§Q´-Èk;áì&ê¢6Rî	D6ﬁT◊R8V®R7*Õç3m»$Ùg:Êƒîƒ∏ÉÁ¨KìBZzë90§
+=*∞§)iwÀmV)ùÄı6ÍE4@4Ωbf◊œê¨,ârE6ﬂS÷r,‘∂Z0å6Œö6P‡(Ä–‰@äÈ%\S”í¥ô<Çª •öÈ®¥ãÜÚﬂ´ËÔNjÄ4LjÇñ;œd=~l, ∑eçQ´rÉä¨õ€'IÒö3Jrû.v«s«vTµ,)Œ"Ö∂ºòçû‹ò0K•i5	öîÈ)¬VÈ·1€˜>2îvœÁ+¶∂yS®cµ–¨“´À»éONü†ΩõÄ°ìH¥‡C≤©≤:`⁄s◊2~»'âQiú=fNv\¨Ö•eøÕÄö»Œåt?g
+ÍßÃŸ¬Á«C¯4≈d}`ŒçGDL!·ﬁÛ˝‚ôÃ‚*UE® Î7oNì…Ù| °¨∆:-~ƒ≤
+´nyvyÆ‰≈∞ÍÚ2Êáì"ª ƒò©ªµ˜SûL.C«a¯üÄ{iƒÉñÌs`„||^L˚-Û
+"ﬁæÆuIG>ÆoD1qÜïbÒé¡J¨ å˘ñ1Q)iˇ–„Dì$πºúíCÃ 3¸´=«t˛∆ß&Uº™¥
+ñYÌ»Ô÷´‚9”∆˝sÄF:
+?õã#pzjπte~Òrä\ZôπRZˆö÷nû‹ë≈‡‹
+‚∞U!JÃæQÄ8›7OÙÑ4ÄS∞}{X£:πô1óßi«÷£ÊN¸ÎÇqù/¯’Å=}πÂ‹ëˇ5¯.Nåvﬂ€·*ô	oÑµ®¡*z∞–IBm
+)’¸˙†h—ÛÜWöAc£Z¶7mU◊Î2TÛâä—<‘ˆé]Ã#Ámf™Î’vP#Ç"áÓV˙ﬁ0⁄|¶Ñ˘)f¯”3~õÛñ:b•çóÈÌPæU≠ÑaÒ˘|_KÛI1t|™ætˆ@”Tá0¸Á€M}á€…Çq≠¿'Ò‚÷…≠VfW˛¡ê	QÀÑöù™/ü*et–ΩtLÔ0∏ÿRXﬁ¢è∂√n®ÁG⁄&E&›7{}Ph9HÙ•–¸69Ω0O˛ùøÇ;§†f–mùÑz∫£%°€¢Æ¥e\÷9{;MLˆëK”fµ~i´Bó◊≠LW’eæÀR ‹|,¸_°Æ„O.j#ˇ%Ã7ˆÒØ¨íÌ»`]=R·
+nv$\Í≤.ÑÀﬁUú¡”vz»AŒ">≥◊Æê˘ÖÂŸ˘kd©4Wö^û_ÃÂ<!åFπGãÑ‚™œÂG¿¸∫ju›[VøÑ§‹ÓÜvdX˘Ò¶‰û$oœ/˛å\û]\Ç7É¸ˆΩ¶íí€ŒπL//ÙmGÕ˜~πVm∂⁄8ìæôÄƒ‚$@∫≥p˛ákÌ,‚!o¶£ï"V62#]ŸI≥˚</…|Ù2¬–Qr¬∆ÏéTË/Ëm¿÷íö@cäF'9πÓ5©ÔïÃL-á‚n÷ÍÉtÀöB©º€:)TnñäË† :Û“7Y›)å$~∑%‘ÿáo>”5Ç”¥óë® ?06öœDıAÒ˚S¨@ôç(>ªn©vQ‰ã1Ò©{êshu5\”°\‘·òg?YèÄ˛tZ‡ygEê‰€°Î√w"ÑÒTG:˛†ˆë˜LF oD	 Á˚ø+…á÷^Ÿf&a/\ØDîÛˇ˙GpHTâ|§¶€ÜP<–% 5â¬]æÜ1?-^«Àï≈iÃŸ«XUF&…¬‘ÏÃã\OAµÚ“Æ$ºÛ^kàA1ê‡m¬≠I≥Fƒ…*Ú¬W™â⁄”A≥ÇÍKìÆ¬s)¡◊ìÈ[Æ
+ˆ•¢Ÿ*_†ˆooW.·ΩYOréœ±[O~)£X≤Òæûiˇ$∫v|¶Ω∑√π¨◊k°4¯èÓM™G≥‚—À\5ºá‹µ√\Zπ¥4Ω8+÷ôkÛÀ≥”ph∫CS∆RÓ’ÅUñ“¨~àÜØ∂ñ∂V[Âfuıò0mn‚M∞≤Ä@ç§†Oi´Q\◊NÚ);MwGnHù«ÏÆà£∫#¯NÈUˆ›xWŸÇ´f‹’∫‘†›©Ö-oY&qÏÆ˘ÜŸªÙ¥»?®⁄‰qqû>„Ÿ÷}V2ûâ¢·/„˚˚á>Ñ<M>á£@a.µóY÷Àc21Ñ(@'√∂á4áqúÄÛpVÿøkbÜ‰ ?Q`Ì'ö_Ëô∆ì¨âlë*‹˛¨˝]øF©rÙYjZ˛ ˚Vª£æ4WOd°ÆπqèK⁄ë˜•}©k›gøµ€™ø©¬Ùz€%ﬁÁW˙∫Pk‚Üèuı“ÑsÔÅ^î≥ñÍ§ie=W‹E$YEΩ´üâ5r¶/ë«∂K”-x£ î}èb>œ{≤Üˇ@Q|Ú7ñ◊Ω ∫4√ Ï¢3‡—å∂[vG·◊i @fB¶˜xò5¶À∏∞#dó≠Io2Ï,¡ùÌ3≥u€ —xbŸ°&fÕ?èd†∞8ÖÖˇpœ‘ùâw®´\
+;T&ªvú[˘«nrbº¶ñóß¶ﬂºZ∫∂,›1âÙ£çc•bfO-ô
+ö9Hîh|£'.Æ\Â&AÖ®¸ñÛı=ø˜ø8¡‹'≤>ÃΩ€–ˆp û∆ºüj∑ÉÚ√œ`TJ¿‘«úER%$€¥µV#"u1´bëºñ⁄^∫êM•YΩ◊£hΩrÍOñ*9¯ÍnÚäΩÎÃx¿
+S e)ÿSYÂÊó≠FX÷’√Z≈Feçh«œdÖUÇEÉ≠d:\,®äë¢†[È´≥À‰“ Ú≤ß°–h”¬=iaΩ"i£s¶√ß«Ÿ‚π“’Rí¬À•§◊'$c Z”ä1ıÀ®Zö¯`∫4ë»õﬂÄ–·’œ~xrØ=|Oãoû/Pp∆(Îù∑ÃÃàëˇpz¨IA y,?ÉÏé±7√;©sT3»G∞-s∂Îˇ]µÿüÑ¯<µ/·ú–∑8Ë≥;ù±∑Ï U›!·T+9ôÏ<gÀ7ú#Ìyπtç*“Ö©w∏’uejπÙˆ‘;diπ¥ ¶?;l˘]jáçìÃgØÃg:IyÊ≥Ny>‹¨Ê‰˚9IhÓ6°πÛ‹d≥8Y;Ou≤nÚñ±ò<4«?o9_ÙHÂJ ZÙêRï≥÷8Âv°c0'Æ‹2ò.∫‘Û˜π÷(3ıŸ?¶
+,^]‰B”%FF∫.M-ïfµ÷9µ∆¸ÂÀ•E≤¸ŒB:ñ=¶uhãO(≤ï}2ß∑	èêr„ë£çG|å∞“j 
+
+ı
+”eP>ªeˆÄb¥/$ı> ëtÚ-NÁkóÙ\Ã†Ï√É8ƒˆ ™≈é∆F s˜Â 	Â“”ﬁQ¸àg‰eá{Lz™R!äØ¥Ç≤JW95ëâ/ﬁ∑ú•ùF(‘}≥P "àÒL±=≤:úåz§ÉQÍG0Á”\æ!u;≤nÎ/3ê~Ë,3jü≠≈|P3&ïÖß:ÀX!ª‚%“fâπNÅîBÇ8 ≤fä]¬Œ∞›
+’Â∞~⁄«Ü€7Yÿ}ˆc“	„6=S!FIv(´–û˜|ájπIz±•ï´Wßﬂ…¨ºÈ.ùvﬁØn≤{≈É&9¯]sYf¶8‘/@^ÅT∆sXÊ>ªãvs´^@òòüÇ)R=®íRV2$yqú<{(7•C}ÉÔxwqY#èy5â*√2◊jQ=JΩ:≥Z›˛üçdN2@¯ùÄÁ]:€~(◊÷’“ÚõÛ3Kﬁ≈nG“rœâ‚°ÍeΩZc∆ ZQ|ˇ ,öU*
+´îNI{≤l•v≈ŸX≈CÃ÷±m˛ã≠WƒÈ*›	`Jﬁjr$˘!€ñPJ^-MÖ’ü≠rÖ˙v∞Éì‘„kº5§6dﬂC√ÁÜGF«∆œûõ»S£◊„ÖDMUµ^â<æ˘õ˝Z‘%Ω~1≤›‰´ë”/Á>ﬂ?‹#Ök¡zP!3’fXnﬁ[ô»ˇV0Ì15Õ`y¥ò*™◊Û`Â0K0yG[(óør«-ßpckµVmm»»·µhœ.BÀ;åÂ¶(mﬂõXói≠¯€ZÒ≠˘n!G©œF√ Kñ˛Óô—Èøõ≈Pòÿ#·RC:G&π»ø5µ\J‚’/œ/∫”m{"ØzÑ6‚0aÅw0Rv357}	ÄÒ gœ£ø)LÒD≤´û
+Ò—ëp¸\¶7Oœ/Êg/˘gô;3 Ì0ÃU|¬Æq‹´D?€˝8≥ådÙBÆJd·ÅÉ∞©µ¬?∂Zöaë’$Øt*¶
+ †yæñüÑS=à§ÌRùX@5eeçâ'UÈ˝Iä≥7nÙ©e4OhÜÃ∞!Ì sÓ“!«Ûtöû∑,∆8ö®uê`åïê<8Ê|ÆÏP#ÌcªÚ3‚é2åø£ó¡∆ÓŸ2bÚÆlHiƒ<‡
+ )Ö˚^P–√ÔUæ‹˚v∑•˚Øü;?¯UÅ≈b±_¯ÒµNéS~'2/`Ã) ÚwUÁ∞ˆ¬F†˙Ød(ÕBùj∑=€c4ÉU c8yr'»pÅˆB7d,[…c ¡ÓRp#d„…s‘òc?®ÿÄŒß ◊‹◊UºpôlÆ"»ÓÃxì]Ó—◊åd´>Jí•Sî‘Ω.NõkÖˆ¿	;ú≤)Ään≤¯«à˘%^];Æ<◊+jXtÕ:ôœœÎJp∞¿¢ÍÊÄ≈‰5ÏèLhQ`n'¨u Éˇ‰{mëSöﬁ3u(WÉ ≥kÍPÆ-’ƒ◊\M5≠‰¿ŸGÚ57Khj´mÚ¨⁄ZÚ@Æ∆R\Æ÷Wc8£)ñ.q‘ïM_™=b"¬˚'jŒÓˇ¶,Ì&……≈ÈLå‹¨÷/ÏR≥n»ô…„‘&’JK$¶≈5Qó€÷ç' Q||∑ê¯RÏåR;/5ó!Í»Úuà≤»Éd ‚å¸^Lésf˜æ",8	1}≠ÍØ≈È=3Q{Tó2ï‰ªôzX•“gÉÁ®yg®!$\á≤;?ñe'Òº4√Ôßü⁄êTTÉs’ﬂÚ&¶q§“dÁ5&üƒT&‹ã¡æL†=6ı$ßfóJ*∫õÚ˙7ÉjãŒÅq9Ò˝{ßRSﬂøYpÌÖ8ˇ°äoΩ)ÖH{∞‹§ï÷ï∆KÌÌ∑w!èxM≥{
+ˆ,X¥/`¿|ÿ)~$>^˘B∞B|<N\ì#≠À@¿=ÌΩß(jﬁ¿æ8b*e ˚—Û˝VA€Ô5
+P‚éoX`1•UOÇ›ÿ®Ü
+ûŸIx¿–Ã®VœzaöŸä◊°¬ˆ∆∏yM÷$à÷4L'2˘:Äœ∆z∞Àíó˚ﬁ-§-éb¿=t∫ÿéÊ"Ü≤Zj≥çM°µ>pi¶ò:NH›Ò⁄á'†›;°:ç·Ó'«éùªû≤^˘)áùS≠vÿ∏∞ã¸(∑¸ıp[4å;Ø<Y} QΩ’fÕívg¡‹:TU_Kv¢@O˜8yëu™pùæ®WwÈ®–
+˘´ª¨Y:X√t@"~º3H tåù≠Õ‘ƒQVar´lÿÖ˛é√¿Ïôw£7·Yúö|ª4†éwÈƒ:√&˝ó9jŸÿ∑_7ÉF!®TﬁbB	À≠ê⁄v‘ÊrÎûkBr®â&!9iÜÌ≠f!ÉÓû-˛ΩpÁ¬Æ∏ª£cÜR|Äy«áÂ›¬gø.{˛âQÓp≤B√e;Bd•£a;y2â“tÔíÄÂGMg∫ˇ¿ù!p"¶∏Gæzê?e+µx◊˛Î1˚∏à™!‹k™ôˇ‚ÓHˇç¡âSÚ∞úíæ	/»%â99|¸íûÖ˚*‡û∏ïÿQoÂLiÆ¥\‘”Û◊.œ.^ù‚∞ˇîÁ≤÷¬¿≤ø”íöeI˛'.ﬂ‚a2ºñ€√#åZhƒ¶jF≠0±à©Ÿ√∑ys ÿjGÈ}˙r3hmX©0gÈ›œÑJi—ÛÊcE]}›lq}ëº:#˛IÔë$ÃñŒ/¡‚qˇbj∆•Ω|=Ùı%gV±Õ—Å}Ë#†‹«èπB˘Éxñodﬁ'ÓH=P#˜ãı ?e|∫LlØº|3Ê8˘8¯¸VÒ,é≤lOÑµòètÁ‚s/‰Ë∫–› ØﬂtT_´67˘@áú1¿ ≠TSâ §÷SG∏ﬁk*§Îu^≠Úﬂ†À˜œ`Zƒ+ˇ.y¥„£È©•7ÁWñ…bÈÔWJtÂ^ò_XyﬂÆ∂7*Õ`[s«Ê^π=Ê±åÂùÂsvædªÈâ§PŸ9CÊJÕ÷Òj≠Bàzâ∑£åñ&c#ˇf∞.de{¡p${ö∆™á;ΩõHb2Ì|ƒ≤“u6£L[b‹„3Gê∏·€Aç*ê£é⁄ÜÑ4˛z˜_˛l!ßøÂ!ΩèTIu≥B 3"‰ä€qtèØÛ<ã˜~º|€uÓÍlﬂ∏+FÙÓkA◊sH6àB4•*Pöi$à&	\9≠xöò´÷≤yÓ∏E∆xvtPÍÂê,µÉˆVãpÇÕ¨…oqÄJ
+–òπáÀ÷iL´öS4tâ¡‰-–.»JX¥eàil&Òº¥è€÷7b3¨œ{j0ú‰ãÉÒá«Ydê∞Wp#®÷Ç’Z(_`è¬\È∂Ï°QÓçL∆ïmÌä©”Qÿ3iØ¬‘RœKﬁ C‰"KÙRCbu ’/E–O&ŸÂË[§√|ØHˇOˇ◊èxÅC©	ˆÛ∞ÈYFÌœäò˝)n–‘æ~Å?a±ûùπq≤üFá¯v=¡SoÿµçÄÂ¡€wA¿ò·F‡R“Òûwa™6€≠;ºïGE⁄µÓé•	è“°'˝t∏™–˚Ó4››ÅÏRDq
+|HWÂ±éVe2f&ø o`HÊÈ¸¿Ëµ¿’|Wí¸"ë?§Ø˛9∫ﬂ‰
+w˝ÜHPu⁄Ωå¢©<EüËñ©í¢_@©K‚"“®ÎÔh/ÁCC—|!êJø72.Û˘=Ê´ÇÍkı6xê«$ràxòG13à^©vca1Ç?jz;ôÏ›ç„ôõnÀ!Z⁄*ó√V–»¨jã¸ëYQ!’ÌŸ:€ä‰·°∂√“€P»PÎ±Ó∆)âéZy»‘7∫5Í‡°†9˙ﬁ¨ ˙ —ÈgK¡Q£O…¢q„AÍNvÉƒ í˝^8\Â"fWø˚˚œ˜©ö{@˝7^˘Ôï±+ó<EoJ5°Ó¯’∞ΩUh«Wç∞9Mwµ⁄›B¸`Â2GÓú† î®oãNÏÁüì˛Ûñ(}w4jˆà‘®e#£d)¿òKã*˜Pm=GÃU¨o1+5HíS´:Ù2Éiz*PñÈP>‡<˙w3∞7â
+åá÷ç˜‚π<–ÃÎf'ÉsœuÁ¸èJæ8∏øªÔÇáÈ§Z°ª"Œ1ŸÜ‘i”rìdpP“Ë=¢&;—†»Lå1ÁÊêˆ¥ÒT0˚…ﬁ˜ù9ç¢ygI∞òæßÊëTw5®˚ C^wæ‘ﬂK>r¨AYŸ∫tZÔÌ∑Wﬂ‘ΩŸwqcæœUÿ‰JÜXeÅ¨$Ñj≥X≠`X"?$§‘ﬁNhÏª		Z$®Ô HˆâÂë’háaÉUW¶•É‘rü‰√Kk∞.;Æ`’∑ÆøJGèø’="ëÅ¸?Z˘^w6¿D¡xO%›\Á≤}Ñ˝ËˆÆc„åÅ¨®(oô¸b∫¿TT-É/[#'øSÂÎ⁄üÚB•è˘ÓÔëYïÙæ⁄Ì±]pN’€uR€‹œÖ≤ìﬂN^ÿQÌa≥≤Á–πõÚ„[ñ3¡—é9wçiüÑ'Ï‚£≠Æ˘BDÛ#.p_%Qy%'Ó‹∞$˜±-π∂ﬂc—t1Gÿ¬ôì‚Ìƒu˘X ,=0¯¿ÔÀTÈêŸˇÛÛ˝á¬+˚$÷DòÎÂ´◊å
+§ü‹ZQ¯ñRÚ≠ÉÚ‚Pt´hå¥p∏ç0u'Ïy9¸&ª[`Å˜Ñ∑@æP°\åÀm~uVÏ6œF—Â·¡—,á‰OÀÚ¡ıæ∂-¯Êp√£ßÉåôà"3Ç*ø©Õvú“ì‘t(Rø∫F
+Ø»kˇÒU+Ø≥$ç”éúÑÄE,
+˝ùM>˜ `ŒM·ıê?Èˇx•ﬂë¯ “:–¥« Ä1∏Sß‘àºAÏ≤áÁz⁄èﬂu¯Udhxk·∑ÃÊ¨ïoE8¿v-È¿◊¢ÇΩŸ›WÙéN«YJj∏=Kw1‰z#ÿxu˜j–ﬁ(Æ’¢®Y`æü~ÄŒ‹J¥Iˇ'‰<≈ΩÎÿΩdõ—ˆru3§≠“÷…U	4oÂo°∫”‚°~µ∂⁄ÀaPﬁõ¡]ˆ
+¯KnãÛfÈõjó&´oﬂ
+õŸfíŒ§˛≠Vs`∏€òÎÀØÒ=y¢∂Õ·M\ù!K‰g¡Ø´d)⁄÷≥+mRπ∞ZŸ1ﬁ\ã5ÚwçvXØ∂ÈŒp”—û»•öî“èü◊ïk≈Œt“⁄©:ö&æPUÒe“Ú«Ø´Gm:X◊yºÍæ™q'Îå¶¨—˝ª⁄≈√ÖW-ˇÌﬁil_ºáK]ˇ¶xÕÉëéê);Ã+√Á¡K˜
+‰$	+S¨ob⁄·g∑8ÚfíÙÀÅ¡\{®Æ1åoà¬K	»Ûß,ÌXh4√lÂöe3∏Y:C¯±9∫ß]Õâóπ¥µ∫¨˙7™≠v‘‹¡!$Û-aÌå`÷ <2\ÂQ“Ó·9èAπ⁄ﬁa%8<ºÊÍØD0á°‰äæ‹ÊÛı°≈~úÌŒY]*ÂÜ˛ûY †tmfˆ⁄÷ùZXòõùF≤k™-∆ú%E<÷“Z·√{Ç·Ö0ºÙEÖâ: ¸¿Xj‘˘a<á7vT⁄ ’ZRÂº0 Øc;eîﬁxL◊ﬂ-x˜w¢
+mlíÏSêUê∏„cQUXk0ÅØ˘Hæ$F ÎN!¶R*'∞^Lı-Ì’SÓ˚N<•á?≈ÈM:èù"ë”7}QQ”3ıàò∫„•ô—RüX)Ã™Tê∞ÙEÖJCª∑>±“.#•á'≈¢§Xå‘!uíMÄH˙£‡mÓL°ˆ>&⁄ÎZ"O≥HG8£jN^ÈÌ<zºc°9®äéXôÿΩØj’ÏÛ≈˚ü~f*Îô‰·¡N@ˆ¸)√,—ÀÓÏY∞Û•
+ub˘«Ω	s˛Dx7páÁ#∞ÿe,°€®e^N¡.‚ïΩÕ»µ±:v°JÀz(¸Aﬁ#Î"¥Éì)›ÑxS;äNvõL©Ì.‚ëÆ(‚'Ê√U©Æ≠±Pñx‹»ã(ŸÓa„m‰âZ˜ò%˝;*È„¸aK˜Î ª¢	2Ç¿'¡Ñ¬Bâ.¢/§X,≤3∞‡ä_|»ä•vHhÎ…P⁄êÖ/‹#¨Cµ*ÀRø8ÍÌ'ö∂o—dﬂy»—Ø5¡éNE˘BÛÄ!ô!»<œ&}©√=bs¿] ﬂ*£˜>6ä]ßStA≥r°W3“√ºèsÛSÀ,4ƒ*Æœ_\Zôû.--ëÂ˘©•eÊUKÕÁB∏DIÎ}QÈı[ÕÓÆS:oÎƒÌ¡‘æVÿæœá˘.oı°ä±	Ωxˇ¥’πCyË÷vµ]ﬁê—◊´≠uü÷jDﬂÊ¿YR◊®u;8B∏LrË&?¿É[*,’™U+·J#óíA§wœèﬂÿ˛£èS%ú+40C4•î‡ç„et¬Xîv6p<IŒ&Ê¢ÕíÚâ9x~(ù‘HÁ©™åêÃﬁ„Œ¶aÒﬁl∫Ö#ÕêS Ÿ€UBèocã™◊4)\jì“‹™óYñ'ÚÓ{#ıÚ˜ ´6"]d⁄,_≤nTËOÔ9åûn÷8olÉú∂∑’‡%`3N«õ-ªÁú‚çÌmëÏ±‰˘∂é˚Àù€ñÇKÎ¬Ø„Üãd∫tmyqjé¨\õΩ<[ö!◊ÊóÈ2~ä\•*oÍJâºπrI∆√JìÈ‰˘OO¿”-&åi∂"â>´∂¶©b†KÎµ®]]´ñy-»¸ÙZÔyTi1®/3HﬂnÃ ÚDpüá—˝q]Y¬‰KïbÕmP5?tcCé'◊>Â®fi¡T$ê¡ ¯85VŸ[≈ÍÔ%ﬂ◊∏/ﬂ∏÷,‡7∂ˇ(Í	c∂[≠Ö\`ï\ŒØæRoRÈùÊúıkå¶J⁄À4„NgñÃê∞dPÇF™¢íÏCIÊ9MÈÁHª≥;ªGÙ~ÍnÛV
+()]úÿ¿>yíÚ<–y3â/@§OŒ+D/vò∑tp^ì0}®¡kö>ZR¥‹B£a©_ßˆEuqoV¬IP<=äÎ@Ì'FÂƒùt¶ì”˜∫IﬂÕT-±Í∂©X<›GU° »È
+søƒÆ{ªÂûÖhbG‘)I¶µ^∞öˆd,@ZÁÅpÉUÂK»“#ÕÉ¸L±ûﬁ(ÀÛ‘z˜,¶≤¡ˇµÿ‹<”Ω‰¢OïxµŒ"-∞u¿'¿gºáOÖoœ|H√ìÕ∏~»±ƒtÙ`»¨LÚb¨åU™òŸ˘°tô≥åçéßDxBπ:qÔ§Ï∫À’õ5À¡*+qøÕÚπd[z »d6SóÊS6⁄R@§UnFµ⁄j–·¡\ƒ
+ƒQITQP´ıü!<‰À‚Io-ØÓ÷M=Y¨—m@{cÔÙı3§ZéÍìÑ€m ÑIﬁäÄ-„nΩ˚/ˇir}}°˝®lï˚B≠Üœîîsá•:≤∆ﬂM°ŒfDΩ»úÎQsá#m˙[¥Oa≥ü«jÏüvZtÑ˚O“¨ÜkefÿπûÜy±£f‚i˛˘æf'9—r=Ñº–”+Õ†≤≈[òŒﬁ6∏ßﬂ¸?£X¿[∏/;W◊≈m°ÆKVﬂ¥~í»≥v∞äbœ\»3é;££»≥¥55®òË—ÄVñ ï¡ÅsçÊZPËázƒJT!ÅP|Y9’o>Ë¢Ô®˝|ë„√@∆#{ãê©ﬂl·$&Ú,sÅJ‹åj˜ÄÕ6ñ5¶Ï&sÀ;jŸN¿Ó#_√∂Dt˘TÅ∑XÙ:BÅ≠_∂®8ñëÙöÄî(Êß Ü /,]Ø¢⁄}µ‹Î=J⁄Q√ˆ}Ô÷\FªBûô¬*˙ÎˇôN]ŸÚ,√Ç˝=∑ÙﬁÁ€'fîãE?P£6pû4ö™4ÑC˛1êPv]Cëd∏√—JYG¶ÌIÊ™≠∂ól`86gv§9cXKtPáI=–&+j…‹r#gô!5vÏcp0—√πÜR(›,◊∂ZÃ≠ëJµñ€§º¥…fÿjÎa+ΩÎhà5z˘,≥Œ$"±≤ïãq§ß´K„ıí'ƒ
+õ
+Îr
+¸†=«°Éte˝ÀÁ_†û Sÿøuµv)®¨á”Ïµ∞&ç‚ëC⁄èg0wõÚ)Ú}¿∂ÿÉ?°aÄa(Ûâ§5(`1πa.ÎÏ5¡	:ûd¨è7…
+∂øGB∫’J>∑≤Ÿºû;√n¸Dyp‘¶˘qéÁláA-ÒêÍÄ^j’	9OŸu~Ø’Y1·ñÿj<1øÕÒx˜∏…m<†IÀ?!pL÷„ÑüègKÛÈ[E +lM§ˆê©˙ô9… |â“ìÏ/˜)s¬ÜW√Ï>9≤…‰¬óµB∫ËH ÒåÒÆ§ñK◊»Ï2Y  ’ ‘çÄ.‘…vƒ1ﬁ“Fª›hMV7ô∫-nQãèˆkÉQ66¢v40|vòÆÑ„√#£c¡ƒh0±Z?∑∂^d∆V™.hüZ´∂/–e¢qj˚¬¯–©_]òB˙≈ù[™C¸rï$uö\∞7çˆ∞‘sÊ¨Vg±øë∂∏Q≥¨Í’¯¸®Y]Ø÷Éö<íl®j' Ö¢K§‹A¨Ó0/GÍ∂`àç^»®2ÙònüÎ	xg¢< ∞⁄ÄöWõKÊak*˚/æ≈á~ïª|`µÜt◊©ƒ;ÏÆj≥£©]|O{§t9–£Aë˚éøﬂ
+õ;ôr N.∂õ’Õ¬i¯ÑuÙ+⁄Ë¬h.⁄V4∆ê7_˛i?=¨ÃŸêpUêºG±Zßb%l~uöIó„b™,ú◊‚ó∆∫o ∏⁄˚e-EM™«Ñµ⁄f∆-ΩCH∂xÙå–ØÌçê´0fGç∞^≠ØÛcõ…ÿ2v¯YQÉƒﬁe≠˝:‰ŒãZ»’Ω"›C„]ºK˜RÍÎ/ä-⁄üB!8CVQå∂êÇ‡Ì†%Ç|¥÷≥∞"ærôò≠¥Cj<^ô‚F–*t-ÂB¥∑ö∑ΩU¨=NŒ∑ˆ
+ùCq„òE$Õ	„∫ãÑÓo&…pNÉD”	≠ÚÂÜ	Ê–È"[%Ë7∫àœ¿3<Wˆîz	ÔWŒ›]æ‹ÜÏ0Z|_b}∏çtU”dNN¶j¨õ:ßFø“púg_^Çî˘èûîü>ø˜°eVã=”g*_@f†ÖGeD2¸#q-0ÏÎ|*?]%Hãw≥WÉ{ÅÈ˝p0◊Æû>`Ã¡ ≥=xCÆ©Õ>,íl˙xYv/J{)=ºÕ<⁄ôÄ‡»ÊÿªúÄ-±‡&ˇªmKyß™ΩŸÊAOI‘aµ¸“®C:+_Ô3√F™Yö¿A0WÈÇnm& ™&\‹€7=xpœéy∫ÊXo∏˝ÏêÖvˆäîvÔ¢vD≈À/èyÕ∂Ü4Ä÷Sø∆09,ji\[›\G§{¡fYŒGsàõ≥¸äv‚äkûmˆIÆCl]H∏O£’ˇñÈb√ﬁËÑﬂÙπ!êoJ|PıN»n<Ä
+6Ê'Fÿ¶olÉ˛-˘ªÙ∏3ü–M‡F[ÕÜµ-ûàè]∆n¸µ˘Å*GdÙ}ÑC1L|`rQK- ,?ëÈÁ}(˜c‡Ì0ì≠¸’öj·5…Òkhìòí,ÚÁh+=Œª◊(ù	¬S„øYâ√àâΩ_Ï¢:«u{ÜO6/ú√ÇbÒ∏‚ ;Ÿ†˜¸¿”ñ}>π@¯bS«\ÍN|ÑﬁqË;,YŒk0Xê{]ÀáÓ…ì;∑H/ƒ)fÆ|v∞¸(ÜYB‡6O˚˙4'mHÎn¶ç»Æ‹oM≠Gó^æ ˝õµﬂ®∏µ±jsI]ë§µy59ˇ˙›AE^π3;pﬂü°Fvc7˛¯Xπ/˘k|2Î§?l2ïjï˚r=+¨¥ü≥ﬂ¸ûó^„z\d/Â‹#∫$ÄEcYÜ/› \‚Ö÷$!3Uj’◊ÀmuåÙI8£ `Rõ†¬	Êﬂ´£iLÇºøqS©]ÿ2'CÂtØ±-¬ºjóAm;¬yXñÀaQ)v@˝=‡kî£ÛU&ıõ›O
+lè&GÑπMÆ“6[º˚,N√ÂÖq–2ÇÃr-j1«òpäa„í≈àïø<PË‹ù≤OXlQ+p°I˜Î|„	ªF’ámhÖ\“û(4n†°<ıa;‹$ø*Æ⁄‚≤èÙkg7ü{Õ[GC6“ÏÉA∑‚e¬^‰ÄW[n$ﬂº	ì-∆2¿≤¢ùUñ<v”Ïs—ÿŸf.ÏÄ2NC”mxïM«∑ÿÏ„ÜÄù;gW‡ªÛûpÙ Ø‚d†⁄{V«¢Â\wÓ_∏ùÛ∆nb3ü‚[ﬁˇÔdÅmC√Åâ±Fª8@]|ò⁄·j3±0PÕ˘V5‹64'ÉõSÉÎ¯-æ”&ï∞ÕHﬁOÊÀ§09{∑t≠„Mœ∑(º∞xì^z∂/&ø9bÒ&L+zË|0:`e8!d≠ØÍÕ$††çYÍó8≠L>R¯/â‚˝Neá<—áîˇ˝Ìõ'∂πï_±îv¬Œıâu{_UˇäÂ«¡?§πÌ˜N€W8”nƒ^3Ã»ﬂo—IOñ™õ[5Å<$ã ƒÉ^Àa´Mﬁkèl‹C∆j””úôù¬«nY ˛mÄ©˚◊ªˇ˙Øä1Z
+‡”í∏¿.KÈ_ˇn‘cøØÚUIwzO˚q`26D„ª5ΩGºÜ9äÅT(§‰ÖÑIÂ},{ﬂ$‚Ä;^>.ô!≤#EÏLWóìEÌoŸπñËI.&|È~l#cóØÁü(ˆ™ì(Ê:êWp¢5ìÚâ§‹ˇç`∞∫≠Ûd≠ÿB	<|L‘]ü®l“ò ⁄UR·S%`≤l5Ü¿»∏j}-BŒàÅp
+‹ìçTÎ«∞∞&ÖÕScÑÔBf$TıXﬁ\s‘^÷ÿä’d.
+csëóµ¸ßD=Q<⁄Ûı˛z„µ	e?Úe:? „E2Söaú•N¯Q∫v•¥Hı˛ÏµKÛˇ”~dLa3·Y+5Z¸πS?r*êŸ˙jt3Q≥„Ñ$ã‰ˇ  ˇˇ —∞ÁåxúÏ={è‘FûˇÔß®p+∫gC?Ê	Ã2DÛ"ô”pÃv!≠ª€3Ì‡∂;∂õôŸY§Õû≤Qƒ›E:ƒÊîÂñE!3,∞qÈ_eîOêèpø˙ïÀ.€Ueªg ‰6-1t€Ær=~ÔWŸ§gl’6kc[6Ò‹Å”1;µq¯ﬁØMø7›ØMøkt‹	”6Î™I¸æ—6k€µ	‚^5ΩuÓw≠N«t∞ªnÌÉìÕ´›Àd›6∑O≠Ì⁄GNˇåüƒèù∆/»{¶—1=Úã∆µƒ≠SÎ*i€ÜÔü5zÊÃÏ”
+Ãû_kõN ->¯Åµæ]kô¡¶	ChπtTkÒ/>⁄¨ç5õ§cxW¶WO¿’~´6≥Ù,ÁJ≠ôeë˜o˝⁄X}2”2€üã÷ôÆhk£ˆ¡?ç.Ãùúú∏‹ù$ÅπƒW¬âƒOég«âÔ[1,[|·&lc∑6yÑ4$Ék¿Ë‰cñˆ]l§„Ç÷›q±1N≥e¯&2¸aoêu◊Åã∂—æ¬ñÅÌ–Iæoxm≥ØTºÉêÔoˇÁC≤ø{sÔﬂ˜wüÏÔæÿﬂ˝f˜˜˜>›ﬂΩáo√ÌG¯˚˛˝^ΩÖè>Ü{7‡ﬂóxÌºFü«∆ªyøœ‰lt«Â√⁄ÈXûŸVLﬂ76LøænŸ∞Z’ô9MﬁÍ’= ˚ë∫m:Aóú&MrÙ(©*Êw
+ŒI ‘VmåÙ∑kM +îHºX!Hç6˚[ó≈%ÊP∏>∞mé„[æriKÕ„¨⁄Ì˝›óWÓÓ˛ﬁ«%µÚ∑Tsl–I á1rMòr8Ü˝»m˘"hM&@ã]õh Qã‡L
+n‚$`í˜C`√ôÖÙHÑ8⁄b˜)¨<õú˚ªª¯ìB‚3|‚k¯Õ~<∆ﬂÏÀÀÙZÜÔeΩ¬Öø≥—æd€∞ø˚È∫ıÖ‚pÑQF[É p…òÇÌ>Ùƒnë‹wùy€j_ôŸ©éP∞€ënTN]o—hw†ˆ`ªƒ˚ l´Ω∫’˘•§∑k2àK"‡8E¿QÅÆ3≤Œ¿i4‚:«ÈRÆ_äXSÍ˙q∏.ÄÊq	∏éÒG ≤rªváû·¯V`π@,ûÔzµæk·ñ»7	F/[Ì¿
+lò#B›MÄ.	‘ÙS‚	ﬂû#†±;‘~âóû#lﬂ√Ôw(
+Qäê}ßçÁªf˚ ºÂµms,…‹∆ÎîΩ—øIæ)ÂwÚ ,¿É,«∂`,8W ı_‡´Øß&πwg¯g¯´¢TßÄ3sàêÔõ¡íø‰¥‹≠∑cÿÁ˙¶S]7lﬂîí»§RPÛâeÀ2Ü-‹	9ë
+,¬Øäã6|“◊3‘MF€®4˙/XmryiêU”⁄›\·4êï‚§ÂÙAfƒl˚ÈZe◊¢¸⁄Ï^õEF-·‹„ﬁ~Dò_§7zÏ!bÂ∑ ’„OÛ„}äûız=;ò´Ü=0gv(Ò˚¨í7[õ,‹»vgûÆöhÁ3Ì™f=0º3®c◊¯Ml:ä+åN¶Åˆ‰d≥q¢ôíõÛ (=r}åSï§Ã GÅ∂˛¥;(©9Æ√/•ÂˆÙrf@W≤ÆryPMH≤ÑB≤ÊïJù0Zæk`rûµ—Ä…n?^)˙‚&íÖP˙ª[7#ojƒ*ƒ˘:Y∂¸ _#Ìuªf7“kÈDQo%}Ø6ö¡‚ù™J ±ÕÄ0…ÿÏêôî,íï0¨uRÕÓy=¨^udD*‡¥]fˆt.kË.ªõ¶7™UU*–c„_íºT¢Í’}0ƒ£ãñ|E›r⁄ˆ†c˙’èF»Ô~ßjNÅB›P“H2ˆkYv⁄ ¬Ïz¡4ﬂt¿‘ÆxâI’H¸∫ ïVœ$Ó:qÅQZŒ^ÎQŒI¸¿ÿ∆ß‹>©2≤±Óπø± ‡Ÿ¯á^†Evê¬J~ §íˇº\∆T´∆1“R
+©lçKÜësGfvÿœc©„_0◊Î¿'=ÿÂz◊´ïRe{ zkïÎ≠•ÍçÇ§0≤∑ffÑÆÂ I`ïÇÅÁà3zá ÚLìQ©T-πˆ‡òõdàå˜`™9Rˆ∞ø ÈjÒÜÙ		‡¿5)‚Ejﬂ30’¶|Ü·Ë‰äy∆Ã˙¿#Ñ°êÕÈ ∏RøN˜±IªË“?	EΩ∏ºFâ≥⁄V˛Ïm!›”h˝ì“åkJ!bcïBé7ÛîrT¿Q2aäˆ]ÆwﬂcJà?◊Ò«u©:BüºA•tîz–àC†˙Òı]©Œ´s1BÇGP=£_≠ˆ¸$ 2†°€-»s{fZv ∞§†
+Ã‡˚-⁄èkÈG°„§ÙÅ-ÅÙ™¸rºﬂ;øÈ£xï∞Ä2ö+Ë	´1UŒªÁnÜ†€Pi”YÅ©^;ûVÆZáh©îÎÙ©$çµ1˛%,∏[ÌTìõ◊¸HSŒ–E¸/~d¨YQæwﬂ!}„∏L‰ùhîuÈh\ FV∞]õ‚“ø0ZH„ìı⁄odõØ@6µÂàÌ-€ªûÂ‘6kÕP+L9Ûu0°≠’€Pﬁ$ƒ˜⁄ô¯3{’Ä·QÜSÈAﬂün4¨⁄òéZöﬂ≠∑›^£ﬂu∑6:9>19v‚¯ƒËÒ„ìµ…Òì''å©ì√lΩCIÓÃ∫Îıå‡Ë∫Ã¥=∑tsft≤yÙ£ôÕäçÿ«∞qHt ∫«ì•I9JBﬂq[Ê¢]ç‘•$$çK!È8iÂ[ïå‰Êœ üTVn˙…òj6 ∫/Õcìw§±‘®™2JjLs	ëmå˝«tú˛éï:√ÅΩÑÔ˝ÅÌõÓ,p≤‰ÿ«–P%:í‹|"√ÕßËê¢µ\–àz•'•üÜ
+n‰ÊﬁËn
+›8ñrGç®ÖM∆„7=£ØÈ+ªŒ;øIZB—ÕÒÛ»UÙö|ÖR[·ë)	Ñ® ±”‡º8ÜÍ¸Úy…xt‡∑g†ÂWtqPÎu(†µÏíÙ»À»/§–>zN·cîNÚÇk£ ^Ÿ6RK¡Ú'\òJYÍuπpQ˜ÎDﬁ“DÆ»“ÓØ¢kîGÑ
+-çb“¢D9√pÓ
+}wÎìÿˇ \]-Ã)÷b4πÃ›
+JŒlOÕ€.@añüQ
+MvBÂuv√ùM‘∞-îø©v´üUŒ¢Ë	yJã©'Z1·Fèíbõô?jT™⁄2;z™rO·Ú˙fœ¢Kú¶∞*3á¬"È°M‘À£Tı¥
+™n…®uq∂ç* <Ã…smöåë9¥V˙‰HË(bÆ-ê':ÙsË˛â_M$£˜¶8#ó]6FBK8hAõÃt…ı†«§¿4|'®EäjL¸{≠®æ†Ñk∫£u"Œ9\	ÂuVkˆ…sÇ±O¨õZò~Ã∫“‡y∞çÉnù‹* ?C)√J≈ó~ Ø‡,éâé çGÊê˛€îE'tÁ£Mu†iømÿTETkæÙìØ˝“œ;Ç&öÀNH{4Î˙o*]ﬂjïò~RjqZ'fönävóÚ
+5NhF ◊vŸ'Úö≤oú}4‘æÄü\´ ì<Ω#íwqOq¯ﬂ"—ærMœá4Ópˆ°§dåíí≠¸«•&D„›◊µ¢&?j˜ß/1¬Ù∞ùÌÁüié©ÙB∑JE˚ﬁkƒÑ°xÕ|◊.YN«›¨Í¶+¿ußií‘•éjI±eZA)÷3¯à˝∞+y≠-à∑aáªŒ⁄SZ§mvMø»c>Gb«ˆh:V0"ΩpÈ§1>a$¬%!Éß*Ãè‘,-ä=LÛ,5ŒF$ˆ”ëmﬁêxí≤Xyª∏mOWSØ/J3ÂwUèÚŸ–∂k#’ÇÓÙ3ÆK7i”
+∫aLLD,»≤1p⁄›1€}@…°£2ÚΩÂﬁ#MÏçNÃ’^CçûE?„Ò6–≈Ò≈9·«7#oTØÈ¿‰g¸·«(,–~”≥ìBîäIÍôc'S9Ué7Ix•<Î†òÊ≥%-;*»ÜDˆSA˘Ìè»Ω?«dﬁ%’î•G#JÊ#≤Æ ‹`@˛(iÉöË…ä·¿úΩú∆úcrP4A ù:Yk£ùŒÒ±±Îcù\ÖjiæK˜G\7∂tl=ËöºÖ+ﬂƒÖ{tå]æœ√◊‚0hÊ
+˛;£	∫fàw3åi"Œ_≤0MÜl/1ZÛ„®Fc£ÿMËzˇ…˛◊wn-9àe}¬⁄∞µùI3_
+›µªz°>D2KüﬁNõ”,Ò≥êx—´wòˇ¸O<Ãï6…– Úâ”I¸â|ÂîóÃ÷G`8Ãq¢NŒû[[:≥4?ª∂tÓ,ÿº8˜œãÛkdaqmviyqÅÃü;ª∂xvçºø¥xâ¨ú[ò]¶X˚«’ªÈh»á\gc1/8Â•2@¸l$5éW2ø´ñπi9‰µ`4#òÒ©X‘Lg9@ükMÚ[ ª±ÊÂ|9ç:\1·kÇ$É)AXŸØÄ∫<jÊÆ≤u£c.9!»2√eÇo¶á÷J∏™DeΩd¿fN<fhcômˆ∆€¬–@1±-/ï9‚è;°M©§ñ£ó<¶C9ÕßFaì£'∆∆OL‘å„∆âVgÚ¯zÀ iéŒrÂ»Tûπ§œ|î˙ÃG!+√;Õe'⁄üÃdÌrß´<	∞;ë·=~Øxv®j ÷ 4ªÚz™—ù8@J!ÈËù Û
++¸¡≈ùÅl'.õ ]è◊€û3:Ê<}B¥à;V”G·ëq≠gC˜‚e£e⁄¯ŒÔæºìÊU˜0&é•z=U8_u
+ß÷U8ºS,f‘¡;ecí%“¯…‘ìVeøñ»;Õ
+∏Ù˚ôU`_˙Dà•ÒF éí~I÷¥`ﬁNQÅìÒÿ’Raı÷®5àÃπ[π¨Vü7r8'0~IpbaèA#…/Õ¯e,8ﬂëì¯XÀÙ˚¶◊¶˘÷∞°Ì+4du‘˘ÄR|˝˛ˆçKRûF§∞›aÈ∞â€¯ù–{OKêMë@w–»≥gzÜ›IPe·Zj[≈ßA/π±
+
+„ãîö®R·ãshÓî˜ù¡Üdº2>Ç&S ?JqÔlVª“NH%Ó9∑≥çæq •\d‘¢äçÏN)._§‚1( ƒˇMîzüò}˝Ôﬂﬂﬂ˚∑?|=ã—Èª_•A˙T«ùá¯*#∆˜ûêê¶ÚtHbïydiÈ\·ûŸ±=Ç‡∆6™Ôô5¥PPŸ≥K±—1h-«1Ω¢†ÔGIF∑˚Tº_r≈;˝`∏ü˙öŸ:ÿŒ˝ÅZ=®I#nÚXL‹•÷û,§óL]¢‘íy,»≥oo√¬yÑπ˚‚|§4ÏHê0˘Ñ[6+
+DÂ¬`‚aø2"ÀÃ›∏NL'áf~qÍúåk…—Y¡∂‘·D„äÄî–4/©íê∞Å1∞íÁå¸ïweLJä”
+vÆÆÅ¢H¸•]Ú/˝Ñ9∑€Ÿ¶Ø)cüdY∑K©ñ˘9∑Ùì ;˛úöÖDú¥•ˆq∏ÆÏ*VJa%)^FN/iF1˝§ñTáC≥•í{1µ˜ï'ˆ“èºÅ&f!?^°DÓOX¥)•ÏC≈ÄD∏ÇåV	éxí~á∆Å-¬ä:¨@Â“÷®K™Æ–O%¶@[m›(TQ>£|∆Å\]∏Ty—%"/D∑ó~Ôs;a^,e'e‚1íû≠C£Æ£¥{J!õ({PGhô'Deå)Î7ï¿‡≤∞é‚8îπ[´4¿TE;àlıÜŒ£ät–ôbƒK#◊$E – ∆.`›"a
+cO	ù∏™÷€k⁄ÖÇ√–‚3£hmU\jÒ‡Õ‚†ñ›xÌô±óàâT⁄ã^≈f®”ˆôË¥f¥»åîÑD∑ÂBºÎYñcÿÔƒO™ì˙⁄ê∏fà‹¯Íı¿MÛ´?àùR-L—g®†InÖ¸®‰c∆!_2·~ﬁö%≠T$©˝•≈Ñ!EÑr‚>-ˆÓ'»»ç∞Ojî§A(/Vˆ—¿Ú∂%≠®"◊"
+*ûE+î—Éˆ†Ï†*l=’wÖí$Q-ë
+*v◊yƒŒ,J¢xÚn®Õ–ÿ–Qifä%ãÅﬁeQ⁄Á∆±?® iÊë·8f§Ú|Ô˜lêïëiçÖ–WV=†ö#Ä?E·3ÖÂπB‚!Àú•$ŒWóﬁÃ	∑*,—Ü÷∂ÁÇ1Ññ∂{K¢≈≥Ëƒ∏BX⁄ºœÃkQ(b¯(x»ÎÓkñ>mw£Ïå¸RÖ]©emπHΩâ¿U˜aÂl{Õ≠Ó–r>”§yå¥ÃÆq’riHúﬂy∞[QvÕäx»„Ω‰‰y¨¬%H7Hñ©<Êπnæ/S£ 0ÖÅmñ°–Ç`A	bªVS‘‘„∂ix¥∂—A(∞∏û≤},ã$à+»¬,‰œêÃïi˝àFSqä™iMÌö∆ei§≥J´M,áÎ¶!ê…´·Œ‘z¶Á‘˙û[*y’Íò¯ÖÔöûZ“˜ÉD0ãˆcÿBıÀ≈ß™QÔ«à@¢o†2I‰ÁPPP5´ï÷`õÇèŒ¬F≤:h%Ûc@’Ò:Y núÄÃ˙æµ·P`'G…ªz?Ä¶>Î∂÷zﬂrØSÅ>»Ú3{/UE∏$b—Kc$Û∂Ñ!ée1≤‡\JbÍ0òí›*Àl◊b“°çÙj	l…‡äfuìs‘™¸^1ÏÇ«CÄÜ¬º„ùW6˝ÅPp¢NŒÄÁ¥AbÒÅK^2lZ-±AŒ€Æ‘5R◊£nág~}DY‹KçÒ‡e—˝Àü’1•Ù:ó· s‡õ >EÅÔ≥ÉH#~ŸÖH∑Á%mÃxzy2q5DŒê.õ∂ç™#´}ì¬çÂ+ÜÂ  h±€1êÂ»›Öˆ HCjHc¬@X–•oÇ≤Ëüó”æa…∞ÄöÖeñ7âhM÷	Æù≤¬Çi√¥<ÀÙ@´hR∞†ouxbEa€,-©¬≈Ù;ÇM¢x 6µ“‘Âs!¯ı“}|ÅÙ‡ãRÙÄ‚∂iõÌ¿ÏºkmË\ÑáG9ƒ≠’!„*Óﬁj1l¸¶‚z2·-|˚èá|L’…ª¶4£M÷êJŒÄ‰C≥jd$¶Gèí"óX∂®u1z[R!’Ó–¨mÎˆF∂3ﬁ}Ê]¬5ˆ™RﬁYñB	◊”øëì·.qÇ.nA;«∞ó-'&?A∫µ	˘Ò°ˆ∆.>â≠z∞+ÊN≤,‰'Ã(^RÖ≤˛X≤«ÍdeÒÏ⁄π´Ô-ù'≥Áœ/Û¨¿3Á.¨ƒ©∫Cz˛»Í¥PS?¶R>‡úÛ—k…˘≥¸4≈Õˆ˚ëk©l÷_Û@YÕy÷_Ê8ªùcó |£O≤{˝ÿ¶a'BÌÒB∂‡RÙúÍÙ:jã†otﬁËÀQ'Ú®JdºÜÉËæø˝7»˘µ≈≥di-Á405°ëç]q∆‹°tñ0ÈÀŒÎ<ìLQ^ÛÍÏˆúlƒ|≥HÔ·„º∏≥%§WH∫(%è1K]<§¿ù%	…Vû»Ùc;èÈıÂtµ€¶ÔG¡ôË˘_c–`zV  oí-õ•]Sij•†O…8¯¢9?¬!z/9QÃùÿ†© ß>≥AE?ÂYƒúJJñ¯,§ÉÀ∫ö”≈®¥«3§O–;Ò""+_ÏÔ˝k.ë>§Ì-…ÑeŸ»π4t<õ*£òÁ˝‡EúõÀß—>GÎ;õÒû\ó,’˝»xÇ+¿Òìê2GeMƒbÖöÇIb~õè&Î„TT zÁÔ1ß=∆ﬁÒú…Ë?¡Aå{y=bbªaQ~te‚À¯áÑi»´Ω|Ç„|*B¬Ò«6âÁQ –7\¿x%;üa≤xRIeÂS4:C¬“÷4Î}œº
+»ª`Æ;ê«…˝æΩ}∆ıÒªV_)cnıM/∞|ZUé√E~M(ÇM,”iõø6œO7ƒ;Úñ-Àûû≥\˘c}◊÷]€r/z∂¸y~Y—
+î◊7;,ÇbÕÌ[m±qxØ+:Ë∫é∏ÁÈoŸ£rs0Ì;©*m>ÀHwÅÚ∞‹Œu9zQBjU9Fh—å“¶ëX˜QŸ&…ÊcEWØX¿«ÊôE⁄ídπ—èR œ‰Çµ∞Ä>¡SëFz-i˛(˚ÏÔÌ’5ƒtwO(ËïfEÙ–\F¬SüyD˚c˛#¬∑H5B?aIF≤âdöT≤√;aÁÉ %≥EÄ‚ÿn˝ˇ«HÂ‚R„‚Ø‡"ı”ﬂ÷Ü6YAÛµ√≈Û€ 9JfóËœ˜i@YÏX¸˛¸vÜ±jÇ®h€ïÀÏê£∂hsëX ∞Âsc<ôë–≠ÿ⁄OªSô¢µgp·"ÊÑOWÇwË™™+[8ã}0%+ZÑºö¨I˙-SU≤r·Ÿ}m:Ñ6÷FóP[J¥`≈V’ Ëaw÷Cﬂ{9ÔΩöªö2¶Í*⁄ÇÊî¶…2⁄°§_Ù8(ˆâ7,g°Xel.’'åìÕ¥z◊ “W∏Œ´qù“gï1Â€÷ª÷È∞Và÷P¿‚—oì 5=ÍÀüJe√Åñ9^UÈ?4!£®DOååe§7óÕ›´ãlÌ2≥ßúÂq5A…„>·≤ˆ-º˜¶Bîe`>nµtÄa˛≤DÏ,û¬ºím\,ã9{zpÚå_mMò·sç•áäìcÃ…Fâ=∑è4è-˚ëQöèúÅà‘(º∞xÏ?ß‰!	‡»a„TÉΩ¢–˚«kìÒ˚ˇÜÔp¿˜S˜çNÎ)5¿…∑„Ò=x;14fè‰E·R#Jiø£ìáZπSÜCÂh’xùp])Fø‰zW¸Æ€'®>ΩπÑÎo	¬UÃ~hú=√K(‡‹óùl^ó◊¢¥`>|Ÿœ§9Z
+·!M˙Ód1—~®˙ﬂÑëàª˜¶±öOm5†õúR'@gAt⁄&’≥4ÑÔCu÷Ìò#πÖ˛ﬂQ_µ1Uä®Ä®‹"(˙ÆEw…≈Ào.zﬁ—Û∫†ˆ>¿üåﬁà—Qi°dO“ú!RÁ‹ s&@r€ƒTÁäŸYr/û≠≠¶í5SÉuºÌ«S∆@ÔZò)∂Ñ™Ôπ†”ô?°—£”dùÃ!"≠ôFªKœt?ﬂµl◊w˚›Ì7£»RbN›∑Ã"Ê‘·	÷XÆõ‚€S°÷∑¨˛’.GO*:ë*,Kil¢≥0<”ê32w”üŸó√t).77ñÕÖ_˘πç
+·Â∫áL7J≠v$n|çﬁ¶›®´õ¯;Âñ
+©‡ù»ëÚ0Ú	=ã¸!ºÃ\$«‡ç“eì≤‰‡ïÉ∞>‹!ë "ﬂ˙-{‚H√pZÍ†Çp◊| °7ó"<¨ãë/¢Ô®j<ßﬂC9˜6Çãò`E•˜8—rxØO∂Õ0Q∫ﬁ√0P⁄Ó'Eæ$ÄáßPÚì'U∞-ØmÉ.Ñ∂ãgG‚w Ô˙04v{…Û{‰
+Ø£¸ô—Í™¡ò‹®∂û/˙¶˜éÓ∂Ú>∏∞ï,'ÄÂTO»I˚£EÌM/®Üe¿ErêÃﬂÊUCss–ﬂô.è¶ˆﬁg]ˇ®ØWgŸÍwF“ë	æZÿ˜üpÙ3.˙"„°LG(JI‚cT£ÄÒ§whIds;YÈ=ºá]%KG	˜∆õ9ãatïÑã¸„¨áky∞Ôó2ÕYèE}ú∫£mU•ˇµûø"ΩFÙ±è,Ò G:N™êVD\e∂Ú]?)÷Uæ‘ﬁ^´ÜïÁ}"ﬂ˝v6Ã«∏	’Ü%◊zJæ÷4ªüfÅnÕ#Îû€ãCÌ‡Ø¸=ëu⁄Iê3Ù€Ÿ·6π}£m€Ùt›C[◊4˝Ω≈ãÇ™@Ωc·$#‰˚€_˛æÙ ó;ˆÄF=ÈäÌ˝…„âdè’µŸµã´4ÑaaeÈ,Y]Zπ∏ÃR?¢¨èd`°†	FµÍ√z57tTTº¡,œ˜^kb»j`ˇß‹ê√9™dn»OÈâÙ£◊ÇQàbQt%µâÒì™…i0Ø>Û„†Èe"ô˜‘cÓÌzÖ°•…êîÄø¶ê¨H»Ãœ¶c2ƒéœ’h‘orÑ8j¨≈ñÈp‚DÈ¬›y¸ƒBØP{	"OsÃîéÄŒ[ÈëHoX‚Hä§ˇî;R6w◊èÃ^'ø–/„iÂ“ë™¡SsÍé˜âLéë(Ô»iôŒÆ¿‹¬ÁÌ–ìuòa≠…k1EOâ…Ÿìyi”îÎ*≥$≤∏ù¶ ﬂ}˛?-~“NMTôlÛÛ<#õEõ'¢Q‡±X©ÑZ¶ì5òAeèü]˙:îˆˆjèÖ ˝ΩG3≥Y@ˆf!°",◊Hx‘oï	üs/Àg¢	Agƒ…‰idË≤
+„”Y0É¨z=√ÀzˇËØ9
+ljXÉqÇDDÅıÖHÖÙtsµÇ/Á›<ı?q7πmÌ˜”j"x.0ÊL“óZ⁄ITz~Ùé›√œWæä–∆√\YT„∂
+e¨JØM‰÷8≠
+f*±JTÔÙ,á¨ZΩÅmh]R∑áÜg<NO8?/)1	éA∆‰•ºBIÃY|·#~
+w˝(70PÎE¬z+&©<f∂"FrøIJRÃbö°∞î÷ª<Sk!ég~àá–‰¯oéÖ á√SÅ•L√˙
+YÓ]vQY∫ç@óOSlQ/ßÀõÖÆï ê0¢68CgÒ	7#Ê©pz0ˇ)r⁄[‚î?∆W<fq#ì"Î/,ƒÃ£Vyh≠»,œ2À?)π1&7¬z@
+ˆ~!6wGèd\&—ù;LdbËw∑nJV(±/|≈d'PËl≠ØGË‰†áÒqñıprˇ&πY&\ñåúpG™‹áe¸ë É!e…ÒqÉáçSCî≤ Eô∏ÇUQ‰πAä•ÑÛ]»S·O!Ÿ†∏˚·Ã“Ø» ππ•ÂE2wnmÌ‹
+9;˚˛“ªÃ;07{Å‘» ‚Öw·©KKkÔëµsÁ©c·"ΩS=3Gñó÷…Í⁄Øó”v˛]«“,7cP¶=û5ÆZLÃ⁄ƒ^‚âF_¿Æ˝Úgˇ  ˇˇ 	–‘

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Sparkles, ShieldCheck, Play, Code2, LineChart, Award, Users, Bot, BadgeCheck, GraduationCap, Headphones } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, Play, Code2, LineChart, Award, Users, Bot, BadgeCheck, GraduationCap, Headphones, ShoppingBag } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 interface HeroProps {
@@ -58,17 +58,17 @@ export const Hero: React.FC<HeroProps> = ({ setActiveTab }) => {
             >
               <button
                 onClick={() => setActiveTab('services')}
-                className="px-6 py-3 rounded-xl font-bold text-white bg-[#1DB954] hover:bg-emerald-500 shadow-lg shadow-[#1DB954]/25 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 group text-sm sm:text-base"
+                className="px-6 py-3 rounded-xl font-bold text-white bg-[#1DB954] hover:bg-emerald-500 shadow-lg shadow-[#1DB954]/25 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 group text-sm sm:text-base font-bengali"
               >
                 {t('সার্ভিস দেখুন', 'Services')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
-                onClick={() => setActiveTab('courses')}
-                className="px-6 py-3 rounded-xl font-bold text-slate-100 bg-slate-800/90 hover:bg-slate-700 border border-slate-600 hover:border-[#1DB954] transition-all cursor-pointer text-sm sm:text-base flex items-center gap-1.5"
+                onClick={() => setActiveTab('marketplace')}
+                className="px-6 py-3 rounded-xl font-bold text-slate-100 bg-slate-800/90 hover:bg-slate-700 border border-slate-600 hover:border-[#1DB954] transition-all cursor-pointer text-sm sm:text-base flex items-center gap-1.5 font-bengali"
               >
-                {t('কোর্স দেখুন', 'Courses')}
+                {t('মার্কেটপ্লেস', 'Marketplace')}
                 <Play className="w-3.5 h-3.5 text-[#1DB954] fill-[#1DB954]" />
               </button>
             </motion.div>

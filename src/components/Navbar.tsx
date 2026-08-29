@@ -150,8 +150,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
-      {/* Top Slim Header Bar */}
-      <div className="bg-[#142B4D] text-white text-[11px] sm:text-xs py-1 sm:py-1.5 px-3 sm:px-4 border-b border-slate-700/50">
+      {/* Top Slim Header Bar - Hidden on mobile/phone screens */}
+      <div className="hidden md:block bg-[#142B4D] text-white text-[11px] sm:text-xs py-1 sm:py-1.5 px-3 sm:px-4 border-b border-slate-700/50">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 flex justify-between items-center gap-2">
           <div className="flex items-center gap-2 sm:gap-4 text-slate-300 font-medium text-[11px] sm:text-xs">
             <span className="flex items-center gap-1">
@@ -349,7 +349,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setInlineSearchOpen(false);
                       setSearchQuery('');
                     }}
-                    className="w-full py-2 px-3 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition font-bengali cursor-pointer shadow"
+                    className="w-full py-2 px-3 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs flex items-center justify-center gap-2 transition font-bengali cursor-pointer shadow"
                   >
                     <Search className="w-3.5 h-3.5" />
                     <span>সকল গিগ ও মার্কেটপ্লেস ফলাফল দেখুন (See All)</span>
@@ -454,7 +454,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setActiveTab('marketplace');
                       setSearchQuery('');
                     }}
-                    className="w-full py-1.5 px-2.5 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 transition font-bengali cursor-pointer shadow"
+                    className="w-full py-1.5 px-2.5 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs flex items-center justify-center gap-1.5 transition font-bengali cursor-pointer shadow"
                   >
                     <Search className="w-3.5 h-3.5" />
                     <span>সকল গিগ ও মার্কেটপ্লেস ফলাফল দেখুন</span>

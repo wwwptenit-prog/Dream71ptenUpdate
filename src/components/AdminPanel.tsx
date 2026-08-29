@@ -2935,7 +2935,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={openCreateGigModal}
-                  className="px-5 py-3 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg transition-all"
+                  className="px-5 py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg transition-all"
                 >
                   <Plus className="w-4 h-4" /> <span>ржирждрзБржи ржЕржлрж┐рж╢рж┐рзЯрж╛рж▓ ржЧрж┐ржЧ ржЖржкрж▓рзЛржб ржХрж░рзБржи</span>
                 </button>
@@ -2948,7 +2948,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                 onClick={() => setGigManageSubTab('gigs')}
                 className={`px-5 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
                   gigManageSubTab === 'gigs'
-                    ? 'bg-[#1DB954] text-slate-950 shadow-lg'
+                    ? 'bg-[#1DB954] text-white shadow-lg'
                     : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
                 }`}
               >
@@ -3375,7 +3375,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                   <button
                     onClick={() => setOfficeSellerSubTab('financials')}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      officeSellerSubTab === 'financials' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-950 text-slate-300 hover:bg-slate-800'
+                      officeSellerSubTab === 'financials' ? 'bg-emerald-500 text-white font-black' : 'bg-slate-950 text-slate-300 hover:bg-slate-800'
                     }`}
                   >
                     <span className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5" /> ржЖрж░рзНржирж┐ржВ & ржкрзЗржорзЗржирзНржЯ рж╣рж┐рж╕рзНржЯрзЛрж░рж┐</span>
@@ -3662,7 +3662,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                                       updateMarketplaceOrderStatus?.(ord.id, 'completed', 'ржкрзНрж░ржЬрзЗржХрзНржЯ рж╕ржлрж▓ржнрж╛ржмрзЗ рж╕ржорзНржкрзВрж░рзНржг ржУ ржХрзНрж▓рж╛рзЯрзЗржирзНржЯржХрзЗ рж╣рзНржпрж╛ржирзНржбржУржнрж╛рж░ ржХрж░рж╛ рж╣рзЯрзЗржЫрзЗред');
                                       setOfficeActionMsg(`ржЕрж░рзНржбрж╛рж░ #${ord.id} рж╕ржорзНржкржирзНржи рж╣рзЯрзЗржЫрзЗ!`);
                                     }}
-                                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-black rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-1"
+                                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl cursor-pointer shadow-md shadow-emerald-500/20 flex items-center gap-1"
                                   >
                                     тЬЕ рж╕ржорзНржкржирзНржи ржорж╛рж░рзНржХ ржХрж░рзБржи
                                   </button>
@@ -5140,7 +5140,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                 <button
                   onClick={handleAutoVerifyAllPendingBills}
                   disabled={isAutoReading}
-                  className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 transition"
+                  className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 transition"
                 >
                   <Zap className="w-4 h-4 fill-slate-950" />
                   <span>тЪб рж╕ржХрж▓ ржкрзЗржирзНржбрж┐ржВ ржмрж┐рж▓ ржПржХрж╕рж╛ржерзЗ ржЕржЯрзЛ-рж░рж┐ржб & ржнрзЗрж░рж┐ржлрж╛ржЗ ржХрж░рзБржи</span>
@@ -5209,7 +5209,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                     onClick={() => setBillStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition cursor-pointer shrink-0 ${
                       billStatusFilter === st
-                        ? 'bg-[#1DB954] text-slate-950'
+                        ? 'bg-[#1DB954] text-white'
                         : 'bg-slate-800 text-slate-300 hover:text-white'
                     }`}
                   >
@@ -5307,7 +5307,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   onClick={() => handleAutoVerifySingleBill(bill.id)}
-                                  className="px-2.5 py-1.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-[10px] rounded-lg cursor-pointer flex items-center gap-1 shadow"
+                                  className="px-2.5 py-1.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-[10px] rounded-lg cursor-pointer flex items-center gap-1 shadow"
                                 >
                                   <Zap className="w-3 h-3 fill-slate-950" />
                                   ржЕржЯрзЛ-рж░рж┐ржб & ржнрзЗрж░рж┐ржлрж╛ржЗ
@@ -5363,7 +5363,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => alert('ржирждрзБржи B2B ржХрзНрж▓рж╛ржпрж╝рзЗржирзНржЯ ржкрзНрж░ржЬрзЗржХрзНржЯ ржпрзБржХрзНржд ржХрж░рждрзЗ ржмрж╛ржпрж╝рж╛рж░ ржЬржм ржУ ржбрзЗрж╕ржкрзНржпрж╛ржЪ ржорзНржпрж╛ржирзЗржЬржорзЗржирзНржЯ ржмрзНржпржмрж╣рж╛рж░ ржХрж░рзБржиред')}
-                  className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg transition-all"
+                  className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg transition-all"
                 >
                   <Plus className="w-4 h-4" /> <span>ржирждрзБржи B2B ржкрзНрж░ржЬрзЗржХрзНржЯ ржПржирзНржЯрзНрж░рж┐</span>
                 </button>
@@ -5517,7 +5517,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                       onClick={() => setMktAdminSubTab(tab.id as any)}
                       className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2 ${
                         mktAdminSubTab === tab.id
-                          ? 'bg-[#1DB954] text-slate-950 shadow-md'
+                          ? 'bg-[#1DB954] text-white shadow-md'
                           : 'text-slate-300 hover:text-white hover:bg-slate-800'
                       }`}
                     >
@@ -5617,7 +5617,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                     <button
                       onClick={() => setGigStatusFilter('all')}
                       className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${
-                        gigStatusFilter === 'all' ? 'bg-[#1DB954] text-slate-950' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                        gigStatusFilter === 'all' ? 'bg-[#1DB954] text-white' : 'bg-slate-900 text-slate-400 border border-slate-800'
                       }`}
                     >
                       рж╕ржХрж▓ ржЧрж┐ржЧ ({gigs.length})
@@ -5657,7 +5657,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                           <div className="flex items-center gap-1.5 flex-wrap justify-end">
                             <button
                               onClick={() => handleOpenAdminEditGig(gig)}
-                              className="px-2 py-1 bg-emerald-500/20 text-[#1DB954] hover:bg-[#1DB954] hover:text-slate-950 text-[10px] font-bold rounded-lg transition border border-emerald-500/30 cursor-pointer flex items-center gap-1"
+                              className="px-2 py-1 bg-emerald-500/20 text-[#1DB954] hover:bg-[#1DB954] hover:text-white text-[10px] font-bold rounded-lg transition border border-emerald-500/30 cursor-pointer flex items-center gap-1"
                               title="ржЧрж┐ржЧ ржПржбрж┐ржЯ ржХрж░рзБржи"
                             >
                               <Edit className="w-3 h-3" />
@@ -5711,7 +5711,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                       setJobAssignedStaffId('');
                       setJobModalOpen(true);
                     }}
-                    className="px-3.5 py-2 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow transition-all"
+                    className="px-3.5 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow transition-all"
                   >
                     <Plus className="w-4 h-4" />
                     <span>+ ржирждрзБржи ржЬржм ржкрзЛрж╕рзНржЯ / ржХрж╛рж╕рзНржЯржо ржкрзНрж░ржЬрзЗржХрзНржЯ ржПржбржб</span>
@@ -5779,7 +5779,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                                 alert('ржЕржирзБржЧрзНрж░рж╣ ржХрж░рзЗ ржЕржлрж┐рж╕ рж╕рзНржЯрж╛ржл ржорзЗржорзНржмрж╛рж░ рж╕рж┐рж▓рзЗржХрзНржЯ ржХрж░рзБржиред');
                               }
                             }}
-                            className="px-3.5 py-2 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow cursor-pointer transition flex items-center gap-1"
+                            className="px-3.5 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl shadow cursor-pointer transition flex items-center gap-1"
                           >
                             <Send className="w-3.5 h-3.5" />
                             <span>ржбрзЗрж╕ржкрзНржпрж╛ржЪ ржХрж░рзБржи</span>
@@ -5868,7 +5868,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
 
                       <button
                         onClick={handleApplyBulkMktOrderStatus}
-                        className="px-3 py-1.5 bg-[#1DB954] text-slate-950 font-black text-xs rounded-xl hover:bg-emerald-500 transition shadow cursor-pointer flex items-center gap-1"
+                        className="px-3 py-1.5 bg-[#1DB954] text-white font-black text-xs rounded-xl hover:bg-emerald-500 transition shadow cursor-pointer flex items-center gap-1"
                       >
                         <CheckCircle className="w-3.5 h-3.5" />
                         <span>ржмрж╛рж▓рзНржХ ржЖржкржбрзЗржЯ</span>
@@ -5959,7 +5959,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                                     onClick={() => {
                                       alert(`ржЕрж░рзНржбрж╛рж░ ${ord.id} ржПрж░ ржПрж╕рзНржХрзНрж░рзЛ ржкрзЗржорзЗржирзНржЯ рж╕ржлрж▓ржнрж╛ржмрзЗ рж╕рзЗрж▓рж╛рж░рзЗрж░ ржУрзЯрж╛рж▓рзЗржЯрзЗ рж░рж┐рж▓рж┐ржЬ ржХрж░рж╛ рж╣рж▓рзЛ!`);
                                     }}
-                                    className="px-2.5 py-1 bg-[#1DB954] text-slate-950 font-black text-[10px] rounded-md shadow hover:bg-emerald-500 transition cursor-pointer"
+                                    className="px-2.5 py-1 bg-[#1DB954] text-white font-black text-[10px] rounded-md shadow hover:bg-emerald-500 transition cursor-pointer"
                                   >
                                     рж░рж┐рж▓рж┐ржЬ ржПрж╕рзНржХрзНрж░рзЛ
                                   </button>
@@ -6008,7 +6008,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                         alert(`ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐ "${newCatName.trim()}" рж╕ржлрж▓ржнрж╛ржмрзЗ ржпрзБржХрзНржд рж╣рзЯрзЗржЫрзЗ!`);
                       }
                     }}
-                    className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl cursor-pointer"
+                    className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl cursor-pointer"
                   >
                     + ржпрзЛржЧ ржХрж░рзБржи
                   </button>
@@ -6953,7 +6953,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                         onClick={() => setSettingsForm({ ...settingsForm, customScalePercent: scale })}
                         className={`p-2.5 rounded-xl border text-xs font-extrabold text-center cursor-pointer transition-all ${
                           (settingsForm.customScalePercent || 100) === scale
-                            ? 'border-[#1DB954] bg-[#1DB954] text-slate-950 font-black'
+                            ? 'border-[#1DB954] bg-[#1DB954] text-white font-black'
                             : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                         }`}
                       >
@@ -7014,7 +7014,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
 
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-[#1DB954] text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg hover:bg-emerald-500 transition-all"
+                  className="px-6 py-3 bg-[#1DB954] text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg hover:bg-emerald-500 transition-all"
                 >
                   <Save className="w-4 h-4" /> рззрзжрзж% рж░рзЗрж╕ржкржирзНрж╕рж┐ржн рж╕рзЗржЯрж┐ржВ рж╕рзЗржн ржХрж░рзБржи
                 </button>
@@ -7411,7 +7411,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
 
                 <button
                   type="submit"
-                  className="px-8 py-3.5 bg-[#1DB954] hover:bg-emerald-500 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg hover:shadow-emerald-500/20 transition-all"
+                  className="px-8 py-3.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg hover:shadow-emerald-500/20 transition-all"
                 >
                   <Save className="w-4.5 h-4.5" /> SEO ржУ ржорзЗржЯрж╛ ржЯрзНржпрж╛ржЧ рж╕рзЗржЯрж┐ржВ рж╕рзЗржн ржХрж░рзБржи
                 </button>
@@ -7961,7 +7961,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                   setTimeout(() => setFeeSaveSuccess(false), 3000);
                   alert(`ржлрж┐ ржУ ржХржорж┐рж╢ржи рж╕рзЗржЯрж┐ржВрж╕ рж╕ржлрж▓ржнрж╛ржмрзЗ рж╕рзЗржн рж╣рзЯрзЗржЫрзЗ!\nтАв ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕ ржХржорж┐рж╢ржи: ${mktCommissionRate}%\nтАв ржЯрзНрж░рзЗржЗржирж╛рж░ рж╢рзЗрзЯрж╛рж░: ${trainerRevShareRate}%\nтАв ржХрзНрж▓рж╛ржпрж╝рзЗржирзНржЯ ржлрж┐: ${clientProcessingFeePercent}%\nтАв ржЙржЗржержбрзНрж░рзЯрж╛рж▓ ржЪрж╛рж░рзНржЬ: ${freelancerWithdrawalFeePercent}%`);
                 }}
-                className="px-7 py-3 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-2xl flex items-center gap-2 cursor-pointer shadow-xl transition-all"
+                className="px-7 py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-2xl flex items-center gap-2 cursor-pointer shadow-xl transition-all"
               >
                 <Save className="w-4 h-4" />
                 <span>ржлрж┐ & ржХржорж┐рж╢ржи ржХржиржлрж┐ржЧрж╛рж░рзЗрж╢ржи рж╕рзЗржн ржХрж░рзБржи</span>
@@ -8013,7 +8013,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => alert('ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕ ржХрж╛ржЬрзЗрж░ ржкрж╛рж░рзНрж╕рзЗржирзНржЯрзЗржЬ ржУ ржлрж┐ржирж╛ржирзНрж╕рж┐рзЯрж╛рж▓ рж╕рзНржЯрзЗржЯржорзЗржирзНржЯ ржбрж╛ржЙржирж▓рзЛржб рж╕ржлрж▓ рж╣рзЯрзЗржЫрзЗ!')}
-                    className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg transition-all"
+                    className="px-4 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-lg transition-all"
                   >
                     <FileText className="w-4 h-4" /> <span>рж╕рзНржЯрзЗржЯржорзЗржирзНржЯ ржбрж╛ржЙржирж▓рзЛржб</span>
                   </button>
@@ -8276,2284 +8276,76 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
                               </td>
                               <td className="p-3 font-bold text-amber-400">
                                 рз│{sellerAmt.toLocaleString('bn-BD')}
-                                <span className="text-[9px] text-amber-400 block font-normal">(рзпрзж%)</span>
-                              </td>
-                              <td className="p-3">
-                                <span className={`px-2.5 py-1 rounded-xl font-bold text-[10px] border inline-block whitespace-nowrap ${progressBg}`}>
-                                  {m.status === 'completed' && 'тЬЕ рж░рж┐рж▓рж┐ржЬржб'}
-                                  {m.status === 'delivered' && 'ЁЯУж ржлрж╛ржЗрж▓ рж░рж┐ржнрж┐ржЙ'}
-                                  {m.status === 'in_progress' && 'тЪб ржПрж╕рзНржХрзНрж░рзЛ рж▓ржХ'}
-                                  {m.status === 'pending' && 'тП│ ржкрзЗржирзНржбрж┐ржВ'}
-                                  {m.status === 'cancelled' && 'тЭМ рж░рж┐ржлрж╛ржирзНржбрзЗржб'}
-                                  {!['completed', 'delivered', 'in_progress', 'pending', 'cancelled'].includes(m.status) && m.status}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-            </div>
-          );
-        })()}
-
-          </main>
-        </div>
-
-      </div>
-
-      {/* Course Modal */}
-      {courseModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl max-w-lg w-full space-y-4 font-bengali text-slate-900 dark:text-white shadow-2xl">
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">ржХрзЛрж░рзНрж╕ ржпрзЛржЧ / ржПржбрж┐ржЯ</h3>
-            <form onSubmit={handleSaveCourse} className="space-y-3">
-              <input
-                type="text"
-                placeholder="ржХрзЛрж░рзНрж╕рзЗрж░ рж╢рж┐рж░рзЛржирж╛ржо"
-                required
-                value={courseTitle}
-                onChange={e => setCourseTitle(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  ржХрзЛрж░рзНрж╕ ржержорзНржмржирзЗржЗрж▓ / ржЫржмрж┐ (ржбрж┐ржнрж╛ржЗрж╕ ржерзЗржХрзЗ ржЖржкрж▓рзЛржб ржЕржержмрж╛ рж▓рж┐ржВржХ)
-                </label>
-                <div className="flex items-center gap-2">
-                  <label className="px-3 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 shadow transition-all">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>ржЫржмрж┐ ржЖржкрж▓рзЛржб</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleImageFileUpload(e, setCourseThumbnail)}
-                      className="hidden"
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ржЕржержмрж╛ ржЫржмрж┐ URL ржкрзЗрж╕рзНржЯ ржХрж░рзБржи"
-                    value={courseThumbnail}
-                    onChange={e => setCourseThumbnail(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                {courseThumbnail && (
-                  <div className="mt-2 relative inline-block">
-                    <img src={courseThumbnail} alt="Thumbnail Preview" className="w-24 h-16 object-cover rounded-xl border border-slate-700 shadow" />
-                    <button
-                      type="button"
-                      onClick={() => setCourseThumbnail('')}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full text-[10px] flex items-center justify-center font-bold"
-                      title="ржЫржмрж┐ ржорзБржЫрзБржи"
-                    >
-                      тЬХ
-                    </button>
-                  </div>
-                )}
-              </div>
-              {/* Course Category & Level Selection */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ржХрзЛрж░рзНрж╕ ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐</label>
-                  <input
-                    type="text"
-                    placeholder="ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐"
-                    value={courseCategory}
-                    onChange={e => setCourseCategory(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ржХрзЛрж░рзНрж╕ рж▓рзЗржнрзЗрж▓ / ржЯрж╛ржпрж╝рж╛рж░</label>
-                  <select
-                    value={courseLevel}
-                    onChange={e => setCourseLevel(e.target.value as any)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-                  >
-                    <option value="basic">ЁЯЯв ржмрзЗрж╕рж┐ржХ рж▓рзЗржнрзЗрж▓ (Basic Tier)</option>
-                    <option value="advanced">тЪб ржПржбржнрж╛ржирзНрж╕ржб рж▓рзЗржнрзЗрж▓ (Advanced Tier)</option>
-                    <option value="professional">ЁЯОУ ржкрзНрж░ржлрзЗрж╢ржирж╛рж▓ ржбрж┐ржкрзНрж▓рзЛржорж╛ (Diploma)</option>
-                    <option value="live_batch">ЁЯФ┤ рж▓рж╛ржЗржн ржмрзНржпрж╛ржЪ (Live Batch)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Trainer Assignment / Public Offer Dropdown */}
-              <div className="p-3 bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/30 rounded-2xl space-y-1.5">
-                <label className="block text-[11px] font-extrabold text-amber-900 dark:text-amber-400">
-                  ЁЯОп ржХрзЛрж░рзНрж╕ ржЯрзНрж░рзЗржЗржирж╛рж░ ржЕрзНржпрж╛рж╕рж╛ржЗржиржорзЗржирзНржЯ ржмрж╛ ржмрзНрж░ржбржХрж╛рж╕рзНржЯ ржЕржлрж╛рж░
-                </label>
-                <select
-                  value={courseAssignedTeacherId}
-                  onChange={e => {
-                    setCourseAssignedTeacherId(e.target.value);
-                    const found = availableInstructors.find(i => i.id === e.target.value);
-                    if (found) {
-                      setCourseInstructor(e.target.value === 'public' ? 'ржкрж╛ржмрж▓рж┐ржХ ржЕржлрж╛рж░ (ржЙржирзНржорзБржХрзНржд ржЯрзНрж░рзЗржЗржирж╛рж░)' : found.name.split(' (')[0]);
-                    }
-                  }}
-                  className="w-full p-2.5 rounded-xl border border-amber-500/40 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-amber-200 focus:outline-none focus:border-[#1DB954]"
-                >
-                  {availableInstructors.map(inst => (
-                    <option key={inst.id} value={inst.id}>
-                      {inst.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-tight">
-                  {courseAssignedTeacherId === 'public'
-                    ? 'ЁЯТб ржмрзНрж░ржбржХрж╛рж╕рзНржЯ ржкрж╛ржмрж▓рж┐ржХ ржЕржлрж╛рж░ ржжрж┐рж▓рзЗ ржР ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐рж░ рж╕ржХрж▓ ржЯрзНрж░рзЗржЗржирж╛рж░рзЗрж░ ржХрж╛ржЫрзЗ ржирзЛржЯрж┐ржлрж┐ржХрзЗрж╢ржи ржУ ржЕржлрж╛рж░ ржпрж╛ржмрзЗред ржпрж┐ржирж┐ ржкрзНрж░ржержо ржПржХрж╕рзЗржкрзНржЯ ржХрж░ржмрзЗржи рждрж┐ржирж┐ ржХрзЛрж░рзНрж╕ржЯрж┐рж░ ржжрж╛рзЯрж┐рждрзНржм ржкрж╛ржмрзЗржиред'
-                    : 'ЁЯТб ржирж┐рж░рзНржжрж┐рж╖рзНржЯ ржЯрзНрж░рзЗржЗржирж╛рж░ ржирж┐рж░рзНржмрж╛ржЪржи ржХрж░рж▓рзЗ ржЕржлрж╛рж░ рж╢рзБржзрзБржорж╛рждрзНрж░ ржЙржХрзНржд ржЯрзНрж░рзЗржЗржирж╛рж░рзЗрж░ ржбрзНржпрж╛рж╢ржмрзЛрж░рзНржбрзЗ рж╢рзЛ ржХрж░ржмрзЗред'}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder="ржорзВрж▓рзНржп (BDT)"
-                  value={coursePrice}
-                  onChange={e => setCoursePrice(Number(e.target.value))}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                />
-                <input
-                  type="number"
-                  placeholder="ржбрж┐рж╕ржХрж╛ржЙржирзНржЯ ржорзВрж▓рзНржп"
-                  value={courseDiscountPrice}
-                  onChange={e => setCourseDiscountPrice(Number(e.target.value))}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={courseIsFree}
-                  onChange={e => setCourseIsFree(e.target.checked)}
-                />
-                <span>ржПржЯрж┐ ржПржХржЯрж┐ ржлрзНрж░рж┐ ржХрзЛрж░рзНрж╕</span>
-              </label>
-
-              {/* Targets & Commission Settings Box */}
-              <div className="p-3.5 bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-2xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <p className="text-xs font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
-                    ЁЯОп ржХрзЛрж░рзНрж╕ ржЯрж╛рж░рзНржЧрзЗржЯ ржУ ржЗржирж╕рзНржЯрзНрж░рж╛ржХрзНржЯрж░ ржХржорж┐рж╢ржи рж╣рж╛рж░
-                  </p>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400">ржПржбржорж┐ржи ржжрзНржмрж╛рж░рж╛ рж╕рзЗржЯржХрзГржд</span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">ржЯрж╛рж░рзНржЧрзЗржЯ ржоржбрж┐ржЙрж▓</label>
-                    <input
-                      type="number"
-                      min={1}
-                      placeholder="ржоржбрж┐ржЙрж▓"
-                      value={courseTargetModules}
-                      onChange={e => setCourseTargetModules(Number(e.target.value))}
-                      className="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">ржЯрж╛рж░рзНржЧрзЗржЯ ржХрзНрж▓рж╛рж╕/ржнрж┐ржбрж┐ржУ</label>
-                    <input
-                      type="number"
-                      min={1}
-                      placeholder="ржХрзНрж▓рж╛рж╕"
-                      value={courseTargetLessons}
-                      onChange={e => setCourseTargetLessons(Number(e.target.value))}
-                      className="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">ржЯрж┐ржЪрж╛рж░ ржХржорж┐рж╢ржи (%)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="ржХржорж┐рж╢ржи %"
-                      value={courseTeacherCommissionRate}
-                      onChange={e => setCourseTeacherCommissionRate(Number(e.target.value))}
-                      className="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-emerald-600 dark:text-emerald-400 focus:outline-none focus:border-[#1DB954]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <textarea
-                placeholder="ржХрзЛрж░рзНрж╕рзЗрж░ ржмрж┐ржмрж░ржг..."
-                rows={3}
-                value={courseDesc}
-                onChange={e => setCourseDesc(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md">
-                  рж╕рзЗржн ржХрж░рзБржи
-                </button>
-                <button type="button" onClick={() => setCourseModalOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer">
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Service Modal */}
-      {serviceModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl max-w-lg w-full space-y-4 text-slate-900 dark:text-white shadow-2xl">
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{editingServiceId ? 'рж╕рж╛рж░рзНржнрж┐рж╕ ржПржбрж┐ржЯ ржХрж░рзБржи' : 'ржирждрзБржи рж╕рж╛рж░рзНржнрж┐рж╕ ржпрзЛржЧ ржХрж░рзБржи'}</h3>
-            <form onSubmit={handleSaveService} className="space-y-3">
-              <input
-                type="text"
-                placeholder="рж╕рж╛рж░рзНржнрж┐рж╕ ржЯрж╛ржЗржЯрзЗрж▓"
-                required
-                value={serviceTitle}
-                onChange={e => setServiceTitle(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <input
-                type="text"
-                placeholder="ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐ (ржЙржжрж╛: Web Development, Graphics)"
-                value={serviceCategory}
-                onChange={e => setServiceCategory(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <input
-                type="text"
-                placeholder="ржкрзНрж░рж╛ржЗрж╕ ржЯрзЗржХрзНрж╕ржЯ (ржЙржжрж╛: рз│рззрзж,рзжрзжрзж)"
-                value={servicePrice}
-                onChange={e => setServicePrice(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  рж╕рж╛рж░рзНржнрж┐рж╕ ржПрж░ ржХржнрж╛рж░/ржмрзНржпрж╛ржирж╛рж░ ржЫржмрж┐ (ржбрж┐ржнрж╛ржЗрж╕ ржерзЗржХрзЗ ржлрж╛ржЗрж▓ ржЖржкрж▓рзЛржб ржЕржержмрж╛ рж▓рж┐ржВржХ)
-                </label>
-                <div className="flex items-center gap-2">
-                  <label className="px-3 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 shadow transition-all">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>ржЫржмрж┐ ржЖржкрж▓рзЛржб</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleImageFileUpload(e, setServiceThumbnail)}
-                      className="hidden"
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ржЕржержмрж╛ ржЫржмрж┐рж░ рж▓рж┐ржВржХ/URL ржкрзЗрж╕рзНржЯ ржХрж░рзБржи"
-                    value={serviceThumbnail}
-                    onChange={e => setServiceThumbnail(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                {serviceThumbnail && (
-                  <div className="mt-2 relative inline-block">
-                    <img src={serviceThumbnail} alt="Service Preview" className="w-24 h-16 object-cover rounded-xl border border-slate-700 shadow" />
-                    <button
-                      type="button"
-                      onClick={() => setServiceThumbnail('')}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full text-[10px] flex items-center justify-center font-bold"
-                      title="ржЫржмрж┐ ржорзБржЫрзБржи"
-                    >
-                      тЬХ
-                    </button>
-                  </div>
-                )}
-              </div>
-              <textarea
-                placeholder="рж╕рж╛рж░рзНржнрж┐рж╕ ржмрж┐ржмрж░ржг..."
-                rows={3}
-                value={serviceDesc}
-                onChange={e => setServiceDesc(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md">
-                  рж╕рзЗржн ржХрж░рзБржи
-                </button>
-                <button type="button" onClick={() => setServiceModalOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-all">
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ADMIN GIG UPLOAD / EDIT MODAL (Full Marketplace Features) */}
-      {gigModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 font-bengali">
-          <div className="bg-slate-900 border border-slate-700 p-5 sm:p-7 rounded-3xl max-w-3xl w-full space-y-5 shadow-2xl relative max-h-[92vh] overflow-y-auto text-white">
-            {/* Header */}
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-[#1DB954]">
-                  <ShoppingBag className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white flex items-center gap-2">
-                    <span>{editingGigId ? 'ржЕржлрж┐рж╢рж┐рзЯрж╛рж▓ ржЧрж┐ржЧ ржПржбрж┐ржЯ ржХрж░рзБржи' : 'ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕рзЗ ржирждрзБржи ржЕржлрж┐рж╢рж┐рзЯрж╛рж▓ ржЧрж┐ржЧ ржкрж╛ржмрж▓рж┐рж╢ ржХрж░рзБржи'}</span>
-                    <span className="text-[10px] bg-emerald-500/20 text-[#1DB954] px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                      ржорзЗржЗржи ржПржбржорж┐ржи ржорзЛржб
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-400">рж╕ржХрж▓ ржлрж┐ржЪрж╛рж░, рзйржЯрж┐ ржкрзНржпрж╛ржХрзЗржЬ рж░рзЗржЯ, ржЧрзНржпрж╛рж▓рж╛рж░рж┐ ржУ ржПржлржПржХрж┐ржЙ рж╕рж╣ рж╕рж░рж╛рж╕рж░рж┐ рж▓рж╛ржЗржн ржХрж░рзБржи</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setGigModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Navigation Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-800/80">
-              <button
-                type="button"
-                onClick={() => setGigModalTab('basic')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  gigModalTab === 'basic'
-                    ? 'bg-[#1DB954] text-slate-950 shadow-md'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <span>рзз. ржмрзЗрж╕рж┐ржХ рждржерзНржп</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setGigModalTab('packages')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  gigModalTab === 'packages'
-                    ? 'bg-[#1DB954] text-slate-950 shadow-md'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <span>рзи. рзйржЯрж┐ ржкрзНржпрж╛ржХрзЗржЬ ржкрзНрж░рж╛ржЗрж╕рж┐ржВ</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setGigModalTab('media')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  gigModalTab === 'media'
-                    ? 'bg-[#1DB954] text-slate-950 shadow-md'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <span>рзй. ржорж┐ржбрж┐рзЯрж╛ ржУ ржЧрзНржпрж╛рж▓рж╛рж░рж┐</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setGigModalTab('description')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  gigModalTab === 'description'
-                    ? 'bg-[#1DB954] text-slate-950 shadow-md'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <span>рзк. ржмрж┐рж╕рзНрждрж╛рж░рж┐ржд ржмрж┐ржмрж░ржг</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setGigModalTab('requirements_faqs')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                  gigModalTab === 'requirements_faqs'
-                    ? 'bg-[#1DB954] text-slate-950 shadow-md'
-                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                <span>рзл. рж░рж┐ржХрзЛрзЯрж╛рж░ржорзЗржирзНржЯрж╕ & ржПржлржПржХрж┐ржЙ</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveGig} className="space-y-4">
-              {/* TAB 1: BASIC INFO */}
-              {gigModalTab === 'basic' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div>
-                    <label className="block text-xs font-bold mb-1 text-slate-200">
-                      ржЧрж┐ржЧ ржЯрж╛ржЗржЯрзЗрж▓ (Gig Title) <span className="text-rose-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="ржЙржжрж╛: ржЖржорж┐ рж░рзЗрж╕ржкржирзНрж╕рж┐ржн ржкрзНрж░ржлрзЗрж╢ржирж╛рж▓ ржлрзБрж▓рж╕рзНржЯрзНржпрж╛ржХ ржУрзЯрзЗржмрж╕рж╛ржЗржЯ рждрзИрж░рж┐ ржХрж░ржмрзЛ"
-                      required
-                      value={gigTitle}
-                      onChange={e => setGigTitle(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800/90 text-xs font-semibold text-white focus:outline-none focus:border-[#1DB954]"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold mb-1 text-slate-200">рж╕рж╛рж░рзНржнрж┐рж╕ ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐</label>
-                      <select
-                        value={gigCategory}
-                        onChange={e => setGigCategory(e.target.value)}
-                        className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800/90 text-xs font-bold text-white focus:outline-none focus:border-[#1DB954]"
-                      >
-                        <option value="Web Development">Web Development (ржУржпрж╝рзЗржм ржбрзЗржнрзЗрж▓ржкржорзЗржирзНржЯ)</option>
-                        <option value="App Development">App Development (ржорзЛржмрж╛ржЗрж▓ ржЕрзНржпрж╛ржк)</option>
-                        <option value="Digital Marketing">Digital Marketing (ржбрж┐ржЬрж┐ржЯрж╛рж▓ ржорж╛рж░рзНржХрзЗржЯрж┐ржВ)</option>
-                        <option value="Graphics Design">Graphics Design (ржЧрзНрж░рж╛ржлрж┐ржХ ржбрж┐ржЬрж╛ржЗржи)</option>
-                        <option value="Video Editing">Video Editing (ржнрж┐ржбрж┐ржУ ржПржбрж┐ржЯрж┐ржВ)</option>
-                        <option value="SEO & Growth">SEO & Growth (ржПрж╕ржЗржУ ржУ ржЧрзНрж░рзЛрже)</option>
-                        <option value="Cyber Security">Cyber Security (рж╕рж╛ржЗржмрж╛рж░ рж╕рж┐ржХрж┐ржЙрж░рж┐ржЯрж┐)</option>
-                        <option value="Software Development">Software Development (рж╕ржлржЯржУржпрж╝рзНржпрж╛рж░)</option>
-                        <option value="UI/UX Design">UI/UX Design (ржЗржЙржЬрж╛рж░ ржЗржирзНржЯрж╛рж░ржлрзЗрж╕)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold mb-1 text-slate-200">ржЕржлрж╛рж░ ржмрж╛ рж╕рзНржкрзЗрж╢рж╛рж▓ ржмрзНржпрж╛ржЬ</label>
-                      <select
-                        value={gigOfferBadge}
-                        onChange={e => setGigOfferBadge(e.target.value)}
-                        className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800/90 text-xs font-bold text-emerald-400 focus:outline-none focus:border-[#1DB954]"
-                      >
-                        <option value="cashback">ЁЯТ░ рззрзж% ржХрзНржпрж╛рж╢ржмрзНржпрж╛ржХ ржЕржлрж╛рж░</option>
-                        <option value="work_first">ЁЯдЭ рзлрзж% ржЕржЧрзНрж░рж┐ржо ржмрж╛ ржкрзЗ ржЖржлржЯрж╛рж░ ржУрзЯрж╛рж░рзНржХ</option>
-                        <option value="urgent">тЪб ржЬрж░рзБрж░рж┐ ржбрзЗрж▓рж┐ржнрж╛рж░рж┐ (рзирзк ржШржгрзНржЯрж╛)</option>
-                        <option value="рзйрзж% ржЫрж╛рзЬ">ЁЯФе рзйрзж% рж╕рзНржкрзЗрж╢рж╛рж▓ ржЫрж╛рзЬ</option>
-                        <option value="рзирзж% ржЫрж╛рзЬ">ЁЯП╖я╕П рзирзж% ржЫрж╛рзЬ</option>
-                        <option value="regular">ЁЯМЯ рж╕рзНржЯрзНржпрж╛ржирзНржбрж╛рж░рзНржб рж░рзЗржЧрзБрж▓рж╛рж░ ржЧрж┐ржЧ</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold mb-1 text-slate-200">рж╕рж╛рж░рзНржЪ ржЯрзНржпрж╛ржЧрж╕ржорзВрж╣ (ржХржорж╛ржжрзНржмрж╛рж░рж╛ ржкрзГржержХ ржХрж░рзБржи)</label>
-                    <input
-                      type="text"
-                      placeholder="React, Nextjs, Fullstack, Node, Tailwind, MongoDB"
-                      value={gigTags}
-                      onChange={e => setGigTags(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800/90 text-xs font-medium text-white focus:outline-none focus:border-[#1DB954]"
-                    />
-                  </div>
-
-                  <div className="p-4 bg-slate-800/60 border border-slate-700 rounded-2xl space-y-3">
-                    <label className="block text-xs font-black text-emerald-400">ЁЯЫбя╕П рж╕рзЗрж▓рж╛рж░ ржкрзНрж░рзЛржлрж╛ржЗрж▓ ржЖржЗржбрзЗржирзНржЯрж┐ржЯрж┐</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">ржкрж╛ржмрж▓рж┐рж╢рж╛рж░ ржзрж░ржг</label>
-                        <select
-                          value={gigSellerType}
-                          onChange={e => {
-                            const val = e.target.value as 'agency' | 'staff';
-                            setGigSellerType(val);
-                            if (val === 'agency') {
-                              setGigSellerName('PTEN IT Official Agency');
-                              setGigSellerLevel('Top Rated Agency');
-                            } else {
-                              setGigSellerName('PTEN IT Senior Specialist');
-                              setGigSellerLevel('Verified Staff');
-                            }
-                          }}
-                          className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-xs font-bold text-white"
-                        >
-                          <option value="agency">PTEN IT Official Agency (ржЕржлрж┐рж╢рж┐рзЯрж╛рж▓ ржПржЬрзЗржирзНрж╕рж┐)</option>
-                          <option value="staff">PTEN IT Specialist Staff (ржнрзЗрж░рж┐ржлрж╛ржЗржб рж╕рзНржЯрж╛ржл)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">ржкрзНрж░ржжрж░рзНрж╢рж┐ржд рж╕рзЗрж▓рж╛рж░ ржирж╛ржо</label>
-                        <input
-                          type="text"
-                          value={gigSellerName}
-                          onChange={e => setGigSellerName(e.target.value)}
-                          className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-xs font-bold text-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2: 3-TIER PACKAGES */}
-              {gigModalTab === 'packages' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-between text-xs font-bold text-emerald-400">
-                    <span>ЁЯТб рзйржЯрж┐ ржкрзВрж░рзНржгрж╛ржЩрзНржЧ ржкрзНржпрж╛ржХрзЗржЬ (Basic, Standard, Premium) ржмрж╛рзЯрж╛рж░рзЗрж░ ржЬржирзНржп ржХржиржлрж┐ржЧрж╛рж░ ржХрж░рзБржи</span>
-                    <span className="text-[10px] text-slate-400">ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕ рж╕рзНржЯрзНржпрж╛ржирзНржбрж╛рж░рзНржб</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Basic */}
-                    <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                        <span className="text-xs font-black text-white">ЁЯеЙ ржмрзЗрж╕рж┐ржХ ржкрзНржпрж╛ржХрзЗржЬ</span>
-                        <span className="px-2 py-0.5 bg-emerald-500/20 text-[#1DB954] text-[10px] font-black rounded-md">Basic</span>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">ржкрзНржпрж╛ржХрзЗржЬ ржирж╛ржо</label>
-                        <input
-                          type="text"
-                          value={gigBasicTitle}
-                          onChange={e => setGigBasicTitle(e.target.value)}
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-bold"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-300 mb-1">ржорзВрж▓рзНржп (рз│)</label>
-                          <input
-                            type="number"
-                            value={gigBasicPrice}
-                            onChange={e => setGigBasicPrice(Number(e.target.value))}
-                            className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-[#1DB954] font-bold"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-300 mb-1">ржбрзЗрж▓рж┐ржнрж╛рж░рж┐ (ржжрж┐ржи)</label>
-                          <input
-                            type="number"
-                            value={gigBasicDelivery}
-                            onChange={e => setGigBasicDelivery(Number(e.target.value))}
-                            className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">рж░рж┐ржнрж┐рж╢ржи рж╕ржВржЦрзНржпрж╛</label>
-                        <input
-                          type="text"
-                          value={gigBasicRevisions}
-                          onChange={e => setGigBasicRevisions(e.target.value)}
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">ржлрж┐ржЪрж╛рж░рж╕ржорзВрж╣ (ржХржорж╛ржжрзНржмрж╛рж░рж╛ ржкрзГржержХ)</label>
-                        <textarea
-                          rows={2}
-                          value={gigBasicFeatures}
-                          onChange={e => setGigBasicFeatures(e.target.value)}
-                          placeholder="ржлрж┐ржЪрж╛рж░ рзз, ржлрж┐ржЪрж╛рж░ рзи, ржлрж┐ржЪрж╛рж░ рзй"
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Standard */}
-                    <div className="bg-slate-800/80 border border-amber-500/40 p-4 rounded-2xl space-y-3 relative shadow-lg">
-                      <div className="absolute -top-2.5 right-4 px-2 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full uppercase">
-                        Most Popular
-                      </div>
-                      <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                        <span className="text-xs font-black text-amber-400">ЁЯеИ рж╕рзНржЯрзНржпрж╛ржирзНржбрж╛рж░рзНржб ржкрзНржпрж╛ржХрзЗржЬ</span>
-                        <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-black rounded-md">Standard</span>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">ржкрзНржпрж╛ржХрзЗржЬ ржирж╛ржо</label>
-                        <input
-                          type="text"
-                          value={gigStandardTitle}
-                          onChange={e => setGigStandardTitle(e.target.value)}
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-bold"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-300 mb-1">ржорзВрж▓рзНржп (рз│)</label>
-                          <input
-                            type="number"
-                            value={gigStandardPrice}
-                            onChange={e => setGigStandardPrice(Number(e.target.value))}
-                            className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-amber-400 font-bold"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-300 mb-1">ржбрзЗрж▓рж┐ржнрж╛рж░рж┐ (ржжрж┐ржи)</label>
-                          <input
-                            type="number"
-                            value={gigStandardDelivery}
-                            onChange={e => setGigStandardDelivery(Number(e.target.value))}
-                            className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">рж░рж┐ржнрж┐рж╢ржи рж╕ржВржЦрзНржпрж╛</label>
-                        <input
-                          type="text"
-                          value={gigStandardRevisions}
-                          onChange={e => setGigStandardRevisions(e.target.value)}
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">ржлрж┐ржЪрж╛рж░рж╕ржорзВрж╣ (ржХржорж╛ржжрзНржмрж╛рж░рж╛ ржкрзГржержХ)</label>
-                        <textarea
-                          rows={2}
-                          value={gigStandardFeatures}
-                          onChange={e => setGigStandardFeatures(e.target.value)}
-                          placeholder="ржлрж┐ржЪрж╛рж░ рзз, ржлрж┐ржЪрж╛рж░ рзи, ржлрж┐ржЪрж╛рж░ рзй"
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-white"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Premium */}
-                    <div className="bg-slate-800/80 border border-purple-500/40 p-4 rounded-2xl space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                        <span className="text-xs font-black text-purple-400">ЁЯеЗ ржкрзНрж░рж┐ржорж┐ржпрж╝рж╛ржо ржкрзНржпрж╛ржХрзЗржЬ</span>
-                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] font-black rounded-md">Premium</span>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">ржкрзНржпрж╛ржХрзЗржЬ ржирж╛ржо</label>
-                        <input
-                          type="text"
-                          value={gigPremiumTitle}
-                          onChange={e => setGigPremiumTitle(e.target.value)}
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-bold"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-300 mb-1">ржорзВрж▓рзНржп (рз│)</label>
-                          <input
-                            type="number"
-                            value={gigPremiumPrice}
-                            onChange={e => setGigPremiumPrice(Number(e.target.value))}
-                            className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-purple-400 font-bold"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-300 mb-1">ржбрзЗрж▓рж┐ржнрж╛рж░рж┐ (ржжрж┐ржи)</label>
-                          <input
-                            type="number"
-                            value={gigPremiumDelivery}
-                            onChange={e => setGigPremiumDelivery(Number(e.target.value))}
-                            className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">рж░рж┐ржнрж┐рж╢ржи рж╕ржВржЦрзНржпрж╛</label>
-                        <input
-                          type="text"
-                          value={gigPremiumRevisions}
-                          onChange={e => setGigPremiumRevisions(e.target.value)}
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-300 mb-1">ржлрж┐ржЪрж╛рж░рж╕ржорзВрж╣ (ржХржорж╛ржжрзНржмрж╛рж░рж╛ ржкрзГржержХ)</label>
-                        <textarea
-                          rows={2}
-                          value={gigPremiumFeatures}
-                          onChange={e => setGigPremiumFeatures(e.target.value)}
-                          placeholder="ржлрж┐ржЪрж╛рж░ рзз, ржлрж┐ржЪрж╛рж░ рзи, ржлрж┐ржЪрж╛рж░ рзй"
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 3: MEDIA & GALLERY */}
-              {gigModalTab === 'media' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div>
-                    <label className="block text-xs font-bold mb-1 text-slate-200">
-                      ржЧрж┐ржЧ ржкрзНрж░рж╛ржЗржорж╛рж░рж┐ ржХржнрж╛рж░ ржЫржмрж┐ (ржлрж╛ржЗрж▓ ржЖржкрж▓рзЛржб ржмрж╛ рж▓рж┐ржВржХ) <span className="text-rose-400">*</span>
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <label className="px-3 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 shadow transition-all">
-                        <Upload className="w-4 h-4" />
-                        <span>ржбрж┐ржнрж╛ржЗрж╕ ржерзЗржХрзЗ ржЖржкрж▓рзЛржб</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={e => handleImageFileUpload(e, setGigThumbnail)}
-                          className="hidden"
-                        />
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="ржЕржержмрж╛ ржХржнрж╛рж░ ржЫржмрж┐рж░ URL ржкрзЗрж╕рзНржЯ ржХрж░рзБржи"
-                        value={gigThumbnail}
-                        onChange={e => setGigThumbnail(e.target.value)}
-                        className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium text-white focus:outline-none focus:border-[#1DB954]"
-                      />
-                    </div>
-                    {gigThumbnail && (
-                      <div className="mt-3 relative inline-block">
-                        <img src={gigThumbnail} alt="Gig Cover" className="w-32 h-20 object-cover rounded-xl border border-slate-700 shadow-md" />
-                        <span className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-slate-900/80 text-[9px] text-emerald-400 font-bold rounded">
-                          Cover
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Additional Gallery Previews */}
-                  <div className="p-4 bg-slate-800/60 border border-slate-700 rounded-2xl space-y-3">
-                    <div className="flex justify-between items-center">
-                      <label className="block text-xs font-black text-white">ЁЯЦ╝я╕П ржЕрждрж┐рж░рж┐ржХрзНржд ржкрзЛрж░рзНржЯржлрзЛрж▓рж┐ржУ ржЧрзНржпрж╛рж▓рж╛рж░рж┐ ржЫржмрж┐рж╕ржорзВрж╣</label>
-                      <span className="text-[11px] text-slate-400">ржорзЛржЯ ржЫржмрж┐: {gigGalleryImages.length}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <label className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 transition-all">
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>ржЧрзНржпрж╛рж▓рж╛рж░рж┐рждрзЗ ржлрж╛ржЗрж▓ ржпрзЛржЧ</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={e => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = () => {
-                                if (typeof reader.result === 'string') {
-                                  setGigGalleryImages(prev => [...prev, reader.result as string]);
-                                }
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="ржЕржержмрж╛ ржЗржорзЗржЬ URL ржпрзЛржЧ ржХрж░рзБржи"
-                        value={gigNewGalleryUrl}
-                        onChange={e => setGigNewGalleryUrl(e.target.value)}
-                        className="w-full p-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (gigNewGalleryUrl) {
-                            setGigGalleryImages(prev => [...prev, gigNewGalleryUrl]);
-                            setGigNewGalleryUrl('');
-                          }
-                        }}
-                        className="px-3 py-2 bg-emerald-500/20 text-[#1DB954] hover:bg-emerald-500/30 text-xs font-bold rounded-xl"
-                      >
-                        ржпрзЛржЧ
-                      </button>
-                    </div>
-
-                    {gigGalleryImages.length > 0 && (
-                      <div className="flex items-center gap-2 flex-wrap pt-2">
-                        {gigGalleryImages.map((img, idx) => (
-                          <div key={idx} className="relative group">
-                            <img src={img} alt="Gallery item" className="w-20 h-14 object-cover rounded-lg border border-slate-700" />
-                            <button
-                              type="button"
-                              onClick={() => setGigGalleryImages(prev => prev.filter((_, i) => i !== idx))}
-                              className="absolute -top-1.5 -right-1.5 p-1 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold mb-1 text-slate-200">ржбрзЗржорзЛ ржмрж╛ ржкрзНрж░рзЛржорзЛ ржнрж┐ржбрж┐ржУ рж▓рж┐ржВржХ (ржРржЪрзНржЫрж┐ржХ)</label>
-                    <input
-                      type="text"
-                      placeholder="YouTube ржмрж╛ Vimeo ржнрж┐ржбрж┐ржУ рж▓рж┐ржВржХ"
-                      value={gigVideoUrl}
-                      onChange={e => setGigVideoUrl(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium text-white focus:outline-none focus:border-[#1DB954]"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 4: DESCRIPTION */}
-              {gigModalTab === 'description' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div>
-                    <label className="block text-xs font-bold mb-1 text-slate-200">
-                      ржЧрж┐ржЧ ржмрж┐рж╕рзНрждрж╛рж░рж┐ржд ржмрж┐ржмрж░ржг ржУ рж╕рзБржпрзЛржЧрж╕рзБржмрж┐ржзрж╛ <span className="text-rose-400">*</span>
-                    </label>
-                    <textarea
-                      placeholder="ржЧрж┐ржЧржЯрж┐рждрзЗ ржХрзА ржХрзА рж╕рзБржмрж┐ржзрж╛, ржЯрзЗржХржирзЛрж▓ржЬрж┐ рж╕рзНржЯрзНржпрж╛ржХ, ржбрзЗрж▓рж┐ржнрж╛рж░рж┐ ржкрзНрж░рж╕рзЗрж╕ ржПржмржВ рж╕рж╛ржкрзЛрж░рзНржЯрзЗрж░ рж╕рзБржпрзЛржЧ рж░рзЯрзЗржЫрзЗ ржмрж┐рж╕рзНрждрж╛рж░рж┐ржд рж▓рж┐ржЦрзБржи..."
-                      rows={8}
-                      required
-                      value={gigDescription}
-                      onChange={e => setGigDescription(e.target.value)}
-                      className="w-full p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium text-white focus:outline-none focus:border-[#1DB954] leading-relaxed"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 5: REQUIREMENTS & FAQS */}
-              {gigModalTab === 'requirements_faqs' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div>
-                    <label className="block text-xs font-bold mb-1 text-slate-200">
-                      ржмрж╛рзЯрж╛рж░ рж░рж┐ржХрзЛрзЯрж╛рж░ржорзЗржирзНржЯрж╕ (ржЕрж░рзНржбрж╛рж░рзЗрж░ ржкрж░ ржХрзНрж▓рж╛рзЯрзЗржирзНржЯ ржХрзА ржХрзА рждржерзНржп ржкрж╛ржарж╛ржмрзЗ)
-                    </label>
-                    <textarea
-                      placeholder="рзз. рж▓рзЛржЧрзЛ ржУ ржмрзНрж░рзНржпрж╛ржирзНржб ржХрж╛рж▓рж╛рж░&#10;рзи. ржХржиржЯрзЗржирзНржЯ ржЯрзЗржХрзНрж╕ржЯ ржУ ржЫржмрж┐&#10;рзй. рж░рзЗржлрж╛рж░рзЗржирзНрж╕ ржУрзЯрзЗржмрж╕рж╛ржЗржЯ рж▓рж┐ржВржХ"
-                      rows={3}
-                      value={gigRequirements}
-                      onChange={e => setGigRequirements(e.target.value)}
-                      className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-xs text-white"
-                    />
-                  </div>
-
-                  {/* FAQs Builder */}
-                  <div className="p-4 bg-slate-800/60 border border-slate-700 rounded-2xl space-y-3">
-                    <div className="flex justify-between items-center">
-                      <label className="block text-xs font-black text-white">тЭУ рж╕ржЪрж░рж╛ржЪрж░ ржЬрж┐ржЬрзНржЮрж╛рж╕рж┐ржд ржкрзНрж░рж╢рзНржирж╛ржмрж▓рзА (FAQs)</label>
-                      <span className="text-[11px] text-slate-400">ржорзЛржЯ ржкрзНрж░рж╢рзНржи: {gigFaqs.length}</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        placeholder="ржкрзНрж░рж╢рзНржи рж▓рж┐ржЦрзБржи..."
-                        value={gigNewFaqQ}
-                        onChange={e => setGigNewFaqQ(e.target.value)}
-                        className="w-full p-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
-                      />
-                      <div className="flex gap-2">
-                        <textarea
-                          placeholder="ржЙрждрзНрждрж░ рж▓рж┐ржЦрзБржи..."
-                          rows={2}
-                          value={gigNewFaqA}
-                          onChange={e => setGigNewFaqA(e.target.value)}
-                          className="w-full p-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (gigNewFaqQ && gigNewFaqA) {
-                              setGigFaqs(prev => [...prev, { q: gigNewFaqQ, a: gigNewFaqA }]);
-                              setGigNewFaqQ('');
-                              setGigNewFaqA('');
-                            }
-                          }}
-                          className="px-4 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl cursor-pointer shrink-0 transition-all flex items-center justify-center"
-                        >
-                          ржпрзЛржЧ ржХрж░рзБржи
-                        </button>
-                      </div>
-                    </div>
-
-                    {gigFaqs.length > 0 && (
-                      <div className="space-y-2 pt-2">
-                        {gigFaqs.map((faq, idx) => (
-                          <div key={idx} className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl flex justify-between items-start gap-2">
-                            <div>
-                              <p className="text-xs font-bold text-emerald-400">Q: {faq.q}</p>
-                              <p className="text-[11px] text-slate-300 mt-0.5">A: {faq.a}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setGigFaqs(prev => prev.filter((_, i) => i !== idx))}
-                              className="text-rose-400 hover:text-rose-300 p-1"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Modal Footer Controls */}
-              <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-800">
-                <div className="flex items-center gap-2">
-                  {gigModalTab !== 'basic' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const tabs: ('basic' | 'packages' | 'media' | 'description' | 'requirements_faqs')[] = ['basic', 'packages', 'media', 'description', 'requirements_faqs'];
-                        const idx = tabs.indexOf(gigModalTab);
-                        if (idx > 0) setGigModalTab(tabs[idx - 1]);
-                      }}
-                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl cursor-pointer"
-                    >
-                      тЖР ржкрзВрж░рзНржмржмрж░рзНрждрзА ржЯрзНржпрж╛ржм
-                    </button>
-                  )}
-                  {gigModalTab !== 'requirements_faqs' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const tabs: ('basic' | 'packages' | 'media' | 'description' | 'requirements_faqs')[] = ['basic', 'packages', 'media', 'description', 'requirements_faqs'];
-                        const idx = tabs.indexOf(gigModalTab);
-                        if (idx < tabs.length - 1) setGigModalTab(tabs[idx + 1]);
-                      }}
-                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold rounded-xl cursor-pointer"
-                    >
-                      ржкрж░ржмрж░рзНрждрзА ржзрж╛ржк тЖТ
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl cursor-pointer transition-all shadow-lg flex items-center gap-1.5"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>{editingGigId ? 'ржЧрж┐ржЧ ржЖржкржбрзЗржЯ ржХрж░рзБржи' : 'ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕рзЗ рж▓рж╛ржЗржн ржкрж╛ржмрж▓рж┐рж╢ ржХрж░рзБржи'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setGigModalOpen(false)}
-                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl cursor-pointer transition-all"
-                  >
-                    ржмрж╛рждрж┐рж▓
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MAIN ADMIN ORDER REFERRAL / DELEGATION MODAL */}
-      {adminReferralModalOrder && (
-        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 font-bengali">
-          <div className="bg-slate-900 border border-amber-500/40 p-6 rounded-3xl max-w-lg w-full space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto text-white">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <span>ржЕрж░рзНржбрж╛рж░ рж░рзЗржлрж╛рж░рзЗрж▓ & ржбрзЗрж╕ржкрзНржпрж╛ржЪ рж╣рж╛ржм</span>
-                    <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">
-                      ржорзЗржЗржи ржПржбржорж┐ржи ржПржХрзНрж╕ржХрзНрж▓рзБрж╕рж┐ржн
-                    </span>
-                  </h3>
-                  <p className="text-[11px] text-slate-400">ржЕрж░рзНржбрж╛рж░ ржЖржЗржбрж┐: #{adminReferralModalOrder.id.slice(0, 8)}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setAdminReferralModalOrder(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Order Brief Box */}
-            <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl space-y-1.5">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-300">ржкрзНрж░ржЬрзЗржХрзНржЯ: {adminReferralModalOrder.gigTitle}</span>
-                <span className="px-2 py-0.5 bg-emerald-500/20 text-[#1DB954] text-xs font-black rounded">
-                  рз│{adminReferralModalOrder.amount?.toLocaleString('bn-BD')}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                ржХрзНрж▓рж╛ржпрж╝рзЗржирзНржЯ: <span className="text-white font-semibold">{adminReferralModalOrder.clientName || 'ржХрзНрж▓рж╛ржпрж╝рзЗржирзНржЯ'}</span> ({adminReferralModalOrder.clientPhone || 'ржлрзЛржи ржиржорзНржмрж░ рж╕ржВрж░ржХрзНрж╖рж┐ржд'})
-              </p>
-              {adminReferralModalOrder.selectedPackageName && (
-                <p className="text-[11px] text-amber-400 font-bold">
-                  ржкрзНржпрж╛ржХрзЗржЬ: {adminReferralModalOrder.selectedPackageName}
-                </p>
-              )}
-            </div>
-
-            {/* Target Freelancer Selection */}
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-200 mb-1">ржХрж╛рж░ ржХрж╛ржЫрзЗ рж░рзЗржлрж╛рж░ ржХрж░рждрзЗ ржЪрж╛ржи?</label>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAdminReferralTargetType('freelancer');
-                      setAdminReferralAssignee('ржЗржЮрзНржЬрж┐. рждрж╛ржиржнрзАрж░ ржЖрж╣ржорзЗржж');
-                    }}
-                    className={`p-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      adminReferralTargetType === 'freelancer'
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                        : 'bg-slate-800 border-slate-700 text-slate-400'
-                    }`}
-                  >
-                    ЁЯСитАНЁЯТ╗ ржЯржк ржлрзНрж░рж┐рж▓рзНржпрж╛ржирзНрж╕рж╛рж░
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAdminReferralTargetType('staff');
-                      setAdminReferralAssignee('ржкрж┐ржЯрзЗржи ржЖржЗржЯрж┐ ржЗржи-рж╣рж╛ржЙрж╕ ржЯрж┐ржо');
-                    }}
-                    className={`p-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      adminReferralTargetType === 'staff'
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                        : 'bg-slate-800 border-slate-700 text-slate-400'
-                    }`}
-                  >
-                    ЁЯПв ржЕржлрж┐рж╕ рж╕рзНржЯрж╛ржл / ржЯрж┐ржо
-                  </button>
-                </div>
-
-                {adminReferralTargetType === 'freelancer' && (
-                  <select
-                    value={adminReferralAssignee}
-                    onChange={e => setAdminReferralAssignee(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-bold text-white focus:border-amber-400"
-                  >
-                    <option value="ржЗржЮрзНржЬрж┐. рждрж╛ржиржнрзАрж░ ржЖрж╣ржорзЗржж">ржЗржЮрзНржЬрж┐. рждрж╛ржиржнрзАрж░ ржЖрж╣ржорзЗржж (Senior React & Node Specialist)</option>
-                    <option value="ржорж╛рж╣ржорзБржжрзБрж▓ рж╣рж╛рж╕рж╛ржи">ржорж╛рж╣ржорзБржжрзБрж▓ рж╣рж╛рж╕рж╛ржи (Fullstack Web Developer)</option>
-                    <option value="рж╕рж╛ржХрж┐ржм ржЖрж▓ ржорж╛рж╣ржорзБржж">рж╕рж╛ржХрж┐ржм ржЖрж▓ ржорж╛рж╣ржорзБржж (UI/UX & Creative Graphics)</option>
-                    <option value="рж░рж╛ржХрж┐ржмрзБрж▓ ржЗрж╕рж▓рж╛ржо">рж░рж╛ржХрж┐ржмрзБрж▓ ржЗрж╕рж▓рж╛ржо (Flutter & Mobile App Dev)</option>
-                    <option value="ржлрж╛рж░ржЬрж╛ржирж╛ ржЖржХрзНрждрж╛рж░">ржлрж╛рж░ржЬрж╛ржирж╛ ржЖржХрзНрждрж╛рж░ (Digital Marketing & SEO Lead)</option>
-                  </select>
-                )}
-
-                {adminReferralTargetType === 'staff' && (
-                  <select
-                    value={adminReferralAssignee}
-                    onChange={e => setAdminReferralAssignee(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-bold text-white focus:border-amber-400"
-                  >
-                    <option value="ржкрж┐ржЯрзЗржи ржЖржЗржЯрж┐ ржЗржи-рж╣рж╛ржЙрж╕ ржЯрж┐ржо">ржкрж┐ржЯрзЗржи ржЖржЗржЯрж┐ ржЗржи-рж╣рж╛ржЙрж╕ ржХрзЛрж░ ржбрзЗржнрзЗрж▓ржкрж╛рж░ ржЯрж┐ржо</option>
-                    <option value="рж╕рж╛ржкрзЛрж░рзНржЯ рж╕рзНржкрзЗрж╢рж╛рж▓рж┐рж╕рзНржЯ ржбрзЗрж╕рзНржХ">рж╕рж╛ржкрзЛрж░рзНржЯ ржУ ржбрзЗрж▓рж┐ржнрж╛рж░рж┐ рж╕рзНржкрзЗрж╢рж╛рж▓рж┐рж╕рзНржЯ ржбрзЗрж╕рзНржХ</option>
-                    <option value="ржЕржлрж┐рж╕ рж╕рж┐ржирж┐рзЯрж░ ржХрзЛржбрж╛рж░рзНрж╕">ржЕржлрж┐рж╕ рж╕рж┐ржирж┐рзЯрж░ ржХрзЛржбрж╛рж░рзНрж╕ ржЕрзНржпрж╛ржирзНржб ржЗржЮрзНржЬрж┐ржирж┐рзЯрж╛рж░рзНрж╕</option>
-                  </select>
-                )}
-              </div>
-
-              {/* Commission Calculator */}
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-black text-emerald-400">
-                    ЁЯТ░ ржорзЗржЗржи ржПржбржорж┐ржи рж░рзЗржлрж╛рж░рзЗрж▓ ржХржорж┐рж╢ржи рж╣рж╛рж░: {adminReferralCommission}%
-                  </label>
-                  <span className="text-[10px] text-slate-400">рж░рж┐рзЯрзЗрж▓-ржЯрж╛ржЗржо ржЖрж░рзНржирж┐ржВ рж╕рзНржкрзНрж▓рж┐ржЯ</span>
-                </div>
-                <input
-                  type="range"
-                  min={5}
-                  max={50}
-                  step={5}
-                  value={adminReferralCommission}
-                  onChange={e => setAdminReferralCommission(Number(e.target.value))}
-                  className="w-full accent-[#1DB954] cursor-pointer"
-                />
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 block">ржПржЬрзЗржирзНрж╕рж┐/ржПржбржорж┐ржи рж▓рж╛ржн ({adminReferralCommission}%)</span>
-                    <span className="text-xs font-black text-[#1DB954]">
-                      рз│{Math.round(((adminReferralModalOrder.amount || 0) * adminReferralCommission) / 100).toLocaleString('bn-BD')}
-                    </span>
-                  </div>
-                  <div className="p-2 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                    <span className="text-[10px] text-slate-400 block">рж░рзЗржлрж╛рж░ржХрзГржд ржлрзНрж░рж┐рж▓рзНржпрж╛ржирзНрж╕рж╛рж░ ржкрзЗржЖржЙржЯ ({100 - adminReferralCommission}%)</span>
-                    <span className="text-xs font-black text-amber-400">
-                      рз│{Math.round(((adminReferralModalOrder.amount || 0) * (100 - adminReferralCommission)) / 100).toLocaleString('bn-BD')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Special Instructions Note */}
-              <div>
-                <label className="block text-xs font-bold text-slate-200 mb-1">
-                  рж░рзЗржлрж╛рж░ржХрзГржд ржмрзНржпржХрзНрждрж┐рж░ ржЬржирзНржп ржмрж┐рж╢рзЗрж╖ ржирж┐рж░рзНржжрзЗрж╢ржирж╛ ржУ ржбрзЗржбрж▓рж╛ржЗржи ржирзЛржЯ
-                </label>
-                <textarea
-                  rows={3}
-                  value={adminReferralNote}
-                  onChange={e => setAdminReferralNote(e.target.value)}
-                  placeholder="ржЙржжрж╛: ржХрзНрж▓рж╛ржпрж╝рзЗржирзНржЯрзЗрж░ рж╕рж╛ржерзЗ ржнржжрзНрж░ржнрж╛ржмрзЗ ржпрзЛржЧрж╛ржпрзЛржЧ ржХрж░рзБржи ржПржмржВ ржирж┐рж░рзНржжрж┐рж╖рзНржЯ ржбрзЗржбрж▓рж╛ржЗржирзЗрж░ ржоржзрзНржпрзЗ рж╕рзЛрж░рзНрж╕ ржХрзЛржб рж╕рж╛ржмржорж┐ржЯ ржХрж░рзБржи..."
-                  className="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder:text-slate-500"
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 pt-2 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => {
-                  if (adminReferralModalOrder) {
-                    const assignee = adminReferralAssignee;
-                    const commission = adminReferralCommission;
-                    const payout = Math.round(((adminReferralModalOrder.amount || 0) * (100 - commission)) / 100);
-
-                    updateMarketplaceOrderStatus(
-                      adminReferralModalOrder.id,
-                      'in_progress',
-                      `ржорзЗржЗржи ржПржбржорж┐ржи ржХрж░рзНрждрзГржХ ржХрж╛ржЬ рж╕ржлрж▓ржнрж╛ржмрзЗ рж░рзЗржлрж╛рж░ ржХрж░рж╛ рж╣рзЯрзЗржЫрзЗ (${assignee}-ржХрзЗ)ред ржХржорж┐рж╢ржи: ${commission}%, ржкрзЗржЖржЙржЯ: рз│${payout}ред ${adminReferralNote}`
-                    );
-
-                    alert(`ржЕрж░рзНржбрж╛рж░ рж╕ржлрж▓ржнрж╛ржмрзЗ '${assignee}'-ржХрзЗ рж░рзЗржлрж╛рж░ ржХрж░рж╛ рж╣рзЯрзЗржЫрзЗ! ржлрзНрж░рж┐рж▓рзНржпрж╛ржирзНрж╕рж╛рж░рзЗрж░ ржХрж╛ржЫрзЗ ржирзЛржЯрж┐ржлрж┐ржХрзЗрж╢ржи ржкрж╛ржарж╛ржирзЛ рж╣рзЯрзЗржЫрзЗред`);
-                    setAdminReferralModalOrder(null);
-                    setAdminReferralNote('');
-                  }
-                }}
-                className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs rounded-xl cursor-pointer transition-all shadow-lg flex items-center justify-center gap-1.5"
-              >
-                <Check className="w-4 h-4" />
-                <span>рж░рзЗржлрж╛рж░рзЗрж▓ ржирж┐рж╢рзНржЪрж┐ржд ржХрж░рзБржи & ржЕрзНржпрж╛рж╕рж╛ржЗржи ржХрж░рзБржи</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAdminReferralModalOrder(null)}
-                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl cursor-pointer"
-              >
-                ржмрж╛рждрж┐рж▓
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Gallery Modal */}
-      {galleryModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl max-w-lg w-full space-y-4 text-slate-900 dark:text-white shadow-2xl">
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">ржирждрзБржи ржЫржмрж┐ / ржорж┐ржбрж┐рзЯрж╛ ржЧрзНржпрж╛рж▓рж╛рж░рж┐рждрзЗ ржпрзЛржЧ ржХрж░рзБржи</h3>
-            <form onSubmit={handleSaveGallery} className="space-y-3">
-              <input
-                type="text"
-                placeholder="рж╢рж┐рж░рзЛржирж╛ржо / ржЯрж╛ржЗржЯрзЗрж▓"
-                required
-                value={galleryTitle}
-                onChange={e => setGalleryTitle(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <select
-                value={galleryCategory}
-                onChange={e => setGalleryCategory(e.target.value as any)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-              >
-                <option value="Training">Training (ржЯрзНрж░рзЗржирж┐ржВ ржХрзНрж▓рж╛рж╕рж░рзБржо)</option>
-                <option value="Office">Office (ржЕржлрж┐рж╕ ржкрж░рж┐ржмрзЗрж╢)</option>
-                <option value="Students">Students (рж╢рж┐ржХрзНрж╖рж╛рж░рзНржерзАрж░рж╛)</option>
-                <option value="Events">Events (ржЗржнрзЗржирзНржЯрж╕)</option>
-                <option value="Certificates">Certificates (рж╕рж╛рж░рзНржЯрж┐ржлрж┐ржХрзЗржЯ)</option>
-                <option value="Projects">Projects (ржкрзНрж░ржЬрзЗржХрзНржЯ)</option>
-              </select>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  ржЧрзНржпрж╛рж▓рж╛рж░рж┐ ржЫржмрж┐ (ржбрж┐ржнрж╛ржЗрж╕ ржерзЗржХрзЗ ржлрж╛ржЗрж▓ ржЖржкрж▓рзЛржб ржЕржержмрж╛ рж▓рж┐ржВржХ)
-                </label>
-                <div className="flex items-center gap-2">
-                  <label className="px-3 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 shadow transition-all">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>ржЫржмрж┐ ржЖржкрж▓рзЛржб</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleImageFileUpload(e, setGalleryImageUrl)}
-                      className="hidden"
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ржЕржержмрж╛ ржЫржмрж┐рж░ рж▓рж┐ржВржХ ржкрзЗрж╕рзНржЯ ржХрж░рзБржи"
-                    value={galleryImageUrl}
-                    onChange={e => setGalleryImageUrl(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                {galleryImageUrl && (
-                  <div className="mt-2 relative inline-block">
-                    <img src={galleryImageUrl} alt="Gallery Preview" className="w-24 h-16 object-cover rounded-xl border border-slate-700 shadow" />
-                    <button
-                      type="button"
-                      onClick={() => setGalleryImageUrl('')}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full text-[10px] flex items-center justify-center font-bold"
-                      title="ржЫржмрж┐ ржорзБржЫрзБржи"
-                    >
-                      тЬХ
-                    </button>
-                  </div>
-                )}
-              </div>
-              <input
-                type="text"
-                placeholder="ржХрзНржпрж╛ржкрж╢ржи (рж╕ржВржХрзНрж╖рж┐ржкрзНржд ржмрж░рзНржгржирж╛)"
-                value={galleryCaption}
-                onChange={e => setGalleryCaption(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md">
-                  рж╕рзЗржн ржХрж░рзБржи
-                </button>
-                <button type="button" onClick={() => setGalleryModalOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-all">
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Sub-Admin Recruitment Modal */}
-      {subAdminModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl max-w-md w-full space-y-4 text-white shadow-2xl">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-black text-white flex items-center gap-2">
-                <Users className="w-5 h-5 text-amber-500" />
-                <span>ржирждрзБржи рж╕рж╛ржм-ржПржбржорж┐ржи / рж╕рж╛ржкрзЛрж░рзНржЯ ржорзЗржорзНржмрж╛рж░ ржпрзБржХрзНржд ржХрж░рзБржи</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setSubAdminModalOpen(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                тЬХ
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveSubAdmin} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">ржкрзВрж░рзНржг ржирж╛ржо (Staff Full Name)</label>
-                <input
-                  type="text"
-                  placeholder="ржЙржжрж╛: рж╢рж╛ржХрж┐рж▓ ржЖрж╣ржорзЗржж"
-                  required
-                  value={subAdminName}
-                  onChange={e => setSubAdminName(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-xs font-medium text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">ржЗржорзЗржЗрж▓ ржарж┐ржХрж╛ржирж╛</label>
-                  <input
-                    type="email"
-                    placeholder="staff@ptenit.com"
-                    required
-                    value={subAdminEmail}
-                    onChange={e => setSubAdminEmail(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-xs font-medium text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">ржлрзЛржи ржиржорзНржмрж░</label>
-                  <input
-                    type="text"
-                    placeholder="01711223344"
-                    value={subAdminPhone}
-                    onChange={e => setSubAdminPhone(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-xs font-medium text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">рж╕рзНржЯрж╛ржл ржкржжржмрзА / рж░рзЛрж▓ (Role)</label>
-                <select
-                  value={subAdminRole}
-                  onChange={e => setSubAdminRole(e.target.value as any)}
-                  className="w-full p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-xs font-bold text-white focus:outline-none focus:border-amber-500"
-                >
-                  <option value="Sub-Admin">Sub-Admin (ржлрзБрж▓ ржПржбржорж┐ржи ржПржХрж╕рзЗрж╕)</option>
-                  <option value="Support Specialist">Support Specialist (рж▓рж╛ржЗржн рж╕рж╛ржкрзЛрж░рзНржЯ ржУ ржЪрзНржпрж╛ржЯ)</option>
-                  <option value="Order Manager">Order Manager (рж╕рж╛рж░рзНржнрж┐рж╕ ржЕрж░рзНржбрж╛рж░ ржУ ржбрзЗрж▓рж┐ржнрж╛рж░рж┐)</option>
-                  <option value="Course Admin">Course Admin (ржХрзЛрж░рзНрж╕ ржУ ржПржХрж╛ржбрзЗржорж┐ ржЯрж┐ржо)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2">ржоржбрж┐ржЙрж▓ ржкрж╛рж░ржорж┐рж╢ржи (Module Access Permissions)</label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  {[
-                    { id: 'orders_manage', label: 'ЁЯЫТ ржЕрж░рзНржбрж╛рж░ ржорзНржпрж╛ржирзЗржЬржорзЗржирзНржЯ' },
-                    { id: 'support_chat', label: 'ЁЯТм рж▓рж╛ржЗржн рж╣рзЗрж▓рзНржк & ржЪрзНржпрж╛ржЯ' },
-                    { id: 'courses_manage', label: 'ЁЯОУ ржХрзЛрж░рзНрж╕ & ржПржХрж╛ржбрзЗржорж┐' },
-                    { id: 'financials', label: 'ЁЯУК ржмрж┐рж▓рж┐ржВ & ржлрж┐ржирж╛ржирзНрж╕рж┐рзЯрж╛рж▓рж╕' },
-                    { id: 'gallery_content', label: 'ЁЯОи ржЧрзНржпрж╛рж▓рж╛рж░рж┐ & ржХржирзНржЯрзЗржирзНржЯ' }
-                  ].map(perm => (
-                    <label key={perm.id} className="flex items-center gap-2 p-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={subAdminPermissions.includes(perm.id)}
-                        onChange={e => {
-                          if (e.target.checked) {
-                            setSubAdminPermissions([...subAdminPermissions, perm.id]);
-                          } else {
-                            setSubAdminPermissions(subAdminPermissions.filter(p => p !== perm.id));
-                          }
-                        }}
-                        className="rounded text-amber-500 focus:ring-amber-500"
-                      />
-                      <span className="text-[11px] font-bold text-slate-300">{perm.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSubAdminModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
-                >
-                  ржмрж╛рждрж┐рж▓
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-xl shadow"
-                >
-                  ржирж┐рзЯрзЛржЧ рж╕ржорзНржкржирзНржи ржХрж░рзБржи
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Testimonial Modal */}
-      {testimonialModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl max-w-lg w-full space-y-4 text-slate-900 dark:text-white shadow-2xl">
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">ржирждрзБржи рж╢рж┐ржХрзНрж╖рж╛рж░рзНржерзА рж░рж┐ржнрж┐ржЙ ржпрзЛржЧ ржХрж░рзБржи</h3>
-            <form onSubmit={handleSaveTestimonial} className="space-y-3">
-              <input
-                type="text"
-                placeholder="рж╢рж┐ржХрзНрж╖рж╛рж░рзНржерзАрж░ ржирж╛ржо"
-                required
-                value={testimonialName}
-                onChange={e => setTestimonialName(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <input
-                type="text"
-                placeholder="ржХрзЛрж░рзНрж╕ ржмрж╛ рж╕рж╛рж░рзНржнрж┐рж╕ ржирж╛ржо"
-                value={testimonialCourse}
-                onChange={e => setTestimonialCourse(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <div>
-                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  рж╢рж┐ржХрзНрж╖рж╛рж░рзНржерзАрж░ ржЫржмрж┐/ржЕржмрждрж╛рж░ (ржбрж┐ржнрж╛ржЗрж╕ ржерзЗржХрзЗ ржЖржкрж▓рзЛржб ржЕржержмрж╛ рж▓рж┐ржВржХ)
-                </label>
-                <div className="flex items-center gap-2">
-                  <label className="px-3 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 shadow transition-all">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>ржЫржмрж┐ ржЖржкрж▓рзЛржб</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleImageFileUpload(e, setTestimonialAvatar)}
-                      className="hidden"
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ржЕржержмрж╛ ржЫржмрж┐/ржЕржмрждрж╛рж░ URL ржкрзЗрж╕рзНржЯ ржХрж░рзБржи"
-                    value={testimonialAvatar}
-                    onChange={e => setTestimonialAvatar(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                {testimonialAvatar && (
-                  <div className="mt-2 relative inline-block">
-                    <img src={testimonialAvatar} alt="Avatar Preview" className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow" />
-                    <button
-                      type="button"
-                      onClick={() => setTestimonialAvatar('')}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full text-[10px] flex items-center justify-center font-bold"
-                      title="ржЫржмрж┐ ржорзБржЫрзБржи"
-                    >
-                      тЬХ
-                    </button>
-                  </div>
-                )}
-              </div>
-              <textarea
-                placeholder="рж╢рж┐ржХрзНрж╖рж╛рж░рзНржерзАрж░ ржорждрж╛ржоржд/рж░рж┐ржнрж┐ржЙ..."
-                rows={3}
-                required
-                value={testimonialText}
-                onChange={e => setTestimonialText(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-              />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md">
-                  рж╕рзЗржн ржХрж░рзБржи
-                </button>
-                <button type="button" onClick={() => setTestimonialModalOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-all">
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Job Creation Modal (Public or Direct Dispatch) */}
-      {jobModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl max-w-lg w-full space-y-4 text-slate-900 dark:text-white shadow-2xl my-8 border border-slate-200 dark:border-slate-800">
-            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-[#1DB954]" />
-                <span>ржирждрзБржи ржмрж╛ржпрж╝рж╛рж░ ржЬржм / ржХрж╛рж╕рзНржЯржо ржкрзНрж░ржЬрзЗржХрзНржЯ ржПржбржб ржХрж░рзБржи</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setJobModalOpen(false)}
-                className="text-slate-400 hover:text-rose-500 text-sm font-bold transition-colors cursor-pointer"
-              >
-                тЬХ
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveJob} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  ржЬржм / ржкрзНрж░ржЬрзЗржХрзНржЯ ржЯрж╛ржЗржЯрзЗрж▓ *
-                </label>
-                <input
-                  type="text"
-                  placeholder="ржЙржжрж╛: MERN Stack E-Commerce Web & Mobile App"
-                  required
-                  value={jobTitle}
-                  onChange={e => setJobTitle(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐
-                  </label>
-                  <select
-                    value={jobCategory}
-                    onChange={e => setJobCategory(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-                  >
-                    <option value="Development">Development & Software</option>
-                    <option value="Graphics & Design">Graphics & UI/UX Design</option>
-                    <option value="Digital Marketing">Digital Marketing & Ads</option>
-                    <option value="SEO & Content">SEO & Article Writing</option>
-                    <option value="Video & Animation">Video Editing & 3D</option>
-                    <option value="Cyber Security">Cyber Security & IT</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    ржмрж╛ржЬрзЗржЯ (BDT рз│)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="15000"
-                    required
-                    value={jobBudget}
-                    onChange={e => setJobBudget(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-emerald-600 dark:text-emerald-400 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    ржХрзНрж▓рж╛ржпрж╝рзЗржирзНржЯ / ржмрж╛ржпрж╝рж╛рж░ ржирж╛ржо
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ржврж╛ржХрж╛ ржорж╛рж░рзНржЯ / ржмрж╛ржпрж╝рж╛рж░ ржирж╛ржо"
-                    value={jobBuyerName}
-                    onChange={e => setJobBuyerName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    ржорзЗрзЯрж╛ржж / ржбрзЗржбрж▓рж╛ржЗржи (ржжрж┐ржи)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="7"
-                    value={jobDeadlineDays}
-                    onChange={e => setJobDeadlineDays(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-              </div>
-
-              {/* Assignment & Visibility Option */}
-              <div className="bg-slate-100 dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-2.5">
-                <label className="block font-black text-slate-800 dark:text-slate-200 text-xs">
-                  ржЬржм ржкрж╛ржмрж▓рж┐рж╢рж┐ржВ & рж╕рж░рж╛рж╕рж░рж┐ ржбрзЗрж╕ржкрзНржпрж╛ржЪ ржорзЛржб (Visibility)
-                </label>
-
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="jobVisibility"
-                      value="public"
-                      checked={jobVisibility === 'public'}
-                      onChange={() => setJobVisibility('public')}
-                      className="accent-[#1DB954]"
-                    />
-                    <span className="font-bold text-slate-800 dark:text-slate-200">
-                      ЁЯУв ржкрж╛ржмрж▓рж┐ржХ ржЬржм (ржЙржирзНржорзБржХрзНржд - ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕рзЗ ржпрзЗ ржХрзЗржЙ ржмрж┐ржб ржХрж░рждрзЗ ржкрж╛рж░ржмрзЗ)
-                    </span>
-                  </label>
-
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="jobVisibility"
-                      value="internal_staff_only"
-                      checked={jobVisibility === 'internal_staff_only'}
-                      onChange={() => setJobVisibility('internal_staff_only')}
-                      className="accent-[#1DB954]"
-                    />
-                    <span className="font-bold text-slate-800 dark:text-slate-200">
-                      ЁЯФТ ржПржЬрзЗржирзНрж╕рж┐ рж╕рзНржЯрж╛ржл ржорзЛржб (ржХрзЗржмрж▓ржорж╛рждрзНрж░ ржЕржлрж┐рж╕рзЗрж░ рж╕рзНржЯрж╛ржлрж░рж╛ ржжрзЗржЦрждрзЗ ржкрж╛рж░ржмрзЗ)
-                    </span>
-                  </label>
-
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="jobVisibility"
-                      value="custom_assigned"
-                      checked={jobVisibility === 'custom_assigned'}
-                      onChange={() => setJobVisibility('custom_assigned')}
-                      className="accent-[#1DB954]"
-                    />
-                    <span className="font-bold text-amber-600 dark:text-amber-400">
-                      ЁЯОп рж╕рж░рж╛рж╕рж░рж┐ ржирж┐рж░рзНржжрж┐рж╖рзНржЯ ржЯрзНрж░рзЗржЗржирж╛рж░/рж╕рзНржЯрж╛ржлржХрзЗ ржбрзЗрж╕ржкрзНржпрж╛ржЪ (Direct Dispatch)
-                    </span>
-                  </label>
-                </div>
-
-                {jobVisibility === 'custom_assigned' && (
-                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700 animate-fadeIn space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs">
-                        ржпрж╛ржХрзЗ ржкрзНрж░ржЬрзЗржХрзНржЯржЯрж┐ рж╕рж░рж╛рж╕рж░рж┐ ржбрзЗрж╕ржкрзНржпрж╛ржЪ ржХрж░рждрзЗ ржЪрж╛ржи (ID & ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐ ржлрж┐рж▓рзНржЯрж╛рж░)
-                      </label>
-                      <span className="text-[10px] font-black px-2 py-0.5 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-md">
-                        ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐: {jobCategory}
-                      </span>
-                    </div>
-                    <select
-                      value={jobAssignedStaffId}
-                      onChange={e => setJobAssignedStaffId(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-amber-500/50 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
-                      required={jobVisibility === 'custom_assigned'}
-                    >
-                      <option value="">-- {jobCategory} ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐рж░ ржЯрзНрж░рзЗржЗржирж╛рж░ / рж╕рзНржЯрж╛ржл рж╕рж┐рж▓рзЗржХрзНржЯ ржХрж░рзБржи --</option>
-                      {(() => {
-                        const matching = agencyStaff.filter(s => isCategoryMatch(s.category, jobCategory));
-                        const others = agencyStaff.filter(s => !isCategoryMatch(s.category, jobCategory));
-                        return (
-                          <>
-                            {matching.length > 0 && (
-                              <optgroup label={`ЁЯОп ${jobCategory} ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐рж░ ржЯрзНрж░рзЗржЗржирж╛рж░/ржмрж┐рж╢рзЗрж╖ржЬрзНржЮржЧржг`}>
-                                {matching.map(s => (
-                                  <option key={s.id} value={s.id}>
-                                    [ID: {s.id}] {s.name} тАФ {s.category} ({s.title})
-                                  </option>
-                                ))}
-                              </optgroup>
-                            )}
-                            <optgroup label="ЁЯМР ржЕржирзНржпрж╛ржирзНржп ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐рж░ ржЯрзНрж░рзЗржЗржирж╛рж░ / рж╕рзНржЯрж╛ржлржЧржг">
-                              {others.map(s => (
-                                <option key={s.id} value={s.id}>
-                                  [ID: {s.id}] {s.name} тАФ {s.category} ({s.title})
-                                </option>
-                              ))}
-                            </optgroup>
-                          </>
-                        );
-                      })()}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  ржкрзНрж░ржЬрзЗржХрзНржЯ ржмрж┐рж╕рзНрждрж╛рж░рж┐ржд ржУ ржбрзЗрж╕ржХрзНрж░рж┐ржкрж╢ржи
-                </label>
-                <textarea
-                  placeholder="ржкрзНрж░ржЬрзЗржХрзНржЯрзЗрж░ ржорзВрж▓ ржХрж╛ржЬ ржУ рж░рж┐ржХрзЛржпрж╝рж╛рж░ржорзЗржирзНржЯрж╕ ржмрж┐рж╕рзНрждрж╛рж░рж┐ржд рж▓рж┐ржЦрзБржи..."
-                  rows={3}
-                  value={jobDescription}
-                  onChange={e => setJobDescription(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl cursor-pointer transition-all shadow-md flex items-center justify-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>ржЬржм ржкрж╛ржмрж▓рж┐рж╢ ржУ ржбрзЗрж╕ржкрзНржпрж╛ржЪ рж╕ржорзНржкржирзНржи ржХрж░рзБржи</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setJobModalOpen(false)}
-                  className="px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-all"
-                >
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Teacher/Expert Modal */}
-      {teacherModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali">
-          <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl max-w-lg w-full space-y-4 shadow-2xl text-white">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#1DB954]" /> ржирждрзБржи ржЯрж┐ржЪрж╛рж░ / ржХрзЛрж░рзНрж╕ ржПржХрзНрж╕ржкрж╛рж░рзНржЯ ржпрзЛржЧ ржХрж░рзБржи
-              </h3>
-              <button onClick={() => setTeacherModalOpen(false)} className="text-slate-400 hover:text-white">тЬХ</button>
-            </div>
-
-            <form onSubmit={handleAddTeacher} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-slate-300 mb-1">ржкрзВрж░рзНржг ржирж╛ржо *</label>
-                <input
-                  type="text"
-                  placeholder="ржпрзЗржоржи: рждрж╛ржиржнрзАрж░ ржЖрж╣ржорзЗржж"
-                  required
-                  value={teacherName}
-                  onChange={e => setTeacherName(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-300 mb-1">ржЗржорзЗржЗрж▓ ржПржбрзНрж░рзЗрж╕ *</label>
-                  <input
-                    type="email"
-                    placeholder="teacher@ptenit.com"
-                    required
-                    value={teacherEmail}
-                    onChange={e => setTeacherEmail(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-300 mb-1">ржорзЛржмрж╛ржЗрж▓ ржиржорзНржмрж░</label>
-                  <input
-                    type="text"
-                    placeholder="017XXXXXXXX"
-                    value={teacherMobile}
-                    onChange={e => setTeacherMobile(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-300 mb-1">ржкржжржмрзА / ржЯрж╛ржЗржЯрзЗрж▓</label>
-                  <input
-                    type="text"
-                    placeholder="ржпрзЗржоржи: рж╕рж┐ржирж┐рзЯрж░ ржЧрзНрж░рж╛ржлрж┐ржХрзНрж╕ ржЗржирж╕рзНржЯрзНрж░рж╛ржХрзНржЯрж░"
-                    value={teacherTitle}
-                    onChange={e => setTeacherTitle(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-300 mb-1">рж▓ржЧржЗржи ржкрж╛рж╕ржУрзЯрж╛рж░рзНржб</label>
-                  <input
-                    type="text"
-                    value={teacherPass}
-                    onChange={e => setTeacherPass(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-300 mb-1">ржкрзНрж░рзЛржлрж╛ржЗрж▓ ржЫржмрж┐ / ржЕржмрждрж╛рж░ (ржлрж╛ржЗрж▓ ржЖржкрж▓рзЛржб ржЕржержмрж╛ рж▓рж┐ржВржХ)</label>
-                <div className="flex items-center gap-2">
-                  <label className="px-3 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl cursor-pointer flex items-center gap-1.5 shrink-0 shadow transition-all">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>ржЫржмрж┐ ржЖржкрж▓рзЛржб</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleImageFileUpload(e, setTeacherAvatar)}
-                      className="hidden"
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="ржЕржержмрж╛ ржЫржмрж┐/ржЕржмрждрж╛рж░ URL ржкрзЗрж╕рзНржЯ ржХрж░рзБржи"
-                    value={teacherAvatar}
-                    onChange={e => setTeacherAvatar(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white text-xs focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-                {teacherAvatar && (
-                  <div className="mt-2 relative inline-block">
-                    <img src={teacherAvatar} alt="Teacher Preview" className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow" />
-                    <button
-                      type="button"
-                      onClick={() => setTeacherAvatar('')}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full text-[10px] flex items-center justify-center font-bold"
-                      title="ржЫржмрж┐ ржорзБржЫрзБржи"
-                    >
-                      тЬХ
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-300 mb-1">рж╕ржВржХрзНрж╖рж┐ржкрзНржд ржмрж╛рзЯрзЛ (Bio)</label>
-                <textarea
-                  placeholder="ржЯрж┐ржЪрж╛рж░рзЗрж░ ржПржХрзНрж╕ржкрж╛рж░рзНржЯрж┐ржЬ ржУ ржЕржнрж┐ржЬрзНржЮрждрж╛ рж╕ржорзНржкрж░рзНржХрзЗ рж╕ржВржХрзНрж╖рзЗржкрзЗ рж▓рж┐ржЦрзБржи..."
-                  rows={2}
-                  value={teacherBio}
-                  onChange={e => setTeacherBio(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg cursor-pointer">
-                  ржЯрж┐ржЪрж╛рж░ ржПржХрж╛ржЙржирзНржЯ рждрзИрж░рж┐ ржХрж░рзБржи
-                </button>
-                <button type="button" onClick={() => setTeacherModalOpen(false)} className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl cursor-pointer">
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Pay Bill Request Modal */}
-      {payingPayoutId && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali">
-          <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl max-w-md w-full space-y-4 shadow-2xl text-white">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-[#1DB954]" /> ржЯрж┐ржЪрж╛рж░ржХрзЗ ржмрж┐рж▓ ржкрж░рж┐рж╢рзЛржз ржХрж░рзБржи
-              </h3>
-              <button onClick={() => setPayingPayoutId(null)} className="text-slate-400 hover:text-white">тЬХ</button>
-            </div>
-
-            <form onSubmit={handleApprovePayout} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-slate-300 mb-1">ржкрзЗржорзЗржирзНржЯ ржЯрзНрж░рж╛ржиржЬрзЗржХрж╢ржи ржЖржЗржбрж┐ (bKash/Bank TrxID)</label>
-                <input
-                  type="text"
-                  placeholder="ржпрзЗржоржи: TrxID902834012"
-                  required
-                  value={payoutTxId}
-                  onChange={e => setPayoutTxId(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg cursor-pointer">
-                  ржЕржирзБржорзЛржжржи ржУ ржкрж░рж┐рж╢рзЛржз ржХржиржлрж╛рж░рзНржо ржХрж░рзБржи
-                </button>
-                <button type="button" onClick={() => setPayingPayoutId(null)} className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl cursor-pointer">
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add New Page / Custom Admin Module Modal */}
-      {addPageModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 font-bengali">
-          <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl max-w-lg w-full space-y-4 shadow-2xl text-white">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400">
-                  <Plus className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-white">ржирждрзБржи ржПржбржорж┐ржи ржкрзЗржЗржЬ / ржоржбрж┐ржЙрж▓ ржпрзБржХрзНржд ржХрж░рзБржи</h3>
-                  <p className="text-[11px] text-slate-400">ржПржбржорж┐ржи ржбрзНржпрж╛рж╢ржмрзЛрж░рзНржб ржорзЗржирзБржмрж╛рж░рзЗ ржирждрзБржи ржирзЗржнрж┐ржЧрзЗрж╢ржи ржоржбрж┐ржЙрж▓ рж░рзЗржЬрж┐рж╕рзНржЯрж╛рж░ ржХрж░рзБржи</p>
-                </div>
-              </div>
-              <button onClick={() => setAddPageModalOpen(false)} className="text-slate-400 hover:text-white text-lg font-bold">тЬХ</button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!newPageTitle.trim()) return;
-
-                const newId = `custom_${Date.now()}`;
-                const nextSerial = String(11 + customAdminPages.length + 1).padStart(2, '0');
-
-                const newPageObj = {
-                  id: newId,
-                  serial: nextSerial,
-                  label: newPageTitle.trim(),
-                  category: newPageCategory,
-                  desc: newPageDesc.trim() || 'ржХрж╛рж╕рзНржЯржо ржПржбржорж┐ржи ржкрзЗржЗржЬ ржоржбрж┐ржЙрж▓'
-                };
-
-                setCustomAdminPages(prev => [...prev, newPageObj]);
-                setActiveAdminTab(newId);
-                setNewPageTitle('');
-                setNewPageDesc('');
-                setAddPageModalOpen(false);
-                setNewPageSuccessMsg(`ржирждрзБржи ржкрзЗржЗржЬ "${newPageTitle}" рж╕ржлрж▓ржнрж╛ржмрзЗ ржПржбржорж┐ржи ржорзЗржирзБржмрж╛рж░рзЗ ржпрзБржХрзНржд рж╣рзЯрзЗржЫрзЗ!`);
-                setTimeout(() => setNewPageSuccessMsg(''), 4000);
-              }}
-              className="space-y-4 text-xs"
-            >
-              <div>
-                <label className="block font-bold text-slate-300 mb-1">ржкрзЗржЗржЬ ржмрж╛ ржоржбрж┐ржЙрж▓рзЗрж░ ржирж╛ржо (Title)</label>
-                <input
-                  type="text"
-                  placeholder="ржпрзЗржоржи: ржХрж╛рж╕рзНржЯржо рж░рж┐ржкрзЛрж░рзНржЯрж╕, рж╕рж┐рж╕рзНржЯрзЗржо рж╕рж┐ржХрж┐ржЙрж░рж┐ржЯрж┐ рж▓ржЯрж╕, рж▓рж╛ржЗржн рж╕рж╛ржкрзЛрж░рзНржЯ"
-                  required
-                  value={newPageTitle}
-                  onChange={e => setNewPageTitle(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-amber-400 font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-300 mb-1">ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐ ржЧрзНрж░рзБржк (Category Filter Group)</label>
-                <select
-                  value={newPageCategory}
-                  onChange={e => setNewPageCategory(e.target.value as any)}
-                  className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-amber-400 font-bold"
-                >
-                  <option value="overview">ржУржнрж╛рж░ржнрж┐ржЙ (Overview & Analytics)</option>
-                  <option value="academy">ржПржХрж╛ржбрзЗржорж┐ (Academy & Students)</option>
-                  <option value="marketplace">рж╕рж╛рж░рзНржнрж┐рж╕ & ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕ (Marketplace & Services)</option>
-                  <option value="finance">ржлрж┐ржирзНржпрж╛ржирзНрж╕ & ржкрзЗржорзЗржирзНржЯ (Finance & Escrow)</option>
-                  <option value="system">рж╕рж┐рж╕рзНржЯрзЗржо & ржЧрзНржпрж╛рж▓рж╛рж░рж┐ (System & Media)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-300 mb-1">ржоржбрж┐ржЙрж▓ ржмрж┐ржмрж░ржг (Description & Purpose)</label>
-                <textarea
-                  placeholder="ржПржЗ ржкрзЗржЗржЬржЯрж┐рждрзЗ ржХрж┐ ржзрж░ржирзЗрж░ ржбрж╛ржЯрж╛ ржмрж╛ ржлрж┐ржЪрж╛рж░ ржерж╛ржХржмрзЗ рждрж╛рж░ ржмрж░рзНржгржирж╛ рж▓рж┐ржЦрзБржи..."
-                  rows={3}
-                  value={newPageDesc}
-                  onChange={e => setNewPageDesc(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-amber-400"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs rounded-xl shadow-lg cursor-pointer transition-all">
-                  + ржкрзЗржЗржЬ ржпрзБржХрзНржд ржУ рж╕рзЗржн ржХрж░рзБржи
-                </button>
-                <button type="button" onClick={() => setAddPageModalOpen(false)} className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl cursor-pointer">
-                  ржмрж╛рждрж┐рж▓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ADD NEW COMPANY BILL MODAL */}
-      {addBillModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-bengali">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-black text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-[#1DB954]" />
-                <span>ржкрзНрж░рждрж┐рж╖рзНржарж╛ржирзЗрж░ ржирждрзБржи ржкрзЗржорзЗржирзНржЯ ржмрж┐рж▓ ржпрзЛржЧ ржХрж░рзБржи</span>
-              </h3>
-              <button
-                onClick={() => setAddBillModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-white cursor-pointer text-lg"
-              >
-                тЬХ
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateCompanyBill} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">ржкрзЗрзЯрж╛рж░рзЗрж░ ржирж╛ржо / ржХрзНрж▓рж╛ржпрж╝рзЗржирзНржЯ:</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="ржпрзЗржоржи: ржорзЛржГ рж╢ржлрж┐ржХрзБрж▓ ржЗрж╕рж▓рж╛ржо"
-                    value={newBillPayerName}
-                    onChange={(e) => setNewBillPayerName(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">ржорзЛржмрж╛ржЗрж▓ / MFS ржиржорзНржмрж░:</label>
-                  <input
-                    type="text"
-                    placeholder="ржпрзЗржоржи: 01712345678"
-                    value={newBillPayerPhone}
-                    onChange={(e) => setNewBillPayerPhone(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">ржкрзЗржорзЗржирзНржЯ ржЧрзЗржЯржУржпрж╝рзЗ:</label>
-                  <select
-                    value={newBillGateway}
-                    onChange={(e) => setNewBillGateway(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#1DB954] cursor-pointer"
-                  >
-                    <option value="bKash">bKash (ржмрж┐ржХрж╛рж╢)</option>
-                    <option value="Nagad">Nagad (ржиржЧржж)</option>
-                    <option value="Rocket">Rocket (рж░ржХрзЗржЯ)</option>
-                    <option value="Bank">Bank Transfer (ржмрзНржпрж╛ржВржХ)</option>
-                    <option value="Card">Credit/Debit Card</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">ржЯрзНрж░рж╛ржиржЬрзЗржХрж╢ржи ржЖржЗржбрж┐ (TrxID):</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="ржпрзЗржоржи: 8N7X9K2P"
-                    value={newBillTrxId}
-                    onChange={(e) => setNewBillTrxId(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-mono uppercase placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">ржмрж┐рж▓рзЗрж░ ржкрж░рж┐ржорж╛ржг (рз│):</label>
-                  <input
-                    type="number"
-                    required
-                    value={newBillAmount}
-                    onChange={(e) => setNewBillAmount(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold focus:outline-none focus:border-[#1DB954]"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 block">ржмрж┐рж▓рзЗрж░ ржзрж░ржи / ржЯрж╛ржЗржк:</label>
-                  <select
-                    value={newBillCategory}
-                    onChange={(e) => setNewBillCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#1DB954] cursor-pointer"
-                  >
-                    <option value="ржПржбржнрж╛ржирзНрж╕ ржкрзЗржорзЗржирзНржЯ">ржПржбржнрж╛ржирзНрж╕ ржкрзЗржорзЗржирзНржЯ</option>
-                    <option value="ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕ ржЧрж┐ржЧ/ржЕрж░рзНржбрж╛рж░">ржорж╛рж░рзНржХрзЗржЯржкрзНрж▓рзЗрж╕ ржЧрж┐ржЧ/ржЕрж░рзНржбрж╛рж░</option>
-                    <option value="ржХрзЛрж░рзНрж╕ ржкрзЗржорзЗржирзНржЯ">ржХрзЛрж░рзНрж╕ ржкрзЗржорзЗржирзНржЯ</option>
-                    <option value="ржХрж╛рж╕рзНржЯржо ржЖржЗржЯрж┐ рж╕рж╛рж░рзНржнрж┐рж╕">ржХрж╛рж╕рзНржЯржо ржЖржЗржЯрж┐ рж╕рж╛рж░рзНржнрж┐рж╕</option>
-                    <option value="ржЕржирзНржпрж╛ржирзНржп ржкрзНрж░рждрж┐рж╖рзНржарж╛ржи ржмрж┐рж▓">ржЕржирзНржпрж╛ржирзНржп ржкрзНрж░рждрж┐рж╖рзНржарж╛ржи ржмрж┐рж▓</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300 block">ржирзЛржЯ ржмрж╛ ржХрж╛ржЬрзЗрж░ ржмрж┐ржмрж░ржг:</label>
-                <input
-                  type="text"
-                  placeholder="рж╕ржВржХрзНрж╖рзЗржкрзЗ ржХрзЛржирзЛ ржирзЛржЯ ржерж╛ржХрж▓рзЗ рж▓рж┐ржЦрзБржи..."
-                  value={newBillNote}
-                  onChange={(e) => setNewBillNote(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAddBillModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-700 cursor-pointer"
-                >
-                  ржмрж╛рждрж┐рж▓
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow-lg cursor-pointer"
-                >
-                  + ржмрж┐рж▓ рж╕рзЗржн ржХрж░рзБржи
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ADMIN EDIT GIG MODAL */}
-      {adminEditingGig && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn font-bengali">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full space-y-6 shadow-2xl relative my-8 text-white">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center">
-                  <Edit className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white">ржПржбржорж┐ржи ржЧрж┐ржЧ ржПржбрж┐ржЯ (Admin Gig Edit)</h3>
-                  <p className="text-xs text-slate-400">ржЧрж┐ржЧ ржЯрж╛ржЗржЯрзЗрж▓, ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐, ржкрзНрж░рж╛ржЗрж╕рж┐ржВ ржУ ржерж╛ржорзНржмржирзЗржЗрж▓ ржЖржкржбрзЗржЯ ржХрж░рзБржи</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setAdminEditingGig(null)}
-                className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveAdminEditGig} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">ржЧрж┐ржЧ ржПрж░ ржЯрж╛ржЗржЯрзЗрж▓ (Title)</label>
-                <input
-                  type="text"
-                  required
-                  value={adminEditTitle}
-                  onChange={(e) => setAdminEditTitle(e.target.value)}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">ржХрзНржпрж╛ржЯрж╛ржЧрж░рж┐</label>
-                  <select
-                    value={adminEditCategory}
-                    onChange={(e) => setAdminEditCategory(e.target.value)}
-                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-[#1DB954]"
-                  >
-                    <option value="Programming & Tech">Programming & Tech</option>
-                    <option value="Graphics & Design">Graphics & Design</option>
-                    <option value="Digital Marketing">Digital Marketing</option>
-                    <option value="Video & Animation">Video & Animation</option>
-                    <option value="AI Services">AI Services</option>
-                    <option value="SEO & Growth">SEO & Growth</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">ржбрзЗрж▓рж┐ржнрж╛рж░рж┐ рж╕ржорзЯ (ржжрж┐ржи)</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={30}
-                    required
-                    value={adminEditDeliveryDays}
-                    onChange={(e) => setAdminEditDeliveryDays(Number(e.target.value))}
-                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-[#1DB954]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div>
-                  <label className="block text-[11px] font-bold text-[#1DB954] mb-1">ржмрзЗрж╕рж┐ржХ (рз│ Price)</label>
-                  <input
-                    type="number"
-                    required
-                    value={adminEditPriceBasic}
-                    onChange={(e) => setAdminEditPriceBasic(Number(e.target.value))}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-blue-400 mb-1">рж╕рзНржЯрзНржпрж╛ржирзНржбрж╛рж░рзНржб (рз│ Price)</label>
-                  <input
-                    type="number"
-                    required
-                    value={adminEditPriceStandard}
-                    onChange={(e) => setAdminEditPriceStandard(Number(e.target.value))}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-amber-400 mb-1">ржкрзНрж░рж┐ржорж┐рзЯрж╛ржо (рз│ Price)</label>
-                  <input
-                    type="number"
-                    required
-                    value={adminEditPricePremium}
-                    onChange={(e) => setAdminEditPricePremium(Number(e.target.value))}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white font-bold"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">ржерж╛ржорзНржмржирзЗржЗрж▓ URL</label>
-                <input
-                  type="text"
-                  required
-                  value={adminEditThumbnail}
-                  onChange={(e) => setAdminEditThumbnail(e.target.value)}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-[#1DB954]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">ржмрж┐ржмрж░ржг (Description)</label>
-                <textarea
-                  rows={3}
-                  value={adminEditDesc}
-                  onChange={(e) => setAdminEditDesc(e.target.value)}
-                  className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-[#1DB954]"
-                />
-              </div>
-
-              {adminEditSuccess && (
-                <div className="p-3 bg-emerald-500/20 text-[#1DB954] font-bold text-xs rounded-xl text-center border border-[#1DB954]/40 animate-pulse">
-                  тЬУ ржЧрж┐ржЧ ржЖржкржбрзЗржЯ рж╕ржорзНржкрзВрж░рзНржг рж╣рзЯрзЗржЫрзЗ!
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setAdminEditingGig(null)}
-                  className="w-1/3 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer"
-                >
-                  ржмрж╛рждрж┐рж▓
-                </button>
-                <button
-                  type="submit"
-                  className="w-2/3 py-3 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>рж╕рзЗржн ржХрж░рзБржи</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ADMIN PERFORMANCE MODAL */}
-      {adminPerformanceGig && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn font-bengali">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full space-y-6 shadow-2xl relative my-8 text-white">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-                  <BarChart2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white">ржЧрж┐ржЧ ржкрж╛рж░ржлрж░ржорзЗржирзНрж╕ ржЕрзНржпрж╛ржирж╛рж▓рж┐ржЯрж┐ржХрзНрж╕</h3>
-                  <p className="text-xs text-slate-400 line-clamp-1">{adminPerformanceGig.title}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setAdminPerformanceGig(null)}
-                className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-400 font-bold block">ЁЯУИ ржЗржоржкрзНрж░рзЗрж╢ржи</span>
-                <span className="text-lg font-black text-white">
-                  {((adminPerformanceGig.salesCount || 1) * 450 + 320).toLocaleString('bn-BD')}
-                </span>
-                <span className="text-[9px] text-emerald-400 font-bold block">тЦ▓ +18.4% ржЧржд рзйрзж ржжрж┐ржирзЗ</span>
-              </div>
-
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-400 font-bold block">ЁЯСБя╕П ржнрж┐ржЙ</span>
-                <span className="text-lg font-black text-white">
-                  {((adminPerformanceGig.salesCount || 1) * 120 + 85).toLocaleString('bn-BD')}
-                </span>
-                <span className="text-[9px] text-emerald-400 font-bold block">тЦ▓ +12.1% ржПржЗ рж╕ржкрзНрждрж╛рж╣рзЗ</span>
-              </div>
-
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-400 font-bold block">ЁЯУж рж╕ржорзНржкржирзНржи ржЕрж░рзНржбрж╛рж░</span>
-                <span className="text-lg font-black text-[#1DB954]">
-                  {(adminPerformanceGig.salesCount || 12).toLocaleString('bn-BD')}ржЯрж┐
-                </span>
-                <span className="text-[9px] text-emerald-400 font-bold block">100% On-Time</span>
-              </div>
-
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-                <span className="text-[10px] text-slate-400 font-bold block">ЁЯТ░ ржорзЛржЯ ржЙржкрж╛рж░рзНржЬрж┐ржд ржЖрзЯ</span>
-                <span className="text-lg font-black text-[#1DB954]">
-                  рз│{(((adminPerformanceGig as any).price || adminPerformanceGig.packages?.basic?.price || 2500) * (adminPerformanceGig.salesCount || 12)).toLocaleString('bn-BD')}
-                </span>
-                <span className="text-[9px] text-emerald-400 font-bold block">ржПрж╕рзНржХрзНрж░рзЛ рж╕рзБрж░ржХрзНрж╖рж┐ржд</span>
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-              <h4 className="text-xs font-black text-white flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#1DB954]" />
-                <span>ржорзЗржЯрзНрж░рж┐ржХрзНрж╕ ржУ ржХрзЛрзЯрж╛рж▓рж┐ржЯрж┐ рж╕рзНржХрзЛрж░ (Quality Score)</span>
-              </h4>
-
-              <div className="space-y-2 text-xs">
-                <div>
-                  <div className="flex justify-between font-bold text-[11px] mb-1">
-                    <span className="text-slate-300">ржХрзНрж▓рж┐ржХ-ржерзНрж░рзБ рж░рзЗржЯ (CTR)</span>
-                    <span className="text-[#1DB954]">5.8% (Excellent)</span>
-                  </div>
-                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div className="bg-[#1DB954] h-full w-[65%] rounded-full"></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between font-bold text-[11px] mb-1">
-                    <span className="text-slate-300">ржЕрж░рзНржбрж╛рж░ ржХржиржнрж╛рж░рзНрж╕ржи рж░рзЗржЯ</span>
-                    <span className="text-blue-400">4.2%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-500 h-full w-[50%] rounded-full"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-};
+                        xЬь}{s▄╞Эр √)┌\G:>%[fD·(Т╥qWFдoй\8═& F"ЧfUЬФгїeчмU|gkЧлXЙТY╩ХB╫mI_Eх/p■╫ot7║└<╚бBTbq Ї▌┐■╜ РыL╪pъаTu┬ЁТSs'√"w-*^}╗▒Ў>└:╡e7(Ю╦U┐tм°їиXўГЪSэЫ*╝▄■ЎхЎГЬF¤L¤░^gЖгrъ;QYЬNг8▐Ч╓$∙╫k┼▒бSа▒^Б▀мЧ▌rqнJf┐ьW╦фуоООа]ЎГ▓ п^їъnС|ч═U/ra╖%~э═└iА╫7Б_	▄0<[┘╝╢Щ>+ 6jCaфD═LNNВ■Т_kT▌╚-ўГ'@ ўw?/ь╜|ЁтхГз°┐w_>╕╫┐Щ┐у▓[їn╕ы°Зн█`╧П^>x■Є┴-╪9ц1■я'нМс╒?`▀Oз х=╪яg/ь┐▄■ЇхГ;°┐{/╖Ёч▄ieРЖ[/{ї
+р│┐└о╛▄ЖЯ░Г{┐Зз ыVz.9їТ[нЄ╡ ўхЛB╓ЙНАF╦╕	п]╢tP▄ЖAy╜у/зЄ■РW/UЫe7,░┘ащ▒щ│ш╘┴Гo╢7~b|╕9`x4аЯ>j┘/пыFГПЬхкЫ|tf╕ь▌Po╙Ыg}QШ°ц@Nщя─ЧkО',Ю▄б№kc°0у7Г╨¤▓So│╧█(с√°Ўe╕╧hqз░гнxknтЪ╨НК#рЯЛз fн@дуФоЯЖ├╦Б▀АwЪA▒V+Uw@\TЛ%╖A<їЛfy+ыьgгxRBСъА░wМ╠@┘	оO└_a╒Й▄т█е7Кorь8╤c═Y+▐,V+рfqеYнВ ╓Л')тtызъ▄ўВ√┼ў╚8скSЎo╟╓к
+ъ>│:Ю 5p0▄7№;pb╠lь╜o
+гЪ▀aTь><╞▀т▀_АaВПЦ╪:3╝:оМ┐щЁыЛ═хЪMnм:їr╒]tn╕dg7┼┘▒oO╥Я3^╜╤М0н7шGї%Ю5рЎ║лЁы▄`▓O∙ МqЎр╘Ясyясg;'=IЎ╕┐lz┼$▄pкMH∙,.yQ╒M?┐>┐╣_s┴фА 8┐^pЗ"'и╕╤юJszЕ╒б ╥└TV ░ФФТш.О│]Фю╛5ВЯ№85в@чi°o·ZHргцЦ╜f-ЇДuЮ^=╔^5<?Яп°еf8с7#╠╘¤║Ko╤Y_¤√╤┘│oЯ:∙╛║'├	°╨р*x╖ъ,╗Uщ`bFГ2"гИQ╪УxбтяМЧ┤╢\╒ЄF╔Є%№c╙╣[Ф+@чх+|є(░sєШqд!zvw■°-"╞Р┤г╛щ w[?МБ∙5|9I╬уo╫мЙК╕от@╙~er=!╧7О8╛1W|╗└кi2В,╖цN╡\|У┴Бe╤!└	Ё\В╟├К▀├╙╤OpЮБp5Ёъ╫!F'╪@lV╜╚єыEзк"B■я6к╛SЦ╓8ьm¤╖/	Z┤ж∙ё▐)[cу	╕Л\ГнxU7Йw╚хФJn#ЪьєjN┼~├ЇЪВgЮЭGm╬┴╬╔G▄Aн6k╦u╟лx	ўмzх▓[╫Пн]1#№Y╫├Ж╧╤ерtщ4░Эyў╩╬┬6yOt6?ВgQ▀│М╩┘╥шW╞И╥Y│t┤Ооc╘оCэш╥@ФЦх| _yЩЪ+XпAФ╕p║PzРдP┌Ёjе$И з
+Og<ГЕ└╜с╣7√ф¤;	╠шЫ└_■Е[КК%Д ╙vэ)Amf┤┤▄М"┐nE.ф▐иzеыУЕ0ўўg┴╬rшWЫhКСO╨s1Ё*л■єfс╫SB?tUr└╓QKР╩ИsBb·╝▒YW─И√	╞_┘░БI,√■юГ|EYП	╡РЫXSэ{В4Aвтыр╕р▐Аdx╤нBPВ╘NРЛxg
+╝Wп╨ фUC√&"пgд║╞J%∙&в╙°sD[°┐_е┴БPуши█а|DГ╡ъ}Ъ║5/Г┤xи╞б∙S╠Э<╞ %26x Е ╪│A{И~:@b4СqБз╛▐ГЩ█)╤їэТ┼ю[vBп╘7ї├╓╓Я "2ДёDв┘Э─V╬вЧ┴ТчgЖI?Щq╩7Р
+│▄7┼u└ўШр╕CХXBT╞ЫжэZ▓°+n┬;╚юЁ├╓яo╛лЬ<┬#<cjдя&┬,yГ╚EOk^ШїаЇQsЄНО╘║,;QiН¤o З╚╗DL~L╓Щcъ/Aсту╬в╫н├@9Ю6╘ЭД(/Дз L├к╘kРБ╟xб╣y)pye>Щ№d▌▓Pчв!Ф╗─Г├г1ш╟7O))~2>┬П█╪ZмBДЬЧО┬gErКzР'1nй╥r═d╛╒hF╢Ш╒ВшD№ьaхF╝е√lпw0├╞═[А|╗яaёю╣(ю}╠L{94#F╝*aU▓уny╔uJлn0_╓сE┐nh!Юc▌DЧ*3а╖Ф№z┴╜В;&Бs2ыHХ?я═Rфс╨КW/<4orА╚,Уйkop╟Ж╣│П╟S	▒/сC╤▐¤XcЄoрSО унB
+▒O╪F.ЭЁcўНP3╨&╚
+╒!,ЕНк·Aбръ╚√ЖП╙m╪жюfn┌╔УШРщМ 9йщrм=цHw:7┤ SsБЭ ущыю·фz╓&;"ь╖IА"/ан2к╠╕{@├БXЁy#ib'Bе░╘o°╢кы ╦a1Bм╖ЩРБє┌O|Л?┐ЧВ└ьххГ╘ДН╡─░╔Mф¤}<─SуAт2СпH╟;uo1УэвЧ&d>╛н╬ъ[:k°╬7ў╔яxИ"ыАTуДЕ╣├l1eEхв╨ў┼.d#Э]Оч/╖╔я√Dэ.,"!▀▄╫o╚▀Рf·Ф-Ё_∙╝МTKl┤K╪2sЄ%tЛдezЖq█6■я|Ч╠=√$щё╜║'ь∙3№б|uюСaЯ▀ aQс*шОQ├└·(7[V+Ш$t"Я╫Ы╦щ8pE>ЗTс╫xM╤wCnzvi@╫J"╪БW╥вУД.с9йФX+krїdG'СwИм▒╧Ё╒'"(I*x╠z!№гхйс1╕t\Ї8(!┐LШv.ы┤ЖЇПiЩРЕt┐t}┘_╙~цЦи═Зч7МС1T╤5`е;k╘f∙бФЬф╥П=NPV╜5УN:qO/'└М_лyXk ▌(В\T╬·k┘др!l"`FcEoл▓░°lL/Ы┤▌	Hb&Жe7║щ║u	▓Їfё$лЩД:6Cю╪]t▓МЖnГI╩(^S&сS─"VaЛ▓jДГа<&█№чМ▀╪т№▀М[)ПўЭAМ╓2ъ2Ё▐з4kШrЛLcsw1s╡GД┬6nс╔ 2K&╝^ГУ╩╔М█╝ ┌уT╒╩H╦·c¤Ю>adR┐зЕq&3хEW═лOnМЪ╠А	&MШЧйG┘рО╤╟E┐▄м║FLг┘]lЬЗгKKЛ█в─Р∙;а╣6║eШL╜╘wи·Л├├╠}Ъ└╙эriЮ9А№ВЖ~╜E зНПБЬ]G╚_`Н└sy-а0ОоГЇИ	.j╬°ує╚Лs Q6а'К▒Ш+╝W(7Ёы:9rЗ@ЇЕ4pАwrШ╗╬аy:Бы$:╔фb╜ЛAfsn_i№л¤Ысф╞xrуd9▌K┘▌л╤█╟▐╒ЇоNИIFUqЕвш)─~ }jытhз╜Жeч_╒ЙШ╞G╘╩яmоП%GQ═Щ1yy╔▀LюМоu<jе░тTCЧКGїI╛6\-б 5╛Z
+L*ў∙Z╒ЬХum+║Kї┌╪LСy)5hщ╠0
+!СвmфЧдЯq┤RK,║┴пд	
+╔ГCМТ┬{║Lt╕ёC╫!U▌П∙2▒я сєўеp"щ8"Ko?╓`▄'7АйЫ$╡▐╠ЫDчy`┴I·я╪b>[─Ы'dє╠бIЛ┬√╟╘│S╘│▒kz█.їШ@╓╧	Ёsw╠" =┐Б№С┴∙└iмzеPc"Ус├ь╣jСьnл╟Pr@PЄPPщ▐тоV╖° {╣//╖ Єr{√хЎГA°Є┐TH1╔М`Blc╟0ЄкD9)6╒mЗ╘╜a┘?3vЦ╚·(еR8ОГ<ОГьx$уv^═@Hrрт│1▄V`dимU╓░uН{?╠еwщ║rДFк[v ▒С	(!┴СL?ЄбС	h>ОНф╫Б╟Ff╓KыЩЦЎї╥┌│*жу╫П9т┐!═┤┬╟)╩╘╤L/*
+╤гвЪ╢.n/лжзg/╬_чч╧Гw.\ЮЮ├`nv~	\╝<;}╬б#оЖсГ╬╣N╘▄p@TcW╝JK*ьXЙ|jd°Їйды╕3и▒╟AXЫ╚л═ОqКЙ┤7 =─┐еQoг┐¤Ў)AБ│.шї╒т╒╖╟nм╛шнTс+ыEз∙┬щUаm╬w4/╒g1╖╗ √▓e∙д7ЦХb╞2Я.=г┌Єfqt▒U▓/дтE9жюА°Ёd  №╟╓Z┐╕ъ7^╜r╓й╚─lПЦ}╦╢m▒Q`#НДкs╚∙L▄eцЛє^ЕЩ.>f18Г╪ЎВ¤▀¤"╒ОёD`Jю0gF;KD4В#╪;2Мк=KXA,║═s3	:ЄцГ8¤чИ└зрcj▓q}ф(║X▄'НR}BЯЕГБх4}d╥Dяk]xУЮйq╒#╤▒g╝▄■3wм~(и╛╚╓▐,lgkяV№┬Sц╒·Вzщ~Ж√&Ю┌╚ЗТh▌╛# ь▒рX┌@
+ЙОўYыЪks∙PnDз$█p^ @Мe░ё▓▄-?f	S ЬPЕK@╚2│-Z[│яeCBz.@ч Гш┼%чЖWqpXфЎ▓M─'RkДHA"1jж!├зУз╟┤uvy╫╝▒Ёs
+¤8├БN╥U╥ ОУє/yU%╣╖dЪ_╗яЖYё∙║.6╣╧ЬcТ┘kDхЯЯ┤И╫╩╞аABСАвEOВq▓з═kъЪг8╢╖З4┘%юcе9B&жШ3█0Б[z▌й╕сСЕ■GXvЖ2P$╒`HT┼= HHсY("│?Є Їч!└°н{Ь█д<КЮБщ╚)╗a)Ёp
+Б#?т7y(z8─Uн─цtЯГ	qЧ╘░= A╘е
+y╨Дм8┐<║╘,∙%GЪ;╪┘|Ы┼╔9ВРВ ДFФ╩^┌LўFЗABZg┴дКG╦NЯгрьЇт№Ш┐tю▓&:v├└╟ънxкА;~:uпЖ╓~┼)╗єїN4J└Н|FАм╕╡HЎ▒║Bїq╕Ф ; ╪JЖхё7м┌М6k╠╞ўДБ)vйB▐O╧╡╟XїЗBЖ╢DR╖eQ{ДE°зrа.e▌∙E@Пэ
+I▓╢░(░¤/B87M°ё;╙']G╔EM\╬гфJZ╣╬╙┘¤zC╫xєпДz▐╢цкьzиЩсPYМGС~[═ЬТ─q_ж├╘ц5YG[I├КзcINЙооьщR╤ео|∙R╤╒ы0tЩэъ@═Ми°∙ЎM)7Рs▌mЪK#
+└jь╨мР%I3%5гf╙НЖ<	хЪQ╤юК~|bК┐З∙GЭї*^ф0├ШWпЇM%n┼╛ЕwЙЎЭcVн╩Й╝∙'┬\лс'г`}S╩4Й/ё·╫╪Ёй╤ЇЖ∙╟■ЩWv}0GL}S╥O4о1-┘!Z¤┌┼╣╦РЯ:°7г╒╛)ёЧгB▀r[ТIQХoЄП6│╛Oув┘a/ZяЫТг9▌█хОеT%╞╥ьёnсk¤Хшж╕2|ыю╥╣<┬#ё#╟|/ ╪я╬┐√*ёы■╢╗№гEОў╣└Oьзl╬ЫGЮЪиZЧiСФ%mЧg·°Ф╣->уgYt/╛█1ЪД3╖Юu╩#├cаJq├▐бKМ,╬AЭJN╕К▄	P╓▐╧с6тГ)┼3yхьЖ╣═M?╕■┴КДЇ■┐├A╤A?╨ЁТvРВ╒C^`ч??М╜╚Dю╔4с▐#|A╥4▀e&9╩Ч▀cШ╗╛╙0ЮmxР┬■╫╦_є#Э е/∙ЄпpF─╗8yЄ7 ╛п?NЇэ╞█IОў┘_ ▀■g ё(wчБ[iVЭ u∙п[@'ёЕ|├юq╔ы&G╤Эе2gG0гё┴AJ╫2ы■%РЧц№Шд┬√П;М╥dSzИУ(}CNblFn;9Ef·КыФвAp	╛ Лp яз0ВX▐Є╦ю Xr╝ъMп^¤z┼Я=ЫТ|╔нN%GЦХєд┴сJнвуe/╚м╚▒KЪЁЫfЧ-]╩5S┘lА{юФ!Гпюa№B]#у■Pр;╒шб[ўrЖЙЄЗvoAИ7╧╡▒N┘┬╕╫	ЦdFї∙с+▓═╘ъV■(ЭC╧╒"кг,┴єm+ХЪ):╗H"s8P╙Уг┌¤диеї~Ё!шЗHaeе▀\]ф4╟╙,└Ю,╡T╤Е╥ЭусСЮХg╬|оэXбaiюШ_B ╝Т;Ьж}┘ЗЧ╗"58·Ч№@yn╩;┘n5t█ШЇв[ў|(h5\4u/МZЪЎ╧▄└[ёрмёVеM┌ЄTЫТЭ]-·╟K(°msотj▀|ТLБж╛)h ╩lЇъ√1Р1╥┌╧&╬&жАM<ГxГ╔ЭN╫#╘f╛Exй}A╛|ФЕ╡▓O
+?ьВд2└╞.=уHХК╨2░щ8╙╞■а+ЭBЧКX/sуУK╦║╟9│°y╪g╚╢eС4Ў;╙m╣ 5║ШMnlМЧцчоАЕщЩЬ>?╖Ш╔0╟▌Ж║dЫ╙ФКQRфfNЖkЎшfюыщ╩лл4╔д/╗¤Ъ║пё╤·▀$уг┴-ЙTHDий^v╚ё/n▓┼,r#╨iЖ▒╗AТt╕ш|·ЕШvП╗╞╢ш ЭtNwс╬*┤┌Ц[60╒╩jB[УБ	 RЩ*	я·╤T├┐9Туd.╤ Лпм
+▓z┘╖HРЕ╔│▀╝▀Д╞Й№░ї═''L█аL;2ЄЮg╛єйоЎ╔мФxкlЭQ,▐M√,║GК═щ2╟DYuJ<4ЄЛW╠jьFЧЦ№╞M█&┐ S|█щjЕуk]4bgЙo*╩1Ч ;░2оЭА+еF╚╦э┐╪їXtш4x╩ЦpХ\
+TKK─ЧоrЧЧИп.@XМД2@Щ╬R эА@┼иОзхR4аt&]ДЬY╒A┤9Iа╦<м}╧└OКP╨:─65█c@ЧN╪╟ЙW■╚╔▄!╤┤+ю%M6j├╤e!▐╝h[7(ZЧC
+l═(УОЕ╠╣0тЛд││mЫ9,ц╝5└aнє└НтX)н▓%кСЧ╚╠и╗∙g█щ tКzзю)<МBУТ;$╖Iї+Нв[aO─лХ╠╥ЬЬ
+kЫp&ЬУ@СА°Tд<$зШ,Ї╢AЎ┴╗┘l4▄афДjh┐x]Ї├,°daю/▄bкPОКк Т├d▐6Ж%&└Єщe`d╦░yT╚t╤Zcе╓╜@эП%┘Тdt┤*╠Jэ{FЙq╥▒<╦f╥]°iCдU╗ш(:ЦjГ╩╡.╪&zшjw,█f┌i┘Цэ~╦тн┌┴▒ДKоnH╕╘·█!╖╤U7U┬=R╞I·MLь╗%╞Ч╛`)ph
+ЦJ║#э	╦─╜x^Yф=║╧╟т^BH╫м5iOl▄фяX╪ы!aПGл▓Ю╪╝gШt╦zl&]Я6D=еЗЮвcIя\ыВЮ┌A/║c9╧0╙N╦ytє[єФЎ╟R╣z╨q{|\ЬЫЭЯFy	ж/\Ш╗ЄOЩ╖Iж╛W,гТТ╒ёI╠И║АTЛ╦Zk+YeлЫЙЩ┌(╦е__^ЪЛкyЛ:─rЎAVч┬Явл╨ЕjхЬ4╓╝┴═hЕо┤·jЩыvсN│Qv[¤.teмсЕоu╝Pьnj/teмуЕ.Т│чЪ░/T╚V█KwА╤П╓j{бKШ╢╫ЎBЧ>n:_m/tu"Є╚Z╢жC9ЩLее╠ДNZHS┼-▄G▓ъ╓xок[╕^yK┌?Ru%╥ЫA8Nй╖5>q╚╪HЛї╢Р▓.¤h=~Ц¤(ЄkРи╤┌W╚уg4о ▓-<Х$ёє╤д3QJ┴X╓РE░He-j╡ЁmVgув/х2╞№NЬwP╚▐:лЙЦ╠O√;иР№╝еMrP`{p?Пн∙уС░■ПYmЮшєSй∙╙к=С· |╩є\л*|gаerKj╞ } Ш&╞Фкю~G0.jу║┼ШhЕCU╖^ЙVэ8RЄ.uЙ1КJS╝й╗K│3C╒fШ╖X)▀╩)tр┤ЩЙj│┤А|╧3EY▓*а╤┼┤
+шw°╬╨╒Сў╙S"аw╙╙ РqR2i╘▌Ы ▒hWЁНBj╥p╚пcfwР┤╠iГТ	вЎWXPFoV#"┌ЕД░JЖ$ш"|Мt\ИЧ╤Dоб┐ХQЬР1▐O¤B{Ъ№<у"бж├Y'r ├G╢з√∙О(л|Лх╕╝K╣czкsє┼Ч▄Ы4▐ЄЄ╞R█6∙у|К!y║R╟╝Е╓"к┘╩и&Rо█О$:╒ъЪзтl╟Wэ5э▄ъ6░▀Ю╧─╝бЦ│fв╚ЎрДЄВT╙╥шСbА╚Я█Пу	7╫vMqэ0ЁG`
+МфЫLХФp)OЬd┐Ym╗╔Й╘ЬFб лAрХ╫0└Ъ&├'t▌]Я▄АoK9р╣0WБ[╨░J(в$ `╨чй5Уqq┐УzоZ1a+зДзСr▐╔Хэ╘УK[nAV╤┐И?Б╗X(| Ч╖Ё└kРагнH▒Ўe/╣▄@U╡h╣хS2+┼С°PhЄ"(ЮТ-,ТC╟юООH№+╜m_√ъГDy▓q─сжяЪї▓wмf"єтvNюb&DbGrШФсУзГгO╘╘╚▒Ni┴ А/и═WDЁ<╕ЇЗ ф7ЧЪ╦.Ы√╧╝Ъы[зЫЮ■зЕ╢0,ZvЕ5j'bящёlY3▌6ЮNNА┘╣┼Щ+єKєЧ/e2:Йх}^1╙Sц:?4Q°>f┬)Л┴~Т╖╤9швЩ)┼╓м_░tB[в╬р╬╦э_┼ и│ми	NIDuUwЙJJS█c╨ЬX0ъэє─BЯс┴~XXY;╞r#IKLrуТЗ_Сo░mЩ╟Йд∙hc)lФ?mBЩ+Н╠╞'#╓┌╡Х┐їиB╔▐лCЮ2Нkо┴/нЛИь╘╕2ў╙wчп╠]Ь╗┤┤NАs╙?═Ц■,YgъХ@kRо1Р╡ьIч╕'┘▐b∙ii.2Т!Мt/┤OаФ╕║'`I^ Ужz▌╛5╨mмG*О>е╪єO╖yц¤╜dH1Qм─ъ╒?:ЄRКТfeS┐ЦбGЪ▄rЛО@Хш┤¤ЯЗxJяG┬В╥ФШ└R)Э]"Шk▄Д%b╘tEАё\╕Ilxа╔е3krцИFвЖЬmzP■╓эV▀ ;сdР╧q║∙Тg%─Е^Ш■~░╧)+'ч╧Ё;q■fxюhy╙▄хZ╢PйCS╒9И╢;mбb[g▒Iu\м~].FQ∙┬∙i~e/ju╒╝║SФС┴_3Y(я>c5ўrэMN╫O▓╙╣]>i╗v╬╡ЙvєT¤]V▌]Э╜и╡G ▒ёd═гОPРFm┐~9ўЎ╙Aр?з┴f║∙M>Ь)*|╡┴tzГN╪╪kД>v╔;╤`o╖дж─╥8{ЫкQoj3├lКЎ▓╒рQЩмх5,pъХ┼АА╟┴v( ┤k7h0WU;9-#уB\евs6йTu├ФкO¤S╚c└u·%d--tЯфjplBД▄╞·жжiяNzя):p№╩┴@$d╫I╗Зд!гH$╛7О32П╢iгX
+Ьpuмg▄╝НЩnыХ'X╬∙>┬Ю3Ё~Uч╠Ч?rУA╪ч$;°Qh╬s;ОbТrч╡┤в╙x4ыy╔rN23─╧(rЦ├	P`√PL┐ !щ°P╤│иSS\}LВл┤лAбзA╓╤а▄╧аоЛ#Щ2<├p4ё!вы╡╦+aЭ-▄bлPcH║╘Bїи╗лшaМЪy # aў<ЭЇ|K╬─7жн√`ф@ЇЫo:с▀ ЎJхА]j: ▓VОЙ╩є]w`╞4ZlР м║M<▄ёQш■Q8CSЮ┬╛∙`№°АЖша▐╡гA┤╚╔╙░Ml@Ёш|▐Й│`bмs*
+lGВИ░╣\є·y+▐ь~Ч"ёьжfOf▌─в╩вs├═╦EЧ7\R╪B°|╝·E{+	с"FC9▐зLаW╙+Ф+рSж6╠q59╣cЛz╨cщР`CНZЯ°╦╖ЕоjhR╥иBvDYI▌x╛єм·┤gЖ:MВЮцZ`-├к╣yfx┼jт=х%щg╠ёbNwz■ШЮ╜ {∙╩ь▄peю▄▄Х+╙└0ШЭ╗0w~√@\╝<o┼ЁЖSоyї+юК└J6K│!M o═-п╖║(ЦЫ:52|ю<╧х└o└У▌К╡2°чтйСTm╬ўDvТзъI8╦ШH*)А+iТ▀ф└0ббцм1╥а┌└╪╠Iё	2kp▀@ЇЎjёъ█#7V▀WкЁХїв╙М|╔╬ oc^лЗ!╒iТЖ*i\i]ИP[▐,╛╤▄█Т∙╩Ю8U)е┼/Л'╕^uХ$ФъERУфgКS_OИ┘РYJJvrEч░╒rм5|>'╕з╚╛ЬТ
+╒ ■О`яЦ╦\еlОШЎKЄХ4ЭРqЫНЭШ╧oC═g°╗I║2·ЫЫЖЩ═╤ bF{l`s╠─iu\{?Л╛щ$/Oпю+-Лb╛■▐ДъЖ╝ЄPXE╣РF┴щ╜в*+
+7╙╥$ХЬ╓╧зPЗ;жбЧТ9╩╩K кУdoYИэКtJ ЪO~/█i╒╙=ПКшб.g╧]g¤╡Д.FSROal═t╞i─f┬а9╙)) У	[дZЧwяКн	#Bб├8ГЬщЁtаXЩl?╖э╛▄■ЛqжN6М▐К№~╔й║Л8 
+└їт┘┘~нг√"¤б╩МгH.=$╙врч2a╪FA>	▌ЪЗ│СM?╜Tї Фацр├koТ3щаР╥с┬*ЄI#=Тx┌Т╨Ё	S╗ьёDP{l╨┐?Ж■M╒IГ╫МуУ2▒nyБ(ЁЧщ▌╞ьгKрнЕ+]ЄF╦й╨╠O_ЙVа╨ДдЦ░yЬ\╚	╓K╙,тQ┘▐4ДeЎЙ╤s/┘=фK tGмг∙Ь√ОJ╝	УЩs,Ia┤єО╤П%[VF4ЗVu9$JУкMебd█pUё■╛wf▒┌~:╜J▌Ен1▀Ё$Сз╨`■╖;╕єп8{ёcУШЖ1ш▓т╡▌╕ЖVRуmя<%wКDСl_7-Уг_#т*мУQ╜ўшWOХУП;$uц╛&p_▒АУ с2B╫w┤yM╖иzNЎЗн ╣є¤п>¤aыє ИЖФ╟)xЯ&Ь%ЙЯт▐a*QZ∙╨^╙▌эёJPP╬8╙"┴ш^С╔.Я╖Nтj фИ=YйW▐?√╩╓ЛeОqЭx0я_+jм─¤Нм╞dЭ9C╚╣Ўsи╫ШгГ\=Р%]╟Ї`Я╔Лм+1TJv9ъ .Х]{эcл]л╛Ит#r7ЕE╖ю∙╕т:еЬ Ч№▓n╔sк^Ь&╦8kв'¤ДV~D2~|╟t╤tт┌▐ioВ┬9╕aЁмCnъчю2Шuo╕U┐сy'╢O╣R#EVс)H╬═,улаЁю№Ё╗я┴5Ы	\вk<8НUпцЭ▄Ю8"_в~"╚ЪA6э5╕^UxЇСЄ\ЇЧQjТщF-[▐91Н%B╧╔Z▄CЩhю╥oВ┬мWё"з
+.:┴uЩ\рч.ГоS╢╬╩Z╣$Я%=F╥P!╟XьА░XлL	╤│фl{ЗшqхэcьўРKP┤√ЦРЗ ╟)2I	°М┼хЁX┐-AЗМнГ1jQ;║mL╠9J╬/SXмF EX{|I┼bЖ√TOЫ╖цgt!M═·ЙЫ╢М╘Wu╝╥╠°╡Ъв№╒`╞йЦЪЁ░°║╕C╠НиЮUЫJ·Эv3ЛХз╡░Ыдb┬l#∙УШ╥╧ў╥,
+:c
+╦_з='ЗvO╒┼╗░∙#эNуuмЎЦдХaПВЮ_С1╒╖HщЦ▀2░█!┴mт№Ф╛-г&╫`Ї2┼сб2@TBЗeсъLnЬ╥ДЪ│ЯМшЕС█0┤╥╤0a┘5-RhX▄8OБ$-C)┌ъвR;═ЕGgp╠жяjDHчжГв─щVвLRH-зо╓8╕░
+hvR|╬юКAЩЗУзПЁАПUЭ┤xоЄЫ-5╚"Na┤<n eувнс5+
+vЛRРПА7АaтPр╚nШ└▀c▒UЪм╨╜2nE$Ў7$╓1У"0т╖Ш]┌В@В╥ыM+▐)P*&wT
+╓∙╚╪М╩NГJ╓`╛FA[#B(sC╓[╧mt▄╓а5▄AkЧБх^Ё╪█8┐KЙ;ъфпАQNBE0╞ХКЕ1п{OЁК#61AлYaУ}├iЙ;╫╤@┤-P?╘,ЛЇЦ╥| ┐|"┼о)дAП┐!fЯ╟м╚v╔Юхх╣><ИMф-B UС'дэсSyВa	LрAўQ&┴юёIя2·${O"QM2оF√Ъ3╓S▄В	с`Ь╥I╖ўНЯЯ▐ь8M╧tЪЙ1Ўы┼сo9PL6
+╗}"ГmyАpп)─Ф°Ь;TС&БV;в╖/Р╢еXЇЪ4сr[√Ж│ю7#╪╢RJRНЯшCЫН2▄в└┬Е╗]МЬиЪb═.KГЖ¤^¤ГFрW7√M/]K┼ю■ы┐A∙╫Шm∙.9ЬПЁ∙Ц0И▐▄№KlbRг┬ыl╦7Л─╘?ЁЄЫ√кд7^▀(	┼а╩ГL ┌ ·┘┬M╘├ы┤|M╗ жВД>И
+╫┤оd║пю╛е┐╚kwd\К╫▓▓_БJЎ}JЄp╙G,√═-.'Л	ivH~it╕b╫╞╗4╫┤lн0}3Дg'щЬ╞`и <TТА{ЗWзМ<dКС_└Jр╫D╙ЬO╝╔╜тД7тЫ№=┼ўЎйСоE&(>╧Ж@┐2│ъ┬╣dМP`.лzХ╩c╣>┼О 4ыЙ@ьO(·╢}С╒К▀3∙oщэЗ!=эyMHДA·^┌C	мюФ╞Ц╚ ЦиЦ─┬
+о ЄАGjфё∙╟.¤p┼Ё┴Щк╙╟¤¤	/VЖЇsBТк│╗°Лg6─]	l^а:Їk▄╦╤щFУЗО*2izGR°&иФЯf╛Жг{ў╕ЎдVD╨1щI'ъ3(ЮЮбE╟5╣Aъ4бX'
+Ы=╫Ї*H[
+ Ely╞dЖ▀ёК╠╠Бж#ш)┘С1A!╦'C╛─PfYУGFx?]■j╤r6╬ └lO;5в└▓5cбj┬╔IЎкYxi=skR╚1╪>х=ЪБW|]┼Yу6▒&╩NбN}╜╟6,h}═5T^6╚-ОWўъХ╛)Ў╩w╕┼▐нвъ`Я!Р'C║2╓хХпq∙ЧцUМнz╢┌%,iЎОгfE,ўM▒┐Pч╧ДZCм{▀╟x'√s7H ф_╘;╖Ў╞Щ"│w7E.▄o╪й°u╜/L6╔кoef!ЁQ.y8√uпП&0Ўj▓w╢а,дN▐Z░K{╡^нVЙШV
+}lZ╔DkЩLй°ИP,3З╞░Н╠)хЭЄLwм└SЮвЧ┌ВЧщЙeШ(┬62Gi╦9▄m╒Ы2Vn╩S╩R(МА*Яd╚R`+╧c╚эi╢TЫ╫#-гнПPиR╩╣Я┐bеLэ┘2eїoRV╖лЮMп8ЖоьQ╡ъЖ▄ТE1╟r┼
+b* "ЧTбU╒к*H▀1·fЛХ1═к╙Йa4а▄o2fпКBу/yeЕ0H╤╛вE8UП│LKА$%Д5bN╝X┐▓сcЎа╗w╞SKdЕnMNZ╩═╢e╫;sЄР*X,юN║#ьнз@Ш╛пЙ╕;РDНЩї-ТQ╞Ь·╟(2ЫЫ'yErЪГ╞║{Ю^я\3ЕXТъП%Bоб╞ЁщЫ)J4#┐Dн*6ж▒Ъ4їN9PЪъа╞pиJ 9sвeaК╙r┬UсЭM¤▓╪\.bн8╕тЦВжбЬ_Iu/ДR№╓Q╤ўж'X╒k~с\ЇЪ▀4-o╫╙╢t+K╔ЩwC7╨хV▌иN
+╠1MRNSМвj&?Ї'м╞╫зьTь5їGbСшtуQ2HзGЛ*№3SйЫd╬▒СодKЄ;┘єeШ╒ўь[Ї·{C┬Л∙Г┼к9ф╫ VэQи@ёW ul.ШРт▌li═^Q╧Д@ззЙ87MWЦ
+HФGcШSЯf@╟г-
+-▓▓-ЄhзGфь[iПДU╦┴C┼°#1sУ╖S
+oеўо6D2dSих▄[ВВТ дjYД╓О╞н9ЮбЬл╢8Ьь┐5"╖юEC%┐жob-╨е ш9л╛eQl╘Um╦бГimH╫@╬Р┴х ~#гoНООННПЯ<iU▄10┬ygЄВntF╥═Г!┬rt?╓Q<└ж╖_a~Н▌ЯВ┬┐j#─╞ЁU:P7∙и jС┘А█%Ё╨Gл╢┌гкШ1ЩH╓7KgМhф╡6Я+ iПhVЗj4№ тю╤Шъ=4╕ФG╓M·еаю▓Y(УFa╝'Э║SA╤+╥O╒·Ш█К5╛ЦцШ╓<╙Щёб@я║т/4Щ;Кє∙m╛╧уВ┼X┘I├~m╢ZУ]їА░└═Й@,дЯ {╚MЯ,@┘зЙ┬·K%7┴ВP[KE│МСqtЮ·┬W╡d`xх	╨П╧[°AJ  └єАў╪·ъs=|<С=eoсРй╪c?╪╘√>╙1Cr@>(н:С4фч╗@9(▀Q@─aЬ╪5R: i#Х0▄i?яў╖Б
+З'ЇPШ6╚КWwъшдЗ╥ ╖ ░бv=<└#+-:є╕i°ц~┌xTi¤A	е[ЧWЁў;f{■	└ъэЄХx├4╛П╦Ў4 ШЪЎ╨ГГЛїа7З╝Єf;=єU+2х0С┼╙╙dу╚T9пДzЧ¤5s╣№Ж[°▓°╝yїR╡Yv├¤fKЕ0█
+~б0Nищ°i%┬D0Ю`	╙L|╨	█KГm╖
+╤uK#ыЦЛЁiрК>╕z[7√4М╧,╡├рг жшс(зБB
+эь&║╠emE&═9H╔!┴З&еШдQ.╤fчdГНКV╖^BЫ╠жг╞╚lлmG%иw$ядy6>│UУC·║Щk=╚_~Кy╧№╦у%Ю┬Ьg▒є╘DЯqXЦц╜╧8ВЗМЬ╚q
+ЗeЧYr!H╫№:К┘MXcв°сQ1╚╝b°6зR└XЙЬЄI<юh8`п{г▀lм░╧яv/└п^-ЮT,╔MО=:х╣╨	IжЮБzБ▌2I╚ BwN╪ НОбгГ~-Зы▄ЭОЕиg┘0ЦЎwЕ┤щ^▀╟О▐╟О▐wЇ░╤ЇтбW╦╒;q╬▐╜rбuwяH]ммЦг─*╗|Ш╦wb╙└щ;	(─эЫN@яї=:Ж╝╛╟dg╔ЬоOГ"$M<▀я$T{єыр╜┐НyЮrЛJO╛D+в6)С1СTсj	╬?'НЪ│╧╟nс╜х╛дQx╗ЖwY∙■2═0wИш ═e╕5└└,─Aе■Yєи┤: ъ'с/ўК^Rн╝┘CzJP[/Ю╓т╔1-ЮLцdыФ╫╣q╝ь╛шy5кy<╘q┴┐rv7yй╟(9│Ч·nЬ·Р╣▄EeЖyо,юїШвх╣/╬╜CЎO с─╡чЪОYD^д&мЙ╘#F]%┐ъгиБЬ┘Л║у╨?▐ф╦nt-╔з┘ъФ6ЛCШЬ╘Ь6рН╩з╬║├_Ь╗r	,т
+(sEФ╤J..Ж"Ц°h═+RC╥·Їэ.z├┐тмig╜эУ$!┐ыsgОT\вУ║Tс ~AмЬj│Ї,j═iИ╨е]Cв╘Pu5║Ъ┘ўТЦZBБИ}S┬T╡╟_ЙnBЙ<W▒V	╢ЯuQ╞═╛)сйеDфъ6QUNVShh║цъ&:fИs\▀∙9D^	т█Яъ6WЗ?є╩оП·и{5╠╦ўMС[seП╬q|6WП3ы╦╕к)д■^┤▐7% Ж¤═/╡V9┼T$юЁpс	С▐Е││K(ul╥ ╘ЮB╛О+XdP╔ПB"`pЎ╩ъё╫┘fbа╪Л4╚SdгWpШиЙ7^и7s0
+єWМ╬ъS╞cжV#RQ{ a░■─т9ЯVGo/╙ДнF+|М╓▌└╥i<I┤Mя3┘┘.Яy@}█`Р╤ХР(░R;ЗF▐J╪Y╫)гmЪu╓├0+6;:4рP┴W{S╣Л6рьяФ▒¤ЩzPвFь╙хЖ╢T╝V[I>n4бтЖ+В╘зм+┐e╫6╛E║рет4y╥N`ЬФ"У·▄ж3a!I╗╠/чЩУ▓╧*Фює╘Пм4!U┤сЁKrв▒│O!^qЛ{ПщTMY=zL%ЩВC2╕║а╘Ў╛╔[╟SА╚ ■v╙лФ╙o`u┐щ%c"uI╩ЭТЦ¤&█uМlDf▄IБuР╔·н╘p╦сFгЙД╨Rшгx~╪║¤з$╨▐aр\└j6┬;=С╥ЬFЕ&{Нл R7Ъ╟√`п|┬├╡╕.Ъх√ц╤|(гоОDk∙)╙Yxр╧жюT?└щ>ЁыUc░k║iЄu╜┘cЁoЯmAР=чиЩБ497Oи-+╠БШ,ZиS%Ї─жР
+`<>й╟ 2=С_√А╓г1║є╪ОА╥EрпЎtша╟%┼аЯ^]ЁЗн▀лчMl%╨─Мы╖Ш4║7Ь qъ└l`s
+кq╛U`O>╨KhY "лУае*ЩСSVn║┼зь╬╫9╫:кхZuгЪи▌░█	)╘╞УЛэюЖ╠tD^е<K,ё
+_Т╚nPШЯе╫у
+П*@цЮ╥мB0~lлK*Н5█╣^!UxxсЁ╪HЖ│╩%!Г;[hу7OАtРэ\¤╔ШэOв$OЛ█ХqЦ┤∙r:в─yеm6ET▓|╝1─б╟фUs░╓'t15yD╠─▓ХдoкXФс┼ZДС╤гЪ9QцЦЎ┘сУ▄ДB\┼в▌и▒v┴\УСn<.uXC4YК&БSqыеu>,,>D]x!√╩ЛшхB8Tв┐Б░╢Аy2ЦнвtФцС^ы└PБ5Г║!'▌L3В└K╟╓dиъ╓+╤*Ш#&'uwдПMГ$╜Ш▄╕Ж∙Д╫;'├JE\Lр{ Б[}m╙■MЄwбфб9sFЄ│шуD!╬в┴?бщувыъ№,D░╕┴√ш_─╟nВяїoшGЙ/N■┬ОхЫ&b#═,х─ЧIСйЇЕw╧▐[JG*Ї¤░їп В═NвМу╖ЭC
+,ФП\фцАl6?ы╓зm|╢m?c╠╡БkЖъl╠ї└FЄ▄A5Є┴{╛▐vЩ, ))уe%oЛlыб▄)═дoV▄&C96CgвFYkЯr/╤╗tЮ{,фwвEQI-┼#дНЯLЕ┤VлNп1О>a)ЁЕМ╓▐ц╪╒ю└]эФ╩▄-дп╔ФЖ%#o%Мдн▓╢Y<°emйкM%y╣╣▓mь	n░)й(GХФ╙Т┼Ш$┐╓ыфIHФ╔\ЫЛh№╚Д╦dКЙЯЩ.Ч┴ТыФ 75<╖╓pM]ЕИ<o+ZЖ'Jъе╥
+amвQ<Э1dFИЙsю╚;qXT╥О╒TРвUАЧB2Ж~)0ёjВХ╧S▓█47еK4ФАrcК6ЄNP]╘Э9ШДnфўwя┤чЭ╩aДzd)[ЁFЧу2╛e=wPеВ√,█№cc▄БbeпU░7hХc╧RЗ-╔╢ньL@─(┬tц╖iлBА╤bM└╛ 3xЮeнC@!ж#Хh_╣
+,	mZўл<,ьfmБT "ЎЎ]▒Єэ!xП^)ib(BQg9AГ4zХaуИ!.е─Аёx Ос21▌gIнI"ы=ЮДzПiNyz─А%+╙н╞яq#ь^`6╞?Z`9sфQх.А█Sмў╛E╕ыЗ╠(~Ы╣u╙№Ё▌Б:y╟р╘sn8jЄ*яw╫T╘
+╟■)+e"zgiЙЖБ&y`K%с:1 ёГ8Nиo┌{йёб>NШЮPXиЬ(є ╥┌╨fм▄<иd|┬WH">qkH>║ЄпN>РО3Ёёы 2ЁuЧH)╗■ЬT Е│Юo!х┘m╔Т2ЧЫРН
+\№63(╠Єr'Ю√<│6╖B┼A"@¤:4┌CЄ ╗Qy╠bTж'оM.▌ | oD5Ш┘АЫ%╟_K╞YcGэ+╒JЦ ╒!Хт1K[X╜¤/▄╕╦┘ ╥mSжнмJnn╕Чї-8ырмO╠ўЧM7╘Ш╬║Wп└ўрqШ/┐·FF]ўЮ52
+e▄sЪg╖ьE3NаHU[гLСх╪хп2gдgX╛┌юЬ%qAВ┴Bю╬!ШН ЎKf╤Ц─[КГР5К;▒)┬Ие_ТАр(, гоЯuъ╫┴R░6?█эJщв╓°Ў╚╪щёУ#гcнЩxЦ╓ЇQIОbБ┐╠Q░GВг о═1Ы╙╩╖Н°fЗй▀√д█F*n·[f/Р╙%ў&d3*.38HЖ├е5aЗS.г╫П¤ЪzАхhYєЬИ╠TJўПОd	УcєL1│ON╠╞ш3·ц┤Y╣.%e▒╛рЫZr√!s╜╕ЛнjхoедЎ▓otОS9NЩ/B3S'sOЁS}ЖMл▄aь8МПF┘#lЯЇЕд2Q9|Б жЗ·m{мjЄ9└dO∙NM╕Д═д▄4ЄС╙
+ji┴#$Ь√Za.Х╟мf┴5Д╒╣CН└╜▌м╗т4лQAВкш╛Vwoвo─ц▐б(ЁjЕБ╡ЎУdЇ5ЙЬГmаh7	о╤(╞╫7fсў╒¤ЫЕБ═k╔БXл╡h╤PЩ╔I░б▓▓Е╤QЁc@z!╡pсTBшЎc0:0╘pPi╞A H АmRиїхх_└юuqЖи$4Ю╣оftИ'6!LRў-нY3▌█,ЦИ7`aw║Ч╦nXт/вш┌1°ЁC╨п═n┴╩IъOМ╖йYFЁ3╩N! CUТ╤▀Г┬2ы*#гCSBЪ~▄╟Т│\└+оєТ░МHўm{	нИё├9╡ї╖╪─╡х/ЖХ┬5;	ы╪ў·Ж╕╫Ы}Dї∙ы9SЧ~М▀╘═0"B]З┴╖░Ъ№╓k╫ЇУ^Єj.ф3%┐о═ Аh$╤Cв┤F=╔Qщ▌СJ)─юЄ╘Й1рr=6є|-р}8HсS{ЇXhXL№P╝╒ ўяс;╖╚√√╘нЗ~iNє'<НєDПлj)Н╤Ъш+Ap&сW:Ш╜(■╞y,fйВpa┌Ц┼Вyz!Ё9 чp╨98П?-░m╠┌ o┤-iДqпЩ├Бз╛~Дv]╦Ё╩щЛЖН╟S╚9Лтё╜╕Иrс2}з▓vкыСW
+мyжхЬТSvkыФ&°у├)/@aЪ<GY╞гf2i╣zпсФ▀eQCcв·э	Р%╡(\М╗BУA_щIЮ╔мxuзN&ЄИ║6кqхd::dсi_ШKБ3╧╚сz%K║	Ь{В72Хз<°qKTZ┬-{ОeLSdЇБ U"Кє]№_ГВ@┐dб4№╨F│[Т!╚▐Т╪ ж╩┐╧Т bd╢Нg▓├IЇ=ОЄbb■H1я}├Т$Sощ>▓╦у\▒яX|▓└QчBИШсьi┌╫├к▀87W[r%MЎ8_Уц7ЛрПUБHх╗oГ+)ЧEНЁ7нїЭЭЧц~f._\Ш╛ЇOрь№Ертх┘щКЮYЮ[╥є┌U╝aН(ВA╧+*wС╬Чвоч╒)x│humщх:lHОOoюjk=lЮBk<Е╞}!╜с2ю#ЦUё^5Е╞fi]\k√U╓┤XAВч,╡╘╟ж)U\IЇПЗQ0Wttg№\╗uЇнz+xкбЭp"▌И·─1IF═Ъ2▒j╘НХ┬Tхб(-hd╡▒в┼Dw\йнqРVН1Э■`╜<I·ИЬТптiЖтРїB╗╛рd,`AХ┘ДУZ╢ьb═В$
+РКНЩю╜>├KgТ╖фоLq0└Ь╓╧-к!Ы]Z\ОМ╛5:6~Є╘ЫoЭ╬vлpCZГ;▄┤' Пd!Єы■┴ВаЎцлБкф ж ╣═╤│└╙°Q(<'p╙IнсЧ A┌.З:ю └0#Ше╘jEЧ!┬B╓Ё`Я│╛)№
+У█eZtd{╢кК]]r*N╣o
+ Г║┌┴j┘∙:╣A╚Н·ж╚┐иЫ=оZ╦╫ЄгыЫв▐tPЦ]Б╗Б?0VX╤┐<╡ЄЬ ~"q╘ЮuЧ╜а[ЭпПw05Зs"ёHь16ъЇе╖▐{√╟▓╨*ЇЖЇ╩Б[їЕj6nАh╙*ЄvG`WH╝╝'z0▌■╫gl е=╕╖Х¤╩ТHЕЁt┬Gjн╟УfmW√ъ8(я°WО│WсЙкЁх▄;├°dн^ЬАЙ╢kiЮЗyТ<ЦhZ╢5v╧╦Ёr.N"УёsP╚БП─cS@╥О┌п┌щ"чД╒╠uЖї╩ЁZюБ▐!┐е9fXy╒<K&Т╗Y╬Йs|█Tж▒&M▓═.┌т<╡7S(║s╢Г7w0╘l┼vMЪПЩ#R╔6k╞ЯЭёN2╞▐рFУтЬ╣╤їiЎ]Ч_Єг╧бGMZ4ЯЎ┤╬оE+о4$∙█╗ї▓┘0╥┴T╜Щ═┌t╜c3u|@мЎGНщ2НFv╥FЩ╛КЩRX├Е8┼вS	мН!MЩVф╟Т╣к-v╟╣ч/Б╣┘∙%p~■╝╬Д[єъse/ЄъХє^хР"u╨╓нTс·пЭfфл╜║kреA=─└ЛвuФHЮ7┼HЮ6е╢█фЛыi▌|▓┼╕Ю,▓Є═тшJ╤/.,-├╢┤]╒╦I╬0╚ЗЗx(Ўp]хz╣█°ьG┬▄╨╣@S╚╜├hЮ╣вж=7╒AС╜{╬╠}(щuЪ!ь7эИЙaI╛,тъ(ч`ъLМN&│║ДchАе▌ио$R(ЧB°ЇQ>▄#)еkс╜lP┌о5~╤бQhqр╩hНё·│Я▌л1Хзf▐Н╥╪╙ i╖\¤╙¤х9Х╩р1є╜╙Rл╓=;ж┤8╘┤╘I8▓`╙va╔И╦┌Sdq8╚п╩ЪVЫ╢УXє !"гТj!Ё+БSлбB}'└Т[ZэЫJ▐╦еп88НUп┬╢│.кЙ╪7Х╕Хл├YптENw8л╛й─н\■╠+╗>О@ь"|╨7Х╕Хл├щyюq▀7%№╚╒╔т▄e8БєБ3ВЫ ■ъ╝▌п+ЗЧ0D'┴#1^Ё▄c[╚.JJяШiAЫЖ┤Уг·3	9ї╔Нё¤├,ОFf▌*фхГїYg=57пХИ═█╢Ш4Z9H╦▌8СFР/╗V╪
+$╙°xЪcЕAє.лчД░y,ЁPwtsA Ю╩Y'Ї┤б)Ё7n·h2сО┘ъ6╕"ЦсB`	!Nзn╡шў─Мр╜	(ЛФЬ З_┬┤╢¤1╕┴%ОhTИS+ цU№д7ad!pk^│╓*И╨цпДt":03√d╓╞╝{х┬a╩╬лpKыЖъ:v∙Щ╡|╒dшОь■     ь]Mo╙0╛яWXУ"ZжfЙЫввбMмФlгМ╙─aы"Б╓╡U┌iаiЗ▌@; ирД╘K╡┬4┴еЬ°+╒■ №b╟vь╘NЭv╤XПQХП7Ol┐яуўy─╖пю	Эмt|;%╖Ъ╫P)]├N╙TЩ╛╫ЖГ(q╚U╤G╒нЁ├p┌у▓кw╣Ж	"] ·PєО┼иНц^нeВ▀┘чОPРОVp9h╤ЛN╘-╤C╢H╓КЪЯ╘Ш67кU+Ор╤Ю╧'ш╘╘dK╡╚йdIўsР╩9╙д╗█|t┤L}сDA╝WzсVwJ/╜j═ЯN╟шWF─&uщ╜>vн\y╕Zy|еTVP▓kоЗ.Вдnh┘ZЦгeq>╦╧O,┴ЭМФ]▐Ї№хБ╫Ж)af├ЙП║#а~╟SqKр ╦╩Є<Q∙MХ1И╟┬4Ф-└{С№┐э6╤┌NЎaЪ╪bуЁrйTё■K:5╛·┼ъгг°ш$k└h╬*|{КБ+vЛ#Ъl$╥Ю╓и┤'╖!╗ v;o ▒zm╠И4зrУ^Q¤┴I╛НГLFї╓f═mХPw @┤│р6p№═Б<┤▓f╗ёиQї AT$om╒s╦dц9╔n|у.Л]░HcuЎщШ│ЛжckчЎ┐√'АQ~фTЪZ█SОўGя ╙╚J lИ Q,д╨┤└фУ╠Ё╧┐о":'bzH&╦/@╢ЧJ┤ДЩ║1АБjФ│°%a┼╢,м╓sH╥єzт├)УО@ХГ╖вуT т▄├%Ж~ўВ1ь ЇЗ,h╡┘DїgДv№ э ¤█%s^Kс┐б┐FcПфо|d┬├╤АЎрk╥`╫Ёm_fe╜X<ОГш(@Э╔с)S!r╘═Shн{n}█5╧ЪТФ?Й╤w╥уЄ7бНsЗvg6'╠ ўzО▒ьУ=?├m┐OлQ=
+х!G╗*MfbЄ(лА(P\AmZ╩▄╚▒╠*dс^о >sИ▀аТйL╛2еїК"2qт╞МВY4@ж№къ╓j>@bNжH@e94╬v─в`4bEb╖к╕¤╤ТWS╬┤Я█╕S0ЮзЯ]T▀н"ПN║▌чкp]R j▐ЄНЫc┴ЄГ└$9@hqcv╤1бСzL╨тЙВu^Р{pфРN]Т╠.╠.╠№     Лз2

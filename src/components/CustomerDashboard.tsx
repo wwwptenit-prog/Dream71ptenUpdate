@@ -172,7 +172,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ setActiveT
           <div className="lg:hidden bg-slate-900 border border-slate-800 p-2.5 px-3 rounded-2xl shadow-lg mb-4 flex items-center justify-between gap-2 text-white font-bengali sticky top-2 z-30">
             {/* Left: Dashboard Icon + Text */}
             <div className="flex items-center gap-2 min-w-0">
-              <div className="p-2 bg-gradient-to-tr from-[#1DB954] to-emerald-400 text-slate-950 rounded-xl shadow shrink-0">
+              <div className="p-2 bg-gradient-to-tr from-[#1DB954] to-emerald-400 text-white rounded-xl shadow shrink-0">
                 <LayoutDashboard className="w-5 h-5 font-bold" />
               </div>
               <span className="font-extrabold text-sm tracking-tight text-white truncate">
@@ -388,7 +388,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ setActiveT
               <button
                 type="button"
                 onClick={() => setActiveTab?.('marketplace')}
-                className="px-3.5 py-1.5 bg-[#1DB954] hover:bg-emerald-600 text-slate-950 text-xs font-black rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-md active:scale-95 min-h-[38px]"
+                className="px-3.5 py-1.5 bg-[#1DB954] hover:bg-emerald-600 text-white text-xs font-black rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-md active:scale-95 min-h-[38px]"
               >
                 <Briefcase className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">মার্কেটপ্লেস</span>
