@@ -573,6 +573,19 @@ export interface MarketplaceOrder {
   freelancerNetPayout?: number;
   outsourceOfferNote?: string;
   outsourceStatus?: 'offered' | 'accepted' | 'in_progress' | 'delivered' | 'completed';
+  cancelledReason?: string;
+  cancelledAt?: string;
+  isAutoCancelledOverdue?: boolean;
+  penaltyAmount?: number;
+  buyerBonus?: number;
+  overdueDelayText?: string;
+  buyerReviewPenalty?: number;
+  sellerReviewBonus?: number;
+  reviewOverdueDuration?: string;
+  deliveryDays?: number;
+  offerType?: string;
+  isWorkFirst?: boolean;
+  requirements?: string;
 }
 
 export interface DigitalProduct {

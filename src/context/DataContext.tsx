@@ -230,6 +230,92 @@ interface DataContextType {
   toggleUserBlock: (userId: string) => void;
 }
 
+export const checkAndAutoCancelOverdueOrders = (orders: MarketplaceOrder[]): { updatedOrders: MarketplaceOrder[]; hasChanges: boolean } => {
+  const now = Date.now();
+  let hasChanges = false;
+  const updatedOrders = (orders || []).map(ord => {
+    // If order is completed or already cancelled
+    if (ord.status === 'completed' || ord.status === 'cancelled') {
+      if (ord.isAutoCancelledOverdue && !ord.overdueDelayText) {
+        const createdTime = ord.createdAt ? new Date(ord.createdAt).getTime() : 0;
+        const deliveryDays = ord.deliveryDays || 3;
+        const deadline = (ord.deadlineDate ? new Date(ord.deadlineDate).getTime() : 0) || (createdTime ? createdTime + deliveryDays * 24 * 3600 * 1000 : 0);
+        const cancelledTime = ord.cancelledAt ? new Date(ord.cancelledAt).getTime() : now;
+        const delayMs = Math.max(0, cancelledTime - deadline);
+        const totalSecs = Math.floor(delayMs / 1000);
+        const d = Math.floor(totalSecs / 86400);
+        const h = Math.floor((totalSecs % 86400) / 3600);
+        const m = Math.floor((totalSecs % 3600) / 60);
+        const delayText = d > 0 ? `${d.toLocaleString('bn-BD')}দিন ${h.toLocaleString('bn-BD')}ঘণ্টা` : h > 0 ? `${h.toLocaleString('bn-BD')}ঘণ্টা ${m.toLocaleString('bn-BD')}মিনিট` : `${m.toLocaleString('bn-BD')} মিনিট`;
+        return { ...ord, overdueDelayText: delayText };
+      }
+      return ord;
+    }
+
+    // If order is in_review or revision_requested (Buyer 24h review grace + 48h penalty cycle)
+    if (ord.status === 'in_review' || ord.status === 'revision_requested') {
+      const deliveredTime = ord.deliveredAt ? new Date(ord.deliveredAt).getTime() : (ord.createdAt ? new Date(ord.createdAt).getTime() : now);
+      const gracePeriodMs = 24 * 3600 * 1000;
+      const reviewDeadline = deliveredTime + gracePeriodMs;
+
+      if (now > reviewDeadline) {
+        const overdueReviewMs = now - reviewDeadline;
+        const intervals = Math.floor(overdueReviewMs / (48 * 3600 * 1000)) + 1;
+        const buyerReviewPenalty = Math.round((ord.amount || 0) * 0.05 * intervals);
+        const sellerReviewBonus = Math.round((ord.amount || 0) * 0.02 * intervals);
+        const revTotalSecs = Math.floor(overdueReviewMs / 1000);
+        const revD = Math.floor(revTotalSecs / 86400);
+        const revH = Math.floor((revTotalSecs % 86400) / 3600);
+        const revM = Math.floor((revTotalSecs % 3600) / 60);
+        const revDuration = revD > 0 ? `${revD.toLocaleString('bn-BD')}দিন ${revH.toLocaleString('bn-BD')}ঘ` : `${revH.toLocaleString('bn-BD')}ঘ ${revM.toLocaleString('bn-BD')}মি`;
+
+        if (ord.buyerReviewPenalty !== buyerReviewPenalty || ord.sellerReviewBonus !== sellerReviewBonus || ord.reviewOverdueDuration !== revDuration) {
+          hasChanges = true;
+          return {
+            ...ord,
+            buyerReviewPenalty,
+            sellerReviewBonus,
+            reviewOverdueDuration: revDuration
+          };
+        }
+      }
+      return ord;
+    }
+
+    // Determine deadline for in_progress / pending / pending_approval
+    const createdTime = ord.createdAt ? new Date(ord.createdAt).getTime() : 0;
+    const deliveryDays = ord.deliveryDays || 3;
+    const deadline = (ord.deadlineDate ? new Date(ord.deadlineDate).getTime() : 0) || (createdTime ? createdTime + deliveryDays * 24 * 3600 * 1000 : 0);
+
+    // If deadline has passed and order is in_progress, pending, or pending_approval
+    if (deadline > 0 && now > deadline) {
+      hasChanges = true;
+      const penaltyAmount = ord.penaltyAmount || Math.round((ord.amount || 0) * 0.05);
+      const buyerBonus = ord.buyerBonus || Math.round((ord.amount || 0) * 0.03);
+      const delayMs = Math.max(0, now - deadline);
+      const totalSecs = Math.floor(delayMs / 1000);
+      const d = Math.floor(totalSecs / 86400);
+      const h = Math.floor((totalSecs % 86400) / 3600);
+      const m = Math.floor((totalSecs % 3600) / 60);
+      const delayText = d > 0 ? `${d.toLocaleString('bn-BD')}দিন ${h.toLocaleString('bn-BD')}ঘণ্টা` : h > 0 ? `${h.toLocaleString('bn-BD')}ঘণ্টা ${m.toLocaleString('bn-BD')}মিনিট` : `${m.toLocaleString('bn-BD')} মিনিট`;
+
+      return {
+        ...ord,
+        status: 'cancelled' as const,
+        cancelledReason: 'সময়োত্তীর্ণ (অটো সিস্টেম ৫% জরিমানা কর্তন ও বায়ার ৩% ক্ষতিপূরণ বোনাস কার্যকর)',
+        isAutoCancelledOverdue: true,
+        penaltyAmount,
+        buyerBonus,
+        overdueDelayText: delayText,
+        cancelledAt: new Date().toISOString()
+      };
+    }
+    return ord;
+  });
+
+  return { updatedOrders, hasChanges };
+};
+
 const STORAGE_KEY = 'ptenit_database_v2';
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -791,7 +877,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return initialDigitalProducts;
   });
 
+
+
   const [marketplaceOrders, setMarketplaceOrders] = useState<MarketplaceOrder[]>(() => {
+    let initialList = initialMarketplaceOrders;
     const saved = localStorage.getItem(`${STORAGE_KEY}_marketplace_orders`);
     if (saved) {
       try {
@@ -802,15 +891,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const demoOrd = initialMarketplaceOrders.find(o => o.id === 'ord-mkt-4');
             if (demoOrd) {
               const without4 = parsed.filter(o => o.id !== 'ord-mkt-4');
-              return [demoOrd, ...without4];
+              initialList = [demoOrd, ...without4];
+            } else {
+              initialList = parsed;
             }
+          } else {
+            initialList = parsed;
           }
-          return parsed;
         }
       } catch {}
     }
-    return initialMarketplaceOrders;
+    const { updatedOrders } = checkAndAutoCancelOverdueOrders(initialList);
+    return updatedOrders;
   });
+
+  // Periodically check and auto-cancel any overdue orders in real-time
+  useEffect(() => {
+    const checkOverdueInterval = setInterval(() => {
+      setMarketplaceOrders(prev => {
+        const { updatedOrders, hasChanges } = checkAndAutoCancelOverdueOrders(prev);
+        if (hasChanges) {
+          return updatedOrders;
+        }
+        return prev;
+      });
+    }, 5000);
+    return () => clearInterval(checkOverdueInterval);
+  }, []);
 
   // Sync Marketplace to localStorage
   useEffect(() => {
@@ -2195,7 +2302,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const approveOrderAndReleaseEscrow = (orderId: string, rating = 5, reviewComment?: string) => {
     setMarketplaceOrders(prev => prev.map(o => {
       if (o.id === orderId) {
-        return { ...o, status: 'completed', rating, reviewComment };
+        const bonus = o.sellerReviewBonus || 0;
+        const currentPayout = o.sellerPayout || Math.round((o.amount || 0) * 0.9);
+        const finalPayout = currentPayout + bonus;
+        return {
+          ...o,
+          status: 'completed',
+          rating,
+          reviewComment,
+          sellerPayout: finalPayout
+        };
       }
       return o;
     }));
