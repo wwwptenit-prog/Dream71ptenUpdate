@@ -112,6 +112,41 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
   // Gallery & Media State
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // Media items list
+  const mediaList: string[] = [gig.thumbnail];
+  if (gig.galleryImages && gig.galleryImages.length > 0) {
+    gig.galleryImages.forEach(img => {
+      if (img && !mediaList.includes(img)) mediaList.push(img);
+    });
+  }
+  if (mediaList.length < 3) {
+    mediaList.push('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');
+    mediaList.push('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80');
+  }
+
+  const activeMediaUrl = mediaList[activeMediaIndex % mediaList.length];
+
+  // Keyboard Navigation for Lightbox Zoom Modal
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        const nextIdx = activeMediaIndex < mediaList.length - 1 ? activeMediaIndex + 1 : 0;
+        setActiveMediaIndex(nextIdx);
+        setLightboxImage(mediaList[nextIdx]);
+      } else if (e.key === 'ArrowLeft') {
+        const prevIdx = activeMediaIndex > 0 ? activeMediaIndex - 1 : mediaList.length - 1;
+        setActiveMediaIndex(prevIdx);
+        setLightboxImage(mediaList[prevIdx]);
+      } else if (e.key === 'Escape') {
+        setLightboxImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxImage, activeMediaIndex, mediaList]);
 
   // Saved / Favorite State
   const [isSaved, setIsSaved] = useState(() => {
@@ -141,20 +176,6 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCopyToast, setShowCopyToast] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-
-  // Media items list
-  const mediaList: string[] = [gig.thumbnail];
-  if (gig.galleryImages && gig.galleryImages.length > 0) {
-    gig.galleryImages.forEach(img => {
-      if (img && !mediaList.includes(img)) mediaList.push(img);
-    });
-  }
-  if (mediaList.length < 3) {
-    mediaList.push('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');
-    mediaList.push('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80');
-  }
-
-  const activeMediaUrl = mediaList[activeMediaIndex % mediaList.length];
 
   // Selected package details
   const currentPkg = gig.packages?.[selectedPackage] || gig.packages?.standard || gig.packages?.basic || {
@@ -419,8 +440,8 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
           })}
         </div>
 
-        {/* প্যাকেজ কার্ড: কালো বর্ডার, কার্ডের টপ বর্ডারের ঠিক সেন্টারে সিলেক্ট করা প্যাকেজের ব্যাজ */}
-        <div className="relative mt-5 bg-white dark:bg-slate-900 px-3.5 sm:px-5 pt-5 pb-4 rounded-2xl border border-black dark:border-slate-600 shadow-sm space-y-3.5">
+        {/* প্যাকেজ কার্ড: হালকা কালো কালো বর্ডার, কার্ডের টপ বর্ডারের ঠিক সেন্টারে সিলেক্ট করা প্যাকেজের ব্যাজ */}
+        <div className="relative mt-5 bg-white dark:bg-slate-900 px-3.5 sm:px-5 pt-5 pb-4 rounded-2xl border border-neutral-700/35 dark:border-slate-700 shadow-sm space-y-3.5">
           {/* বর্ডারের সেন্টারে উপরে ব্যাজ */}
           <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
             {selectedPackage === 'basic' && (
@@ -445,34 +466,50 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
             {currentPkg.name || (selectedPackage === 'basic' ? 'বেসিক প্যাকেজ' : selectedPackage === 'standard' ? 'স্ট্যান্ডার্ড প্যাকেজ' : 'প্রিমিয়াম প্যাকেজ')}
           </h4>
 
-          {/* প্যাকেজের মূল্য ও ছাড়ের বিবরণ: সিলেক্ট অনুযায়ী ফুল কালার বক্স */}
+          {/* প্যাকেজের মূল্য ও ছাড়ের বিবরণ: চিকন ড্যাশড বর্ডার (প্যাকেজ কালার অনুযায়ী) */}
           <div
-            className={`flex items-center justify-between py-2.5 px-3.5 sm:px-4 rounded-xl shadow-xs transition-all ${
+            className={`flex items-center justify-between py-2.5 px-3.5 sm:px-4 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-dashed transition-all ${
               selectedPackage === 'basic'
-                ? 'bg-[#15803d] text-white border border-[#166534]'
+                ? 'border-[#15803d]'
                 : selectedPackage === 'standard'
-                ? 'bg-red-600 text-white border border-red-700'
-                : 'bg-gradient-to-r from-purple-800 via-indigo-800 to-purple-900 text-white border border-purple-600/50'
+                ? 'border-red-600'
+                : 'border-purple-600'
             }`}
           >
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-xs text-white/90 font-medium">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   অফার
                 </span>
-                <span className="text-[10px] font-black text-white bg-white/20 px-2 py-0.5 rounded-full border border-white/30 backdrop-blur-xs">
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    selectedPackage === 'basic'
+                      ? 'text-[#15803d] bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300/80 dark:border-emerald-700/60'
+                      : selectedPackage === 'standard'
+                      ? 'text-red-600 bg-red-50 dark:bg-red-950/40 border-red-300/80 dark:border-red-700/60'
+                      : 'text-purple-600 bg-purple-50 dark:bg-purple-950/40 border-purple-300/80 dark:border-purple-700/60'
+                  }`}
+                >
                   ৩০% ছাড়
                 </span>
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              <div
+                className={`text-2xl sm:text-3xl font-black tracking-tight ${
+                  selectedPackage === 'basic'
+                    ? 'text-[#15803d]'
+                    : selectedPackage === 'standard'
+                    ? 'text-red-600'
+                    : 'text-purple-700 dark:text-purple-400'
+                }`}
+              >
                 ৳{(currentPkg.price ?? 2500).toLocaleString('bn-BD')}
               </div>
             </div>
             <div className="text-right">
-              <span className="text-xs text-white/80 font-medium block">
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-medium block">
                 রেগুলার প্রাইস
               </span>
-              <div className="text-base sm:text-lg font-bold text-white/70 line-through">
+              <div className="text-base sm:text-lg font-bold text-slate-400 dark:text-slate-500 line-through">
                 ৳{(Math.round((currentPkg.price ?? 2500) * 1.3)).toLocaleString('bn-BD')}
               </div>
             </div>
@@ -513,16 +550,22 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
             </div>
           )}
 
-          {/* "অর্ডার করুন" বাটন (একটু ছোট, কিউট ও রাউন্ডেড পিল স্টাইল) */}
+          {/* "অর্ডার করুন" বাটন (প্যাকেজ অনুযায়ী ফোকাসড কালার, একটু বড় ফন্ট ও পরিমিত ৪-কোণা রাউন্ডেড স্টাইল) */}
           <div className="pt-0.5">
             <button
               type="button"
               onClick={handleOpenOrderCheckout}
-              className="w-full py-2.5 px-4 rounded-full bg-[#15803d] hover:bg-[#166534] active:bg-[#14532d] text-white font-bold font-bengali text-xs sm:text-sm shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+              className={`w-full py-3 px-4 rounded-lg text-white font-bold font-bengali text-sm sm:text-base shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98 ${
+                selectedPackage === 'basic'
+                  ? 'bg-[#15803d] hover:bg-[#166534] active:bg-[#14532d]'
+                  : selectedPackage === 'standard'
+                  ? 'bg-red-600 hover:bg-red-700 active:bg-red-800'
+                  : 'bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 hover:from-purple-800 hover:to-indigo-900'
+              }`}
             >
               <span>অর্ডার করুন</span>
-              <span className="opacity-50">•</span>
-              <span className="font-black text-amber-200">
+              <span className="opacity-60">•</span>
+              <span className="font-extrabold text-amber-200">
                 ৳{(currentPkg.price ?? 2500).toLocaleString('bn-BD')}
               </span>
             </button>
@@ -815,15 +858,15 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto min-h-screen font-bengali animate-fadeIn text-slate-800 dark:text-slate-100">
       
-      {/* 1. FIXED TOP STICKY BAR: BACK BUTTON | PROFILE | FAVORITE BUTTON */}
-      <header className="sticky top-0 z-40 bg-[#15803d] text-white shadow-md border-b border-[#166534]">
+      {/* 1. FIXED TOP STICKY BAR: MATCHING MARKETPLACE HEADER STYLE (#0B132B) */}
+      <header className="sticky top-0 z-40 bg-[#0B132B] text-white shadow-md border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-3">
           
           {/* LEFT: BACK ICON (আইকন বাটন - প্যাডিং রিমুভড) */}
           <button
             type="button"
             onClick={onBack}
-            className="p-1 text-white hover:text-emerald-200 transition cursor-pointer active:scale-95 shrink-0 flex items-center justify-center"
+            className="p-1 text-white hover:text-[#1DB954] transition cursor-pointer active:scale-95 shrink-0 flex items-center justify-center"
             title="ফিরে যান"
           >
             <ArrowLeft className="w-5 h-5 text-white" />
@@ -839,23 +882,22 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
               <img
                 src={gig.sellerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
                 alt={gig.sellerName || 'আরিফ হোসেন'}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-white/30"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-white/20"
               />
               {/* অনলাইন স্ট্যাটাস: সাদা ডট বাদ দিয়ে লাল ডট */}
               <span className="w-2.5 h-2.5 bg-red-500 rounded-full absolute bottom-0 right-0 ring-1.5 ring-white animate-pulse" />
             </div>
             <div className="min-w-0 text-left">
-              {/* Line 1: Seller name in 1 line with verified icon */}
-              <div className="flex items-center gap-1">
-                <h3 className="text-[11px] sm:text-base md:text-lg font-bold text-white truncate whitespace-nowrap">
+              {/* Line 1: Seller name in 1 line (বোল্ড ও সবুজ গোল ডট রিমুভড) */}
+              <div className="flex items-center">
+                <h3 className="text-xs sm:text-base md:text-lg font-medium text-white truncate whitespace-nowrap">
                   {gig.sellerName || 'আরিফ হোসেন'}
                 </h3>
-                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white fill-white shrink-0" title="ভেরিফাইড প্রোফাইল" />
               </div>
-              {/* Line 2: Top Rated beside Agency or others (নামের সাথে সাদা ডট রিমুভ করা হয়েছে) */}
-              <div className="flex items-center gap-1.5 text-[9px] sm:text-xs md:text-sm font-medium text-emerald-100 truncate whitespace-nowrap mt-0.5">
-                <span className="text-amber-300 font-semibold">{gig.sellerLevel || 'Top Rated'}</span>
-                <span className="text-white font-medium">
+              {/* Line 2: Top Rated beside Agency or others */}
+              <div className="flex items-center gap-1.5 text-[9px] sm:text-xs md:text-sm font-normal text-slate-300 truncate whitespace-nowrap mt-0.5">
+                <span className="text-amber-300 font-medium">{gig.sellerLevel || 'Top Rated'}</span>
+                <span className="text-slate-300">
                   {isAgency ? 'Agency' : (gig.sellerTitle ? gig.sellerTitle.split('&')[0].trim() : 'Others')}
                 </span>
               </div>
@@ -869,7 +911,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(true)}
-                  className="p-1 text-white hover:text-emerald-200 transition cursor-pointer text-xs font-bold flex items-center gap-1"
+                  className="p-1 text-white hover:text-[#1DB954] transition cursor-pointer text-xs font-bold flex items-center gap-1"
                   title="এডিট"
                 >
                   <Edit className="w-4 h-4 text-white" />
@@ -879,7 +921,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsPerformanceModalOpen(true)}
-                  className="p-1 text-white hover:text-emerald-200 transition cursor-pointer text-xs font-bold flex items-center gap-1"
+                  className="p-1 text-white hover:text-[#1DB954] transition cursor-pointer text-xs font-bold flex items-center gap-1"
                   title="অ্যানালিটিক্স"
                 >
                   <BarChart2 className="w-4 h-4 text-white" />
@@ -891,7 +933,7 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
             <button
               type="button"
               onClick={handleCopyLink}
-              className="p-1 text-white hover:text-emerald-200 transition cursor-pointer relative flex items-center justify-center"
+              className="p-1 text-white hover:text-[#1DB954] transition cursor-pointer relative flex items-center justify-center"
               title="লিংক শেয়ার করুন"
             >
               <Share2 className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-white" />
@@ -959,18 +1001,125 @@ export const GigDetailPage: React.FC<GigDetailPageProps> = ({
 
       </main>
 
-      {/* 3. LIGHTBOX ZOOM MODAL */}
+      {/* 3. LIGHTBOX ZOOM MODAL (PHONE & DESKTOP OPTIMIZED WITH NEXT/PREV BUTTONS) */}
       {lightboxImage && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
-          <div className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center">
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 select-none"
+          onClick={() => setLightboxImage(null)}
+        >
+          {/* Top Bar: Counter & Close Button */}
+          <div
+            className="w-full max-w-5xl flex items-center justify-between z-30 pb-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-bold text-white bg-slate-850 bg-slate-800/90 px-3 py-1 rounded-full border border-slate-700/60 backdrop-blur-sm">
+                ছবি {activeMediaIndex + 1} / {mediaList.length}
+              </span>
+            </div>
+
             <button
+              type="button"
               onClick={() => setLightboxImage(null)}
-              className="absolute -top-12 right-0 p-2 text-white hover:text-[#1DB954] transition cursor-pointer"
+              className="p-2 sm:p-2.5 rounded-full bg-slate-800/90 hover:bg-red-600 text-white transition cursor-pointer border border-slate-700/60 backdrop-blur-sm shadow-md"
+              title="বন্ধ করুন (Esc)"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
-            <img src={lightboxImage} alt="Fullscreen View" className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl" />
           </div>
+
+          {/* Main Display Area with Next/Prev Buttons and Mobile Swipe (always visible and easy to tap on phone) */}
+          <div
+            className="relative w-full max-w-5xl flex-1 flex items-center justify-center my-auto min-h-0 touch-pan-y"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              setTouchStartX(e.touches[0].clientX);
+            }}
+            onTouchEnd={(e) => {
+              if (touchStartX === null) return;
+              const touchEndX = e.changedTouches[0].clientX;
+              const diff = touchStartX - touchEndX;
+              if (diff > 45) {
+                // Swiped Left -> Next
+                const nextIdx = activeMediaIndex < mediaList.length - 1 ? activeMediaIndex + 1 : 0;
+                setActiveMediaIndex(nextIdx);
+                setLightboxImage(mediaList[nextIdx]);
+              } else if (diff < -45) {
+                // Swiped Right -> Prev
+                const prevIdx = activeMediaIndex > 0 ? activeMediaIndex - 1 : mediaList.length - 1;
+                setActiveMediaIndex(prevIdx);
+                setLightboxImage(mediaList[prevIdx]);
+              }
+              setTouchStartX(null);
+            }}
+          >
+            {/* Previous Button (Phone & Desktop) */}
+            {mediaList.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const prevIdx = activeMediaIndex > 0 ? activeMediaIndex - 1 : mediaList.length - 1;
+                  setActiveMediaIndex(prevIdx);
+                  setLightboxImage(mediaList[prevIdx]);
+                }}
+                className="absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3.5 rounded-full bg-slate-900/90 hover:bg-[#1DB954] text-white shadow-2xl backdrop-blur-md transition cursor-pointer active:scale-90 border border-white/25"
+                title="পূর্ববর্তী ছবি"
+              >
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+            )}
+
+            {/* Main Image */}
+            <img
+              src={lightboxImage}
+              alt="Fullscreen View"
+              className="max-w-full max-h-[70vh] sm:max-h-[78vh] object-contain rounded-xl sm:rounded-2xl shadow-2xl transition duration-200"
+            />
+
+            {/* Next Button (Phone & Desktop) */}
+            {mediaList.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const nextIdx = activeMediaIndex < mediaList.length - 1 ? activeMediaIndex + 1 : 0;
+                  setActiveMediaIndex(nextIdx);
+                  setLightboxImage(mediaList[nextIdx]);
+                }}
+                className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3.5 rounded-full bg-slate-900/90 hover:bg-[#1DB954] text-white shadow-2xl backdrop-blur-md transition cursor-pointer active:scale-90 border border-white/25"
+                title="পরবর্তী ছবি"
+              >
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnails / Indicator Strip */}
+          {mediaList.length > 1 && (
+            <div
+              className="w-full max-w-5xl flex items-center justify-center gap-1.5 sm:gap-2 pt-2 z-30 overflow-x-auto scrollbar-none"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {mediaList.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setActiveMediaIndex(idx);
+                    setLightboxImage(img);
+                  }}
+                  className={`relative w-12 h-9 sm:w-16 sm:h-11 rounded-lg overflow-hidden border-2 transition cursor-pointer shrink-0 ${
+                    activeMediaIndex === idx
+                      ? 'border-[#1DB954] ring-2 ring-[#1DB954]/50 scale-105 opacity-100'
+                      : 'border-slate-700 opacity-40 hover:opacity-80'
+                  }`}
+                >
+                  <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

@@ -77,7 +77,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 onOpenDetail(course.id);
               }
             }}
-            className="text-xs sm:text-sm md:text-[15px] font-bold text-slate-900 dark:text-white group-hover:text-[#1DB954] transition-colors cursor-pointer line-clamp-2 leading-snug min-h-[2.25rem] sm:min-h-[2.5rem]"
+            className="text-xs sm:text-sm md:text-[15px] font-bold text-slate-900 dark:text-white group-hover:text-[#1DB954] transition-colors cursor-pointer line-clamp-3 sm:line-clamp-2 leading-snug min-h-[3rem] sm:min-h-[2.5rem]"
             title={course.title}
           >
             {course.title}

@@ -8,7 +8,7 @@ const app = express();
 const PORT = 3000;
 
 // Enable gzip/deflate compression for all requests
-app.use(compression());
+app.use(compression() as any);
 app.use(express.json());
 
 // Initialize Gemini Client server-side

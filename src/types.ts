@@ -191,6 +191,9 @@ export interface Service {
   published: boolean;
   order?: number;
   thumbnail?: string;
+  demoImages?: string[];
+  galleryImages?: string[];
+  demoUrl?: string;
   rating?: number;
   reviewsCount?: number;
   packages?: {
@@ -516,6 +519,8 @@ export interface MarketplaceGig {
   description: string;
   thumbnail: string;
   galleryImages?: string[];
+  demoImages?: string[];
+  demoUrl?: string;
   videoUrl?: string;
   portfolioWork?: {
     id: string;
@@ -675,6 +680,8 @@ export interface DigitalProduct {
   downloadUrl: string;
   licenseKey?: string;
   demoUrl?: string;
+  demoImages?: string[];
+  galleryImages?: string[];
   createdAt?: string;
   canvaInviteLink?: string;
   canvaRules?: string;

@@ -1091,8 +1091,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // If dp-4 or dp-5 exist, ensure updated free price if not custom modified
           return parsed.map(p => {
             const initial = initialDigitalProducts.find(init => init.id === p.id);
-            if (initial && (p.id === 'dp-4' || p.id === 'dp-5') && p.price > 0) {
-              return { ...p, price: 0, originalPrice: initial.originalPrice };
+            if (initial) {
+              const demoImgs = (p.demoImages && p.demoImages.length > 0) ? p.demoImages : initial.demoImages;
+              const demoUrl = p.demoUrl || initial.demoUrl;
+              if ((p.id === 'dp-4' || p.id === 'dp-5') && p.price > 0) {
+                return { ...p, price: 0, originalPrice: initial.originalPrice, demoImages: demoImgs, demoUrl };
+              }
+              return { ...p, demoImages: demoImgs, demoUrl };
             }
             return p;
           });

@@ -496,6 +496,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ setActiveTab }) => {
   const [dpCanvaRules, setDpCanvaRules] = useState('১. আপনার ক্যানভা অ্যাকাউন্টে লগইন অবস্থায় Access Now বাটনে ক্লিক করুন।\n২. এই এক্সেস শুধুমাত্র আপনার ব্যবহারের জন্য বরাদ্দ।');
   const [dpFeaturesText, setDpFeaturesText] = useState('রেসপন্সিভ ডিজাইন, লাইফটাইম আপডেট, ডকুমেন্টেশন অন্তর্ভুক্ত');
   const [dpRequirementsText, setDpRequirementsText] = useState('Node.js 18+ অথবা PHP 8.0+, cPanel হোস্টিং');
+  const [dpDemoImagesText, setDpDemoImagesText] = useState('');
+  const [dpDemoUrl, setDpDemoUrl] = useState('');
   const [dpSearchFilter, setDpSearchFilter] = useState('');
   const [dpCategoryFilter, setDpCategoryFilter] = useState('All');
 
@@ -5069,6 +5071,8 @@ PTENit ডিজিটাল টিম`;
                     setDpCanvaRules('১. আপনার ক্যানভা অ্যাকাউন্টে লগইন অবস্থায় Access Now বাটনে ক্লিক করুন।\n২. এই এক্সেস শুধুমাত্র আপনার ব্যবহারের জন্য বরাদ্দ।');
                     setDpFeaturesText('রেসপন্সিভ ডিজাইন, লাইফটাইম আপডেট, ডকুমেন্টেশন অন্তর্ভুক্ত');
                     setDpRequirementsText('Node.js 18+ অথবা PHP 8.0+, cPanel হোস্টিং');
+                    setDpDemoImagesText('');
+                    setDpDemoUrl('');
                     setDpModalOpen(true);
                   }}
                   className="px-3 py-1.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center gap-1.5 shrink-0"
@@ -5182,7 +5186,12 @@ PTENit ডিজিটাল টিম`;
                           </span>
                         </div>
 
-                        <div className="absolute top-2 right-2">
+                        <div className="absolute top-2 right-2 flex items-center gap-1">
+                          {(product.demoImages && product.demoImages.length > 0) && (
+                            <span className="bg-[#1DB954]/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded border border-white/20">
+                              📸 {product.demoImages.length}টি ডেমো
+                            </span>
+                          )}
                           <span className="bg-slate-900/90 text-slate-200 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-700">
                             {product.fileFormat}
                           </span>
@@ -5255,6 +5264,8 @@ PTENit ডিজিটাল টিম`;
                           setDpCanvaRules(product.canvaRules || '১. আপনার ক্যানভা অ্যাকাউন্টে লগইন অবস্থায় Access Now বাটনে ক্লিক করুন।\n২. এই এক্সেস শুধুমাত্র আপনার ব্যবহারের জন্য বরাদ্দ।');
                           setDpFeaturesText(product.features ? product.features.join(', ') : '');
                           setDpRequirementsText(product.requirements ? product.requirements.join(', ') : '');
+                          setDpDemoImagesText(product.demoImages ? product.demoImages.join(', ') : '');
+                          setDpDemoUrl(product.demoUrl || '');
                           setDpModalOpen(true);
                         }}
                         className="flex-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700"
@@ -5810,6 +5821,7 @@ PTENit ডিজিটাল টিম`;
                       e.preventDefault();
                       const featArr = dpFeaturesText.split(',').map(s => s.trim()).filter(Boolean);
                       const reqArr = dpRequirementsText.split(',').map(s => s.trim()).filter(Boolean);
+                      const demoImgArr = dpDemoImagesText.split(',').map(s => s.trim()).filter(Boolean);
 
                       if (editingDpId) {
                         updateDigitalProduct(editingDpId, {
@@ -5818,6 +5830,8 @@ PTENit ডিজিটাল টিম`;
                           price: dpIsFree ? 0 : Number(dpPrice),
                           originalPrice: Number(dpOriginalPrice),
                           thumbnail: dpThumbnail,
+                          demoImages: demoImgArr,
+                          demoUrl: dpDemoUrl.trim() || undefined,
                           shortDescription: dpShortDesc,
                           fullDescription: dpFullDesc,
                           fileFormat: dpFileFormat,
@@ -5838,6 +5852,8 @@ PTENit ডিজিটাল টিম`;
                           price: dpIsFree ? 0 : Number(dpPrice),
                           originalPrice: Number(dpOriginalPrice),
                           thumbnail: dpThumbnail,
+                          demoImages: demoImgArr,
+                          demoUrl: dpDemoUrl.trim() || undefined,
                           shortDescription: dpShortDesc,
                           fullDescription: dpFullDesc,
                           fileFormat: dpFileFormat,
@@ -5996,7 +6012,7 @@ PTENit ডিজিটাল টিম`;
 
                     {/* Thumbnail Image URL */}
                     <div>
-                      <label className="text-xs font-bold text-slate-300 block mb-1">থাম্বনেইল ইমেজ URL *</label>
+                      <label className="text-xs font-bold text-slate-300 block mb-1">কভার থাম্বনেইল ইমেজ URL *</label>
                       <input
                         type="url"
                         required
@@ -6005,6 +6021,46 @@ PTENit ডিজিটাল টিম`;
                         placeholder="https://..."
                         className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
                       />
+                    </div>
+
+                    {/* Multiple Demo Images & Live Demo URL */}
+                    <div className="p-3.5 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-3">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#1DB954]">
+                        <ImageIcon className="w-4 h-4 text-[#1DB954]" />
+                        <span>একাধিক ডেমো পিকচার ও লাইভ ডেমো ওয়েবসাইট</span>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-300 block mb-1">
+                          অতিরিক্ত ডেমো ছবি / স্ক্রিনশটসমূহ (কমা ',' দিয়ে আলাদা করে একাধিক লিঙ্ক দিন)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={dpDemoImagesText}
+                          onChange={(e) => setDpDemoImagesText(e.target.value)}
+                          placeholder="https://images.unsplash.com/photo-1..., https://images.unsplash.com/photo-2..."
+                          className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
+                        />
+                        <span className="text-[10px] text-slate-400 block mt-1">
+                          গ্রাহকরা প্রোডাক্টে ক্লিক করলে এসব ডেমো স্ক্রিনশট স্লাইড ও ফুলস্ক্রিন জুম করে দেখতে পারবে।
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-300 block mb-1">
+                          লাইভ ডেমো লিংক / ওয়েবসাইট টেস্ট URL (ঐচ্ছিক Live Demo)
+                        </label>
+                        <input
+                          type="url"
+                          value={dpDemoUrl}
+                          onChange={(e) => setDpDemoUrl(e.target.value)}
+                          placeholder="https://ptenit.com/demo বা ডেমো ওয়েবসাইট লিংক"
+                          className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-[#1DB954] placeholder-slate-500 focus:outline-none focus:border-[#1DB954]"
+                        />
+                        <span className="text-[10px] text-slate-400 block mt-1">
+                          গ্রাহকরা সরাসরি "লাইভ ডেমো" বাটনে ক্লিক করে ব্রাউজারে টেস্ট করতে পারবে।
+                        </span>
+                      </div>
                     </div>
 
                     {/* Download URL & License Key */}

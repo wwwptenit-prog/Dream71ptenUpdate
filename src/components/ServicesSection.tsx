@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Code,
   TrendingUp,
@@ -14,6 +14,7 @@ import {
   X,
   MessageSquare,
   ShoppingBag,
+  ShoppingCart,
   Star,
   Clock,
   Check,
@@ -21,12 +22,18 @@ import {
   Briefcase,
   FileText,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  ImageIcon,
+  ExternalLink,
+  Eye
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Service, MarketplaceGig } from '../types';
 import { GigCard } from './GigCard';
-import { OrderCheckoutModal } from './OrderCheckoutModal';
+import { GigDetailPage } from './GigDetailPage';
 import { DigitalProductsSection } from './DigitalProductsSection';
 import { getLocalizedService } from '../utils/localization';
 
@@ -54,50 +61,24 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   isStandalonePage = false,
   onBack
 }) => {
-  const { currentUser, services, gigs, siteSettings, t, lang } = useData();
+  const { currentUser, services, gigs, siteSettings, t, lang, createDirectGigOrder } = useData();
 
-  // Selected Gig/Service for In-place Detail Modal
+  // Selected Gig/Service for Exact Marketplace Gig Detail View
   const [activeInPlaceGig, setActiveInPlaceGig] = useState<MarketplaceGig | null>(null);
-  const [inPlaceSelectedPkg, setInPlaceSelectedPkg] = useState<'basic' | 'standard' | 'premium'>('basic');
-  const [copiedShareLink, setCopiedShareLink] = useState(false);
-
-  const handleCopyShareLink = () => {
-    try {
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(window.location.href);
-      }
-    } catch {
-      // silent
-    }
-    setCopiedShareLink(true);
-    setTimeout(() => setCopiedShareLink(false), 2000);
-  };
-
-  // State for Direct Order Modal (Checkout)
-  const [activeGigForOrder, setActiveGigForOrder] = useState<MarketplaceGig | null>(null);
-  const [selectedPkgType, setSelectedPkgType] = useState<'basic' | 'standard' | 'premium'>('basic');
 
   // Top Trending General Gigs
   const featuredGigs = gigs.slice(0, 4);
 
-  // Open Service or Gig Details in IN-PLACE Modal with 3-tab bar package UI
+  // Open Service or Gig Details in EXACT Marketplace Gig Detail View
   const handleOpenServiceDetail = (service: Service) => {
     const matchedGig = mapServiceToGig(service);
     setActiveInPlaceGig(matchedGig);
-    setInPlaceSelectedPkg('basic');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToGigDetail = (gig: MarketplaceGig) => {
     setActiveInPlaceGig(gig);
-    setInPlaceSelectedPkg('basic');
-  };
-
-  // Start Order Checkout Flow from In-place Detail Modal
-  const handleStartOrderFromInPlace = (pkgType: 'basic' | 'standard' | 'premium' = 'basic') => {
-    if (!activeInPlaceGig) return;
-    setActiveGigForOrder(activeInPlaceGig);
-    setSelectedPkgType(pkgType);
-    setActiveInPlaceGig(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Helper to map an Agency Service into a Marketplace Gig format for GigCard rendering & detailed package ordering
@@ -117,6 +98,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
         sellerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
         sellerLevel: 'Official Top Rated Agency',
         isAgencyStaff: true,
+        demoImages: service.demoImages || (service.galleryImages ? service.galleryImages : matchedGig.demoImages),
+        demoUrl: service.demoUrl || matchedGig.demoUrl,
         offerBadge: matchedGig.offerBadge || (lang === 'en' ? 'Official Guarantee' : 'অফিশিয়াল গ্যারান্টি')
       };
     }
@@ -138,6 +121,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
       category: locService.category,
       description: locService.fullDescription || locService.shortDescription,
       thumbnail: service.thumbnail || 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=800&q=80',
+      demoImages: service.demoImages || (service.galleryImages ? service.galleryImages : undefined),
+      demoUrl: service.demoUrl,
       rating: service.rating || 5.0,
       reviewsCount: service.reviewsCount || 48,
       salesCount: 150,
@@ -185,304 +170,32 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
   const allPublishedServices = services.filter(s => s.published);
 
-  // In-Place Detail Modal with 3-tab bar package UI (Marketplace style for phone and desktop views)
+  // Exact Marketplace Gig Detail View (renders identical to Marketplace gig detail)
   const renderDetailModal = () => {
     if (!activeInPlaceGig) return null;
-
-    const isAgency = activeInPlaceGig.isAgencyStaff || activeInPlaceGig.sellerId === 'ptenit-agency';
-    const pkgKeys: Array<'basic' | 'standard' | 'premium'> = ['basic', 'standard', 'premium'];
-    const activePkg = activeInPlaceGig.packages?.[inPlaceSelectedPkg] || activeInPlaceGig.packages?.basic || {
-      name: 'স্ট্যান্ডার্ড প্যাকেজ',
-      price: 5000,
-      deliveryDays: 3,
-      revisions: '3',
-      features: ['কাস্টম ডিজাইন', 'রেসপন্সিভ লেআউট', 'ফুল সাপোর্ট']
-    };
-
     return (
-      <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto min-h-screen font-bengali p-3 sm:p-6 md:p-8 animate-fadeIn text-slate-800 dark:text-slate-100">
-        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-          {/* Top Sticky Navigation Bar */}
-          <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs">
-            <button
-              type="button"
-              onClick={() => setActiveInPlaceGig(null)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#1DB954] text-slate-800 hover:text-white dark:text-slate-200 dark:hover:text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer shadow-xs active:scale-95"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>{t('ফিরে যান', 'Go Back')}</span>
-            </button>
-
-            <div className="flex items-center gap-2">
-              <span className="hidden sm:inline-flex px-3 py-1 bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20 rounded-full text-xs font-bold items-center gap-1">
-                <Briefcase className="w-3.5 h-3.5" />
-                {isAgency ? 'Official Agency' : (activeInPlaceGig.category || 'Freelance Service')}
-              </span>
-              <button
-                type="button"
-                onClick={handleCopyShareLink}
-                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-[#1DB954] text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                title="লিঙ্ক কপি করুন"
-              >
-                {copiedShareLink ? <Check className="w-4 h-4 text-[#1DB954]" /> : <Share2 className="w-4 h-4" />}
-                <span className="hidden md:inline">{copiedShareLink ? 'কপি হয়েছে' : 'শেয়ার'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 2-Column Responsive Layout (7 cols Left, 5 cols Right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
-            
-            {/* Left Column: Showcase & Details */}
-            <div className="lg:col-span-7 space-y-4">
-              
-              {/* Service Card & Preview */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs space-y-3">
-                {/* Clean Preview Image */}
-                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-950">
-                  <img
-                    src={activeInPlaceGig.thumbnail || 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=800&q=80'}
-                    alt={activeInPlaceGig.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                    <span className="bg-slate-900/80 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-white/10">
-                      {isAgency ? 'Official Agency' : (activeInPlaceGig.category || 'Service')}
-                    </span>
-                  </div>
-                  <div className="absolute top-2.5 right-2.5">
-                    <span className="text-xs font-black px-3 py-1 rounded-full shadow-md bg-[#1DB954] text-white">
-                      ৳{activePkg.price.toLocaleString('bn-BD')}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Title & Compact Meta Row (Below image) */}
-                <div className="space-y-1.5">
-                  <h1 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 dark:text-white leading-snug">
-                    {activeInPlaceGig.title}
-                  </h1>
-
-                  {/* Compact Meta Row */}
-                  <div className="flex items-center flex-wrap gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-                    <span className="inline-flex items-center gap-1 font-bold text-amber-500 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
-                      <span>{activeInPlaceGig.rating || 5.0}</span>
-                      <span className="text-slate-400 font-normal">({activeInPlaceGig.reviewsCount || 48})</span>
-                    </span>
-                    <span>·</span>
-                    <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md font-medium text-slate-600 dark:text-slate-300">
-                      {activeInPlaceGig.salesCount || 120}+ ডেলিভারি সম্পন্ন
-                    </span>
-                    <span>·</span>
-                    <span className="bg-emerald-500/10 text-[#1DB954] border border-emerald-500/20 px-2 py-0.5 rounded-md font-bold">
-                      {activeInPlaceGig.offerBadge || '৩০% অফার'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Provider / Agency Info Card */}
-              <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <img
-                    src={activeInPlaceGig.sellerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
-                    alt={activeInPlaceGig.sellerName}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-[#1DB954] shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1 font-bold text-slate-900 dark:text-white truncate">
-                      <span>{activeInPlaceGig.sellerName}</span>
-                      <BadgeCheck className="w-4 h-4 text-[#0084FF] fill-[#0084FF] text-white shrink-0" />
-                    </div>
-                    <span className="text-slate-500 dark:text-slate-400 text-[11px] block truncate">
-                      {isAgency ? 'PTENit গ্যারান্টিযুক্ত অফিশিয়াল সার্ভিস টিম' : (activeInPlaceGig.sellerLevel || 'Verified Specialist')}
-                    </span>
-                  </div>
-                </div>
-
-                <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-[#1DB954] font-black text-[11px] border border-emerald-500/20 shrink-0">
-                  ১০০% এস্ক্রো সিকিউরড
-                </span>
-              </div>
-
-              {/* Description Card */}
-              <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#1DB954]" />
-                  সার্ভিস বিবরণ
-                </h3>
-                <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-                  {activeInPlaceGig.description}
-                </div>
-              </div>
-
-              {/* Key Deliverables & Advantages */}
-              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-2.5">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  প্যাকেজে অন্তর্ভুক্ত সুবিধাসমূহ
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {(activePkg.features || ['কাস্টম ডিজাইন', 'রেসপন্সিভ লেআউট', 'ফুল সাপোর্ট', 'সিকিউর কোডিং']).map((feat, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 text-xs text-slate-800 dark:text-slate-200 font-medium">
-                      <CheckCircle2 className="w-4 h-4 text-[#1DB954] shrink-0" />
-                      <span className="truncate">{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Security & Quality Trust Badge */}
-              <div className="px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300 font-medium">
-                <ShieldCheck className="w-4 h-4 text-[#1DB954] shrink-0" />
-                <span>১০০% মানসম্মত ও সন্তুষ্টি গ্যারান্টি সহ সম্পূর্ণ সুরক্ষিত সার্ভিস ডেলিভারি</span>
-              </div>
-
-            </div>
-
-            {/* Right Column: 3-Tab Package Selector & Order Box (Sticky on Desktop) */}
-            <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-4 lg:sticky lg:top-4">
-              
-              {/* Box Header */}
-              <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                    সার্ভিস প্যাকেজ
-                  </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    আপনার প্রয়োজন অনুযায়ী প্যাকেজ বেছে নিন
-                  </p>
-                </div>
-                <span className="text-xs font-black px-2.5 py-1 rounded-lg shrink-0 bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20">
-                  ৳{activePkg.price.toLocaleString('bn-BD')}
-                </span>
-              </div>
-
-              {/* 3-Tab Package Selector */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-3 gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl text-xs sm:text-sm font-bold items-center justify-center text-center">
-                  {pkgKeys.map(pKey => {
-                    const isSelected = inPlaceSelectedPkg === pKey;
-                    return (
-                      <button
-                        key={pKey}
-                        type="button"
-                        onClick={() => setInPlaceSelectedPkg(pKey)}
-                        className={`py-2.5 px-2 rounded-xl transition cursor-pointer text-center text-xs sm:text-sm font-black active:scale-95 ${
-                          isSelected
-                            ? 'bg-[#1DB954] text-white shadow-sm'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                        }`}
-                      >
-                        {pKey === 'basic' ? 'বেসিক' : pKey === 'standard' ? 'স্ট্যান্ডার্ড' : 'প্রিমিয়াম'}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Active Package Details Card with Centered Floating Badge */}
-                <div className="p-4 sm:p-5 rounded-2xl border-2 border-[#1DB954] bg-emerald-50/40 dark:bg-emerald-950/20 relative space-y-3.5 transition-all shadow-sm">
-                  {/* Floating Centered Badge */}
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap text-center">
-                    {inPlaceSelectedPkg === 'basic' && (
-                      <span className="text-xs font-black text-white bg-[#1DB954] border border-emerald-600 px-4 py-0.5 rounded-full shadow-md inline-block text-center">
-                        বেসিক প্যাকেজ
-                      </span>
-                    )}
-                    {inPlaceSelectedPkg === 'standard' && (
-                      <span className="text-xs font-black text-white bg-red-600 border border-red-700 px-4 py-0.5 rounded-full shadow-md inline-block text-center">
-                        স্ট্যান্ডার্ড প্যাকেজ
-                      </span>
-                    )}
-                    {inPlaceSelectedPkg === 'premium' && (
-                      <span className="text-xs font-black text-white bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 border border-purple-500/40 px-4 py-0.5 rounded-full shadow-md inline-block text-center">
-                        প্রিমিয়াম প্যাকেজ
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Package Title, Offer, Price */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-2.5 pt-1.5 border-b border-emerald-500/20 pb-3">
-                    <div className="space-y-1 flex flex-col items-center sm:items-start w-full sm:w-auto">
-                      <div className="flex items-center justify-center sm:justify-start gap-2">
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">অফার:</span>
-                        <span className="text-xs font-black text-emerald-600 dark:text-[#1DB954] bg-emerald-500/10 px-2.5 py-0.5 rounded-md border border-emerald-500/20">
-                          {activeInPlaceGig.offerBadge || '৩০% ছাড়'}
-                        </span>
-                      </div>
-                      <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white text-center sm:text-left">
-                        {activePkg.name}
-                      </h4>
-                    </div>
-
-                    <div className="text-center sm:text-right">
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">প্যাকেজ মূল্য</span>
-                      <span className="text-2xl sm:text-3xl font-black text-[#1DB954]">
-                        ৳{activePkg.price.toLocaleString('bn-BD')}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Delivery Days & Revisions */}
-                  <div className="flex items-center justify-center sm:justify-start gap-4 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-[#1DB954]" />
-                      <span>{activePkg.deliveryDays} দিনে ডেলিভারি</span>
-                    </span>
-                    <span className="text-slate-300 dark:text-slate-700">•</span>
-                    <span className="flex items-center gap-1.5">
-                      <Check className="w-4 h-4 text-[#1DB954]" />
-                      <span>{activePkg.revisions}টি রিভিশন</span>
-                    </span>
-                  </div>
-
-                  {/* Features List */}
-                  <div className="space-y-2 pt-1">
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
-                      প্যাকেজে অন্তর্ভুক্ত সুবিধাসমূহ:
-                    </span>
-                    <ul className="space-y-2 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-bold">
-                      {(activePkg.features || ['কাস্টম ডিজাইন', 'রেসপন্সিভ লেআউট', 'ফুল সাপোর্ট']).map((f, idx) => (
-                        <li key={idx} className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-[#1DB954] shrink-0" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-2.5 pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleStartOrderFromInPlace(inPlaceSelectedPkg)}
-                  className="w-full py-3.5 rounded-2xl bg-[#1DB954] hover:bg-emerald-600 active:scale-98 text-white font-black text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer transition"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>প্যাকেজটি অর্ডার করুন (৳{activePkg.price.toLocaleString('bn-BD')})</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <a
-                  href={`https://wa.me/${siteSettings.whatsapp}?text=I%20am%20interested%20in%20${encodeURIComponent(activeInPlaceGig.title)}%20(${activePkg.name})`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 cursor-pointer transition"
-                >
-                  <MessageSquare className="w-4 h-4 text-[#25D366]" />
-                  <span>হোয়াটসঅ্যাপে সরাসরি কথা বলুন</span>
-                </a>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      </div>
+      <GigDetailPage
+        gig={activeInPlaceGig}
+        allGigs={gigs}
+        currentUser={currentUser}
+        onBack={() => {
+          setActiveInPlaceGig(null);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        onSelectGig={(g) => {
+          setActiveInPlaceGig(g);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        openAuthModal={openAuthModal}
+        createDirectGigOrder={createDirectGigOrder}
+        setActiveTab={setActiveTab}
+        onOrderSuccess={() => {
+          setActiveInPlaceGig(null);
+          if (setActiveTab) {
+            setActiveTab("marketplace");
+          }
+        }}
+      />
     );
   };
 
@@ -527,25 +240,6 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
         {/* IN-PLACE DETAIL MODAL */}
         {renderDetailModal()}
-
-        {/* ORDER CHECKOUT MODAL */}
-        <OrderCheckoutModal
-          gig={activeGigForOrder}
-          isOpen={!!activeGigForOrder}
-          onClose={() => setActiveGigForOrder(null)}
-          currentUser={currentUser}
-          siteSettings={siteSettings}
-          defaultPackage={selectedPkgType}
-          setActiveTab={setActiveTab}
-          onOrderCompleted={(orderId) => {
-            setActiveGigForOrder(null);
-            setActiveInPlaceGig(null);
-            if (setActiveTab) {
-              setActiveTab('marketplace', 'buying');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          }}
-        />
       </div>
     );
   }
@@ -664,27 +358,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
         </div>
       </section>
 
-      {/* IN-PLACE DETAIL MODAL */}
+      {/* EXACT MARKETPLACE GIG DETAIL VIEW */}
       {renderDetailModal()}
-
-      {/* MODAL 2: Interactive Smart Order Checkout Modal */}
-      <OrderCheckoutModal
-        gig={activeGigForOrder}
-        isOpen={!!activeGigForOrder}
-        onClose={() => setActiveGigForOrder(null)}
-        currentUser={currentUser}
-        siteSettings={siteSettings}
-        defaultPackage={selectedPkgType}
-        setActiveTab={setActiveTab}
-        onOrderCompleted={(orderId) => {
-          setActiveGigForOrder(null);
-          setActiveInPlaceGig(null);
-          if (setActiveTab) {
-            setActiveTab('marketplace', 'buying');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }}
-      />
     </div>
   );
 };

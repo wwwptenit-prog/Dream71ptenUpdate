@@ -11,9 +11,7 @@ import { DigitalProductsSection } from './components/DigitalProductsSection';
 import { CourseCard } from './components/CourseCard';
 import { CoursesSection } from './components/CoursesSection';
 import { AboutSection } from './components/AboutSection';
-import { WhyChooseUs } from './components/WhyChooseUs';
 import { GallerySection } from './components/GallerySection';
-import { TestimonialsSection } from './components/TestimonialsSection';
 import { OfficeLocation } from './components/OfficeLocation';
 import { Course } from './types';
 
@@ -348,8 +346,6 @@ const MainAppContent: React.FC = () => {
                 setActiveTab={handleSetActiveTab}
                 isStandalonePage={false}
               />
-              <WhyChooseUs />
-              <TestimonialsSection />
               <GallerySection />
               <OfficeLocation />
             </>
@@ -400,10 +396,7 @@ const MainAppContent: React.FC = () => {
 
           {/* VIEW 4: ABOUT PAGE */}
           {activeTab === 'about' && (
-            <>
-              <AboutSection onBack={handleGoBack} />
-              <WhyChooseUs />
-            </>
+            <AboutSection onBack={handleGoBack} />
           )}
 
           {/* VIEW 5: GALLERY PAGE */}

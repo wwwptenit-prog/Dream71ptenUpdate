@@ -201,6 +201,13 @@ export const initialServices: Service[] = [
     iconName: "Code",
     priceText: "৳15,000 থেকে শুরু",
     thumbnail: "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://ptenit.com",
     rating: 5.0,
     reviewsCount: 48,
     packages: {
@@ -227,6 +234,12 @@ export const initialServices: Service[] = [
     iconName: "TrendingUp",
     priceText: "৳8,000 / মাস",
     thumbnail: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://facebook.com/ptenit",
     rating: 4.9,
     reviewsCount: 37,
     packages: {
@@ -253,6 +266,12 @@ export const initialServices: Service[] = [
     iconName: "Palette",
     priceText: "৳5,000 থেকে শুরু",
     thumbnail: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://behance.net",
     rating: 5.0,
     reviewsCount: 52,
     packages: {
@@ -3056,6 +3075,13 @@ export const initialDigitalProducts: DigitalProduct[] = [
     price: 450,
     originalPrice: 1500,
     thumbnail: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://www.canva.com",
     shortDescription: "১ ক্লিকে অটো ক্যানভা ব্র্যান্ড টিম ইনভাইট এক্সেস, প্রিমিয়াম ফন্ট, প্রো এলিমেন্ট ও সোশ্যাল মিডিয়া টেমপ্লেট বান্ডেল।",
     fullDescription: "পেমেন্ট সফল হওয়ার সাথে সাথেই আপনি Thank You / Rules পেজে নিয়ে যাওয়া হবেন এবং সেখানে 'Access Now' বাটনে ক্লিক করে সরাসরি আমাদের সেভড ক্যানভা ইনভাইট লিঙ্কের মাধ্যমে প্রো এক্সেস পাবেন। নিরাপত্তা নিশ্চিতের জন্য লিঙ্কটি একবারই ব্যবহারযোগ্য এবং দ্বিতীয়বার লক থাকবে।",
     deliveryType: "canva_auto",
@@ -3077,6 +3103,13 @@ export const initialDigitalProducts: DigitalProduct[] = [
     price: 3500,
     originalPrice: 7000,
     thumbnail: "https://images.unsplash.com/photo-1556742049-0a670f4a4591?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1556742049-0a670f4a4591?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://demo.opencart.com",
     shortDescription: "বিকাশ/নগদ পেমেন্ট গেটওয়ে, অ্যাডমিন প্যানেল ও ইনভেন্টরি সহ সম্পূর্ণ প্রস্তুত ই-কমার্স পোর্টাল সোর্স কোড।",
     fullDescription: "এই ডিজিটাল সোর্স কোডটিতে রয়েছে সম্পূর্ণ প্রস্তুত লারাভেল ১০ ব্যাকএন্ড এবং রিঅ্যাক্ট ১৮ ফ্রন্টএন্ড। সাথে মোবাইল ফ্রেন্ডলি রেসপন্সিভ ডিজাইন, অটো বিকাশ ও নগদ পেমেন্ট গেটওয়ে, ইনভয়েস জেনারেটর এবং মাল্টি-ভেন্ডার ড্যাশবোর্ড। নাম, ইমেইল ও হোয়াটসঅ্যাপ নম্বর দিয়ে পেমেন্ট সম্পন্ন করলে ভেরিফিকেশনের পর সিকিউর ডাউনলোড লিংক পাবেন।",
     deliveryType: "file_download",
@@ -3096,6 +3129,13 @@ export const initialDigitalProducts: DigitalProduct[] = [
     price: 4900,
     originalPrice: 9500,
     thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://chat.openai.com",
     shortDescription: "গুগল জেমিনাই এআই দ্বারা চালিত অটোমেটেড এআই রাইটিং, চ্যাটবট ও ইমেজ জেনারেটর SaaS স্কিপ্ট।",
     fullDescription: "Next.js 14 এবং Tailwind CSS দিয়ে তৈরি আল্ট্রা-ফাস্ট এআই চ্যাটবট ও কনটেন্ট রাইটার SaaS ওয়েব অ্যাপ। সাবস্ক্রিপশন প্ল্যান (বিকাশ/স্ট্রাইপ) এবং লাইভ এআই চ্যাট সাপোর্ট ইনক্লুডেড। পেমেন্ট ভেরিফাই হওয়ার পর সুরক্ষিত ফাইল ডাউনলোড টোকেন পাওয়া যাবে।",
     deliveryType: "file_download",
@@ -3115,6 +3155,13 @@ export const initialDigitalProducts: DigitalProduct[] = [
     price: 7500,
     originalPrice: 15000,
     thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://demo.erpnext.com",
     shortDescription: "স্টুডেন্ট/পেশেন্ট ফি, অনলাইন টিচার ড্যাশবোর্ড, রসিদ ও অটো এসএমএস অ্যালার্ট সহ ফুল সফটওয়্যার।",
     fullDescription: "স্কুল, কলেজ বা হসপিটাল অটোমেশনের জন্য অল-ইন-ওয়ান ক্লাউড ইআরপি সিস্টেম। পেমেন্ট শেষে অ্যাডমিন প্যানেল থেকে কাস্টমারের হোয়াটসঅ্যাপ ও ইমেইলে সরাসরি কাস্টমাইজড মেসেজ সহ এক্সেস লিঙ্ক ও ফাইল ডেলিভারি প্রদান করা হবে।",
     deliveryType: "email_whatsapp",
@@ -3134,6 +3181,12 @@ export const initialDigitalProducts: DigitalProduct[] = [
     price: 0,
     originalPrice: 4000,
     thumbnail: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://sendpulse.com",
     shortDescription: "এক ক্লিকে হাজার হাজার বাল্ক এসএমএস ও টার্গেটেড ইমেইল পাঠানোর সিকিউর ডেস্কটপ ও ওয়েব টুল।",
     fullDescription: "ফেসবুক, গুগোল ও কাস্টমার লিড গ্রুপে বাল্ক মেসেজিং অটোমেশন টুল। ১০০% ডেলিভারি রেট, প্রক্সি ফিল্টার এবং লাইফটাইম অফিসিয়াল লাইসেন্স কি ইন্সট্যান্ট বিনামূল্যে দেওয়া হচ্ছে।",
     deliveryType: "auto",
@@ -3153,6 +3206,12 @@ export const initialDigitalProducts: DigitalProduct[] = [
     price: 0,
     originalPrice: 2500,
     thumbnail: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=800&q=80",
+    demoImages: [
+      "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=1200&q=80"
+    ],
+    demoUrl: "https://www.figma.com",
     shortDescription: "ই-কমার্স, রাইড শেয়ারিং, কোর্স পোর্টাল ও সোশ্যাল অ্যাপের ১০০+ ফিগমা সোর্স ফাইল ও ভেক্টর কিট।",
     fullDescription: "ডিজাইনার ও ডেভেলপারদের জন্য মেগা ইউআই বান্ডেল। ১০০+ প্রিমিয়াম স্ক্রিন, কাস্টম ইল্যাস্ট্রেশন, ভেক্টর আইকন ও ফিগমা এক্সেস সম্পূর্ণ বিনামূল্যে ডাউনলোডের সুযোগ।",
     deliveryType: "auto",
