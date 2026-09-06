@@ -1,8 +1,12 @@
 import React from 'react';
-import { Target, Eye, Sparkles } from 'lucide-react';
+import { Target, Eye, ArrowLeft } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
-export const AboutSection: React.FC = () => {
+interface AboutSectionProps {
+  onBack?: () => void;
+}
+
+export const AboutSection: React.FC<AboutSectionProps> = ({ onBack }) => {
   const { t } = useData();
 
   const teamMembers = [
@@ -28,13 +32,23 @@ export const AboutSection: React.FC = () => {
 
   return (
     <div className="py-8 sm:py-12 bg-slate-50 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100">
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 space-y-8 sm:space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         
         {/* Main Intro */}
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-3 sm:gap-4">
-          <span className="text-[#1DB954] font-bold text-xs uppercase tracking-widest bg-[#1DB954]/10 px-3 py-1 rounded-full border border-[#1DB954]/20 inline-flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" /> {t('কোম্পানি বিবরণী', 'Company Overview')}
-          </span>
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-3 sm:gap-4 relative">
+          {onBack && (
+            <div className="w-full flex justify-start sm:absolute sm:left-0 sm:top-0">
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold text-xs transition cursor-pointer shadow-xs"
+                title={t('পূর্ববর্তী স্থানে ফিরে যান', 'Go back to previous page')}
+              >
+                <ArrowLeft className="w-4 h-4 text-[#1DB954]" />
+                <span>{t('ফিরে যান', 'Back')}</span>
+              </button>
+            </div>
+          )}
           <h1 className="text-2xl sm:text-5xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
             {t('PTENit সম্পর্কে জানুন', 'About PTENit')}
           </h1>

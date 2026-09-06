@@ -68,30 +68,27 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
   });
 
   return (
-    <section className="py-8 sm:py-12 bg-white dark:bg-slate-900 min-h-screen font-bengali">
-      <div className="max-w-[1920px] mx-auto px-3 sm:px-6 md:px-10 lg:px-12 xl:px-16">
+    <section className={`py-8 sm:py-12 bg-white dark:bg-slate-900 ${isStandalonePage ? 'min-h-screen' : ''} font-bengali`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Title Header - Centered on Mobile, Left-Right Split on Desktop */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 sm:mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1.5 max-w-2xl">
-            <span className="text-[#1DB954] font-bold text-xs uppercase tracking-widest bg-[#1DB954]/10 px-3 py-1 rounded-full border border-[#1DB954]/20 inline-flex items-center gap-1.5 w-fit">
-              <Sparkles className="w-3.5 h-3.5" /> {t('এলএমএস ক্যারিয়ার একাডেমি', 'LMS Career Academy')}
-            </span>
+        {/* Title Header - Clean Modern Layout */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-6 sm:mb-8">
+          <div className="space-y-1.5 text-center sm:text-left flex flex-col items-center sm:items-start">
             <h2 className="text-2xl sm:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
-              {t('আমাদের কোর্সসমূহ', 'Our Courses')}
+              {t('প্রফেশনাল কোর্স', 'Professional Courses')}
             </h2>
-            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-bengali">
-              {t('দক্ষতা অর্জন করুন এবং ক্যারিয়ার গড়ুন।', 'Build skills and advance your career.')}
+            <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bengali">
+              {t('স্কিল গড়ুন, ক্যারিয়ার গড়ুন', 'Build skills, advance career')}
             </p>
           </div>
 
           {/* Header Action / Back Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {onBack && (
               <button
                 type="button"
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold text-xs transition cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer"
                 title={t('পূর্ববর্তী স্থানে ফিরে যান', 'Go back to previous page')}
               >
                 <ArrowLeft className="w-4 h-4 text-[#1DB954]" />
@@ -99,39 +96,17 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
               </button>
             )}
 
-            {!isStandalonePage && (
-              <>
-                {/* Mobile View Toggle or Navigation */}
-                {mobileExpanded ? (
-                  <button
-                    type="button"
-                    onClick={() => setMobileExpanded(false)}
-                    className="sm:hidden inline-flex items-center gap-1.5 px-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-[#1DB954] font-bold text-xs transition-colors cursor-pointer font-bengali shrink-0"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    <span>{t('সংক্ষিপ্ত করুন', 'Collapse')}</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setMobileExpanded(true)}
-                    className="sm:hidden inline-flex items-center gap-1 text-[#1DB954] hover:text-emerald-400 font-bold text-xs transition-all cursor-pointer font-bengali shrink-0 group"
-                  >
-                    <span>{t('সবগুলো দেখুন →', 'See All →')}</span>
-                  </button>
-                )}
-
-                {/* Desktop View Navigation */}
-                {setActiveTab && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('courses')}
-                    className="hidden sm:inline-flex items-center gap-1 text-[#1DB954] hover:text-emerald-400 font-bold text-sm hover:underline transition-all cursor-pointer font-bengali shrink-0 group"
-                  >
-                    <span>{t('সবগুলো দেখুন →', 'See All →')}</span>
-                  </button>
-                )}
-              </>
+            {!isStandalonePage && setActiveTab && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('courses');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-[#1DB954] hover:text-emerald-600 hover:underline cursor-pointer font-bengali transition-colors border-0"
+              >
+                <span>{t('সবগুলো দেখুন →', 'See All →')}</span>
+              </button>
             )}
           </div>
         </div>

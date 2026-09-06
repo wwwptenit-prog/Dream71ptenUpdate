@@ -958,10 +958,10 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [win.messages]);
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSend = (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!inputText.trim()) return;
-    onSend(inputText);
+    onSend(inputText.trim());
     setInputText('');
   };
 
@@ -1226,6 +1226,12 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             placeholder="মেসেজ লিখুন..."
             className="min-w-0 flex-1 px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-slate-100 dark:bg-slate-800/80 rounded-full text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1DB954]"
           />
@@ -1233,6 +1239,7 @@ const EmbeddedChatThread: React.FC<EmbeddedChatThreadProps> = ({
           {/* Send Message Button - Always visible */}
           <button
             type="submit"
+            onClick={handleSend}
             disabled={!inputText.trim()}
             className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full cursor-pointer transition active:scale-95 shadow-xs shrink-0 flex items-center justify-center ${
               inputText.trim()

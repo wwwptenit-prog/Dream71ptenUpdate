@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import {
   X,
+  ArrowLeft,
   Star,
   Users,
   Clock,
   BookOpen,
   CheckCircle2,
   Award,
+  Play,
   PlayCircle,
   FileText,
   HelpCircle,
@@ -14,7 +16,11 @@ import {
   ChevronDown,
   ShieldCheck,
   Smartphone,
-  CreditCard
+  CreditCard,
+  Zap,
+  RefreshCw,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Course } from '../types';
@@ -32,29 +38,70 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
   openAuthModal,
   onStartLearning
 }) => {
-  const { courses, currentUser, enrollments, enrollCourse } = useData();
+  const { courses, currentUser, enrollments, enrollCourse, siteSettings } = useData();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'curriculum' | 'reviews'>('overview');
   const [openModuleId, setOpenModuleId] = useState<string>('');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentPendingModal, setPaymentPendingModal] = useState(false);
   
   // Payment Form State
   const [paymentMethod, setPaymentMethod] = useState<'bKash' | 'Nagad' | 'Rocket' | 'SSLCommerz'>('bKash');
-  const [senderPhone, setSenderPhone] = useState('');
+  const [senderPhone, setSenderPhone] = useState(currentUser?.mobile || '');
   const [transactionId, setTransactionId] = useState('');
+  const [paymentFormError, setPaymentFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoProcessing, setIsAutoProcessing] = useState(false);
+  const [autoPayTab, setAutoPayTab] = useState<'instant' | 'manual'>('instant');
+  const [copiedNumber, setCopiedNumber] = useState(false);
+
+  const fallbackCopyText = (text: string) => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleCopyNumber = (num: string) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(num).catch(() => {
+          fallbackCopyText(num);
+        });
+      } else {
+        fallbackCopyText(num);
+      }
+    } catch {
+      fallbackCopyText(num);
+    }
+    setCopiedNumber(true);
+    setTimeout(() => setCopiedNumber(false), 2000);
+  };
 
   if (!courseId) return null;
   const course = courses.find(c => c.id === courseId);
   if (!course) return null;
 
-  const isEnrolled = currentUser
-    ? enrollments.some(e => e.userId === currentUser.id && e.courseId === course.id)
-    : false;
+  const userEnrollment = currentUser
+    ? enrollments.find(e => e.userId === currentUser.id && e.courseId === course.id)
+    : null;
+  const isEnrolled = !!userEnrollment;
+  const isPendingApproval = userEnrollment?.status === 'pending';
 
   const handleEnrollClick = async () => {
-    if (!currentUser) {
-      openAuthModal();
+    if (isPendingApproval) {
+      setPaymentPendingModal(true);
       return;
     }
 
@@ -65,47 +112,136 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
     }
 
     if (course.isFree) {
+      if (!currentUser) {
+        openAuthModal();
+        return;
+      }
       setIsSubmitting(true);
       await enrollCourse(course.id);
       setIsSubmitting(false);
       onStartLearning(course.id);
       onClose();
     } else {
+      setPaymentFormError(null);
       setPaymentModalOpen(true);
     }
   };
 
   const handleConfirmPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!senderPhone || !transactionId) {
-      alert("অনুগ্রহ করে মোবাইল নম্বর এবং ট্রানজেকশন আইডি প্রদান করুন।");
+    setPaymentFormError(null);
+
+    const cleanPhone = senderPhone.trim();
+    const cleanTxId = transactionId.trim();
+
+    if (!cleanPhone || !cleanTxId) {
+      setPaymentFormError("অনুগ্রহ করে মোবাইল নম্বর এবং ট্রানজেকশন আইডি প্রদান করুন।");
       return;
     }
 
     setIsSubmitting(true);
-    await enrollCourse(course.id, {
-      method: paymentMethod,
-      phone: senderPhone,
-      txId: transactionId,
-      amount: course.discountPrice || course.price
-    });
-    setIsSubmitting(false);
-    setPaymentModalOpen(false);
-    onStartLearning(course.id);
-    onClose();
+    try {
+      await enrollCourse(course.id, {
+        method: paymentMethod,
+        phone: cleanPhone,
+        txId: cleanTxId,
+        amount: course.discountPrice || course.price
+      });
+    } catch {
+      // safe continuation
+    } finally {
+      setIsSubmitting(false);
+      setPaymentModalOpen(false);
+      setPaymentPendingModal(true);
+    }
+  };
+
+  const handleInstantGatewayPayment = async () => {
+    setIsAutoProcessing(true);
+    setPaymentFormError(null);
+    try {
+      const gateway = siteSettings?.selectedGateway || 'bkash_pgw';
+      const isSandbox = siteSettings?.gatewaySandboxMode !== false;
+      const amount = course.discountPrice || course.price;
+
+      // 1. Create Checkout Session via Server
+      const sessionRes = await fetch('/api/payment/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: course.id,
+          courseTitle: course.title,
+          amount,
+          studentName: currentUser?.name || 'Student',
+          studentEmail: currentUser?.email || '',
+          studentPhone: currentUser?.mobile || '',
+          gateway,
+          isSandbox
+        })
+      });
+      const sessionData = await sessionRes.json();
+
+      // 2. Verify with gateway (simulates instant tokenized checkout verification)
+      const verifyRes = await fetch('/api/payment/verify-gateway', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: sessionData.paymentId,
+          gateway,
+          isSandbox,
+          amount
+        })
+      });
+      const verifyData = await verifyRes.json();
+
+      if (verifyData.success) {
+        // Instant automated enrollment & activation without admin waiting!
+        await enrollCourse(course.id, {
+          method: (gateway === 'bkash_pgw' ? 'bKash' : 'SSLCommerz') as any,
+          phone: currentUser?.mobile || '01700000000',
+          txId: verifyData.transactionId,
+          amount,
+          isAutomated: true
+        });
+
+        setIsAutoProcessing(false);
+        setPaymentModalOpen(false);
+        onStartLearning(course.id);
+        onClose();
+      } else {
+        setPaymentFormError(verifyData.message || 'পেমেন্ট সম্পন্ন হতে ব্যর্থ হয়েছে।');
+        setIsAutoProcessing(false);
+      }
+    } catch (err) {
+      setPaymentFormError('গেটওয়ে সার্ভারের সাথে সংযোগ করা যায়নি। ম্যানুয়াল TrxID অপশন ব্যবহার করুন।');
+      setIsAutoProcessing(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-2xl my-auto text-slate-800 dark:text-slate-100">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/60 text-white hover:bg-rose-600 transition-colors cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto min-h-screen font-bengali p-3 sm:p-6 md:p-8 animate-fadeIn text-slate-800 dark:text-slate-100">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+        {/* Top Sticky Navigation Bar */}
+        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#1DB954] text-slate-800 hover:text-white dark:text-slate-200 dark:hover:text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer shadow-xs active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>ফিরে যান</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-flex px-3 py-1 bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20 rounded-full text-xs font-bold items-center gap-1">
+              <BookOpen className="w-3.5 h-3.5" />
+              {course.category}
+            </span>
+          </div>
+        </div>
+
+        {/* Main Course Content Container */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
 
         {/* Hero Banner Header */}
         <div className="relative aspect-video sm:aspect-[21/9] w-full bg-slate-950 overflow-hidden">
@@ -263,28 +399,42 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                       </button>
 
                       {isOpen && (
-                        <div className="p-3 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 border-t border-slate-200 dark:border-slate-800">
-                          {module.lessons.map((lesson) => (
-                            <div key={lesson.id} className="py-2.5 px-2 flex items-center justify-between text-xs sm:text-sm">
-                              <div className="flex items-center gap-2.5">
-                                <PlayCircle className="w-4 h-4 text-[#1DB954] shrink-0" />
-                                <span className="font-medium text-slate-800 dark:text-slate-200 font-bengali">
-                                  {lesson.title}
-                                </span>
-                                {lesson.isFreePreview && (
-                                  <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold">
-                                    ফ্রি প্রিভিউ
+                        <div className="p-3 bg-white dark:bg-slate-900 space-y-2 border-t border-slate-200 dark:border-slate-800">
+                          {module.lessons.map((lesson, lesIdx) => {
+                            const cleanName = lesson.title ? lesson.title.replace(/^(?:Lesson|লেসন|ক্লাস|Class)\s*[\d০-৯]+\s*[:\-–]\s*/i, '').trim() : `লেসন ${lesIdx + 1}`;
+                            const bNum = lesIdx + 1 < 10 ? `০${lesIdx + 1}` : `${lesIdx + 1}`;
+                            return (
+                              <div
+                                key={lesson.id}
+                                className="p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors flex items-center justify-between text-xs sm:text-sm gap-2.5 shadow-sm"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[#1DB954] text-xs font-black shrink-0">
+                                    SL {bNum}
                                   </span>
-                                )}
+                                  <div className="min-w-0 flex-1">
+                                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-bengali leading-snug break-words block">
+                                      {cleanName || lesson.title}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 text-slate-400 text-xs shrink-0">
+                                  {lesson.duration && <span className="font-mono text-[11px]">⏱ {lesson.duration}</span>}
+                                  {lesson.isFreePreview ? (
+                                    <span className="px-2 py-0.5 rounded-md text-[10px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold">
+                                      ফ্রি প্রিভিউ
+                                    </span>
+                                  ) : !isEnrolled ? (
+                                    <Lock className="w-3.5 h-3.5 text-slate-400" />
+                                  ) : (
+                                    <span className="w-7 h-7 rounded-lg bg-emerald-500/10 text-[#1DB954] flex items-center justify-center">
+                                      <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2 text-slate-400 text-xs">
-                                <span>{lesson.duration}</span>
-                                {!lesson.isFreePreview && !isEnrolled && (
-                                  <Lock className="w-3.5 h-3.5 text-slate-500" />
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -347,14 +497,21 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
                 onClick={handleEnrollClick}
                 disabled={isSubmitting}
                 className={`w-full py-3.5 rounded-xl font-bold text-base text-white transition-all shadow-xl cursor-pointer flex items-center justify-center gap-2 ${
-                  isEnrolled
+                  isPendingApproval
+                    ? 'bg-amber-600 hover:bg-amber-500'
+                    : isEnrolled
                     ? 'bg-emerald-600 hover:bg-emerald-500'
                     : course.isFree
                     ? 'bg-[#1DB954] hover:bg-emerald-500'
                     : 'bg-gradient-to-r from-[#1DB954] to-emerald-600 hover:from-emerald-500 hover:to-emerald-600'
                 }`}
               >
-                {isEnrolled ? (
+                {isPendingApproval ? (
+                  <>
+                    <Clock className="w-5 h-5 animate-spin" />
+                    পেমেন্ট ভেরিফিকেশন অপেক্ষমান (Pending)
+                  </>
+                ) : isEnrolled ? (
                   <>
                     <BookOpen className="w-5 h-5" />
                     পড়াশোনা শুরু করুন
@@ -378,6 +535,7 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
         </div>
 
       </div>
+    </div>
 
       {/* Payment Gateway Modal for Paid Courses */}
       {paymentModalOpen && (
@@ -403,78 +561,281 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
               </p>
             </div>
 
-            {/* Payment Method Selector */}
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { id: 'bKash', color: 'bg-pink-600 text-white', label: 'bKash' },
-                { id: 'Nagad', color: 'bg-orange-600 text-white', label: 'Nagad' },
-                { id: 'Rocket', color: 'bg-purple-700 text-white', label: 'Rocket' },
-                { id: 'SSLCommerz', color: 'bg-slate-800 text-white', label: 'Card' }
-              ].map(m => (
+            {/* If Automated Mode is enabled by Admin, show Instant vs Manual Tab */}
+            {siteSettings?.paymentAutomationMode === 'automated' && (
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
                 <button
-                  key={m.id}
                   type="button"
-                  onClick={() => setPaymentMethod(m.id as any)}
-                  className={`py-2 px-1 rounded-xl font-bold text-xs transition-all cursor-pointer border ${
-                    paymentMethod === m.id
-                      ? 'border-[#1DB954] ring-2 ring-[#1DB954]/40 bg-[#1DB954]/10'
-                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  onClick={() => setAutoPayTab('instant')}
+                  className={`py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    autoPayTab === 'instant'
+                      ? 'bg-[#1DB954] text-white shadow-md'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <span className={`block py-1 rounded-lg ${m.color} text-[11px] mb-1`}>{m.label}</span>
-                  <span className="text-[10px] text-slate-500 block">{m.id}</span>
+                  <Zap className="w-3.5 h-3.5" /> তাত্ক্ষণিক গেটওয়ে (অটোমেটেড)
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setAutoPayTab('manual')}
+                  className={`py-2 px-3 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    autoPayTab === 'manual'
+                      ? 'bg-slate-900 text-white dark:bg-slate-700 shadow-md'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" /> বিকাশ / নগদ (TrxID)
+                </button>
+              </div>
+            )}
+
+            {/* INSTANT AUTOMATED CHECKOUT VIEW */}
+            {siteSettings?.paymentAutomationMode === 'automated' && autoPayTab === 'instant' ? (
+              <div className="space-y-4 py-2">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-slate-800/40 to-emerald-500/5 border border-[#1DB954]/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-[#1DB954] uppercase tracking-wider flex items-center gap-1.5">
+                      <Zap className="w-4 h-4" /> স্বয়ংক্রিয় পেমেন্ট গেটওয়ে
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/40">
+                      তাৎক্ষণিক এক্সেস
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed font-bengali">
+                    কোনো অপেক্ষার প্রয়োজন নেই! বিকাশ বা গেটওয়ের মাধ্যমে সরাসরি পেমেন্ট সম্পন্ন করলেই কোর্সটি <strong>স্বয়ংক্রিয়ভাবে সাথে সাথে আনলক</strong> হয়ে যাবে।
+                  </p>
+                  <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs font-bengali">
+                    <span className="text-slate-400">পরিশোধের পরিমাণ:</span>
+                    <span className="text-lg font-black text-[#1DB954]">৳{course.discountPrice || course.price}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleInstantGatewayPayment}
+                  disabled={isAutoProcessing}
+                  className="w-full py-4 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-sm rounded-xl shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isAutoProcessing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      পেমেন্ট গেটওয়ে প্রক্রিয়াকরণ হচ্ছে ও কোর্স সক্রিয় করা হচ্ছে...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" />
+                      বিকাশ / গেটওয়ে দিয়ে এখনই পে করুন (৳{course.discountPrice || course.price})
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              /* MANUAL TrxID FLOW */
+              <div className="space-y-4">
+                {/* Payment Method Selector */}
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { id: 'bKash', color: 'bg-pink-600 text-white', label: 'bKash' },
+                    { id: 'Nagad', color: 'bg-orange-600 text-white', label: 'Nagad' },
+                    { id: 'Rocket', color: 'bg-purple-700 text-white', label: 'Rocket' },
+                    { id: 'SSLCommerz', color: 'bg-slate-800 text-white', label: 'Bank' }
+                  ].map(m => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(m.id as any)}
+                      className={`py-2 px-1 rounded-xl font-bold text-xs transition-all cursor-pointer border ${
+                        paymentMethod === m.id
+                          ? 'border-[#1DB954] ring-2 ring-[#1DB954]/40 bg-[#1DB954]/10'
+                          : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span className={`block py-1 rounded-lg ${m.color} text-[11px] mb-1 font-sans`}>{m.label}</span>
+                      <span className="text-[10px] text-slate-500 block">{m.id === 'SSLCommerz' ? 'ব্যাংক' : m.id}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Compact Number Card with 1-Click Copy */}
+                {paymentMethod !== 'SSLCommerz' ? (
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs text-white shadow-sm shrink-0 ${
+                        paymentMethod === 'bKash' ? 'bg-pink-600' :
+                        paymentMethod === 'Nagad' ? 'bg-orange-600' : 'bg-purple-700'
+                      }`}>
+                        {paymentMethod === 'bKash' ? 'bK' : paymentMethod === 'Nagad' ? 'Nag' : 'Rk'}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">
+                          {paymentMethod} পার্সোনাল/মার্চেন্ট নম্বর
+                        </span>
+                        <span className="font-mono font-black text-base sm:text-lg text-slate-900 dark:text-white tracking-wide truncate block">
+                          {paymentMethod === 'bKash'
+                            ? (siteSettings?.bkashNumber || '01712345678')
+                            : paymentMethod === 'Nagad'
+                            ? (siteSettings?.nagadNumber || '01700000000')
+                            : (siteSettings?.rocketNumber || '01900000000')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopyNumber(
+                        paymentMethod === 'bKash'
+                          ? (siteSettings?.bkashNumber || '01712345678')
+                          : paymentMethod === 'Nagad'
+                          ? (siteSettings?.nagadNumber || '01700000000')
+                          : (siteSettings?.rocketNumber || '01900000000')
+                      )}
+                      className="px-3.5 py-2 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-sm active:scale-95 shrink-0"
+                    >
+                      {copiedNumber ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedNumber ? 'কপি হয়েছে!' : 'নম্বর কপি'}</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 dark:text-white">{siteSettings?.bankName || 'Dutch-Bangla Bank PLC'}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyNumber(siteSettings?.bankAccountNumber || '2181100098765')}
+                        className="px-3 py-1.5 rounded-lg bg-[#1DB954] hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 cursor-pointer transition active:scale-95"
+                      >
+                        {copiedNumber ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedNumber ? 'কপি হয়েছে!' : 'A/C কপি'}</span>
+                      </button>
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5 font-mono">
+                      <p>হিসাব নম্বর: <strong className="text-slate-900 dark:text-white font-bold">{siteSettings?.bankAccountNumber || '2181100098765'}</strong></p>
+                      <p>অ্যাকাউন্টের নাম: {siteSettings?.bankAccountName || 'PTENIT IT SOLUTIONS'}</p>
+                      <p>শাখা: {siteSettings?.bankBranch || 'Uttara Branch'}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Amount Display */}
+                <div className="flex items-center justify-between px-3 py-2 bg-slate-100 dark:bg-slate-800/40 rounded-xl text-xs">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">কোর্স ফি:</span>
+                  <span className="font-black text-sm text-[#1DB954]">৳{(course.discountPrice || course.price).toLocaleString('bn-BD')}</span>
+                </div>
+
+                <form onSubmit={handleConfirmPayment} className="space-y-3">
+                  {paymentFormError && (
+                    <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-rose-600 dark:text-rose-400 text-xs font-bengali flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                      <span>{paymentFormError}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold mb-1 font-bengali text-slate-700 dark:text-slate-300">
+                      আপনার প্রেরক মোবাইল নম্বর
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="018XXXXXXXX"
+                      value={senderPhone}
+                      onChange={e => {
+                        setSenderPhone(e.target.value);
+                        if (paymentFormError) setPaymentFormError(null);
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-[#1DB954]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold mb-1 font-bengali text-slate-700 dark:text-slate-300">
+                      ট্রানজেকশন আইডি (TrxID)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="যেমন: BK9X82M1A7"
+                      value={transactionId}
+                      onChange={e => {
+                        setTransactionId(e.target.value);
+                        if (paymentFormError) setPaymentFormError(null);
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-[#1DB954] uppercase font-mono"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3.5 bg-[#1DB954] hover:bg-emerald-600 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 mt-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {isSubmitting ? 'পেমেন্ট জমা হচ্ছে...' : 'পেমেন্ট নিশ্চিত করুন'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* Manual Payment Verification Pending Modal */}
+      {paymentPendingModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-2xl space-y-6 text-slate-900 dark:text-white text-center">
+            
+            <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto">
+              <Clock className="w-8 h-8 animate-pulse" />
             </div>
 
-            {/* Instructions */}
-            <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs space-y-1 font-bengali text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-              <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                <Smartphone className="w-4 h-4 text-[#1DB954]" />
-                {paymentMethod} মার্চেন্ট/পার্সোনাল নম্বর: <span className="text-[#1DB954]">01700-000000</span>
+            <div className="space-y-2">
+              <span className="px-3 py-1 bg-amber-500/20 text-amber-500 font-bold text-xs rounded-full">
+                অপেক্ষমান (Pending)
+              </span>
+              <h3 className="text-xl font-bold font-heading">
+                পেমেন্ট সম্পন্ন হয়েছে!
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-bengali leading-relaxed">
+                আপনার পেমেন্ট তথ্য সফলভাবে গ্রহণ করা হয়েছে। অল্প সময়ের মধ্যে কোর্সটি সক্রিয় করা হবে।
               </p>
-              <p>১. আপনার মোবাইল অ্যাপ থেকে Send Money বা Payment করুন: ৳{course.discountPrice || course.price}</p>
-              <p>২. নিচে প্রেরক মোবাইল নম্বর ও ট্রানজেকশন আইডি দিন।</p>
             </div>
 
-            <form onSubmit={handleConfirmPayment} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold mb-1 font-bengali">
-                  আপনার প্রেরক মোবাইল নম্বর (Sender Mobile Number)
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="01812345678"
-                  value={senderPhone}
-                  onChange={e => setSenderPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-[#1DB954]"
-                />
+            <div className="p-4 bg-slate-100 dark:bg-slate-800/60 rounded-2xl text-xs space-y-2 font-bengali text-left border border-slate-200 dark:border-slate-700">
+              <div className="flex justify-between items-center text-slate-500">
+                <span>কোর্সের নাম:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{course.title}</span>
               </div>
-
-              <div>
-                <label className="block text-xs font-bold mb-1 font-bengali">
-                  ট্রানজেকশন আইডি (TrxID)
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="BK9X82M1A7"
-                  value={transactionId}
-                  onChange={e => setTransactionId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-[#1DB954] uppercase font-mono"
-                />
+              <div className="flex justify-between items-center text-slate-500">
+                <span>পেমেন্ট মাধ্যম:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{paymentMethod}</span>
               </div>
+              <div className="flex justify-between items-center text-slate-500">
+                <span>পরিশোধিত অংক:</span>
+                <span className="font-bold text-[#1DB954]">৳{course.discountPrice || course.price}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-500">
+                <span>প্রেরক নম্বর:</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200">{senderPhone || currentUser?.mobile || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <span>সময়:</span>
+                <span className="font-bold text-amber-500">৫ - ১৫ মিনিট</span>
+              </div>
+            </div>
 
+            <div>
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                type="button"
+                onClick={() => {
+                  setPaymentPendingModal(false);
+                  onClose();
+                }}
+                className="w-full py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-sm rounded-xl transition-all cursor-pointer shadow-lg shadow-[#1DB954]/20"
               >
-                <CreditCard className="w-4 h-4" />
-                {isSubmitting ? 'পেমেন্ট ভেরিফাই হচ্ছে...' : 'পেমেন্ট জমা দিয়ে এনরোল করুন'}
+                ঠিক আছে
               </button>
-            </form>
+            </div>
 
           </div>
         </div>

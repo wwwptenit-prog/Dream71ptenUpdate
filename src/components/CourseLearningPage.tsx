@@ -208,6 +208,7 @@ export const CourseLearningPage: React.FC<CourseLearningPageProps> = ({
 
   const completedLessons = enrollment?.completedLessons || ['les-1', 'les-2'];
   const isCurrentLessonCompleted = currentLesson ? completedLessons.includes(currentLesson.id) : false;
+  const isPendingApproval = enrollment?.status === 'pending';
 
   const handleMarkComplete = () => {
     if (currentLesson) {
@@ -331,9 +332,38 @@ export const CourseLearningPage: React.FC<CourseLearningPageProps> = ({
         {/* LEFT / TOP MAIN CONTENT: VIDEO PLAYER + ACTION BAR + TABS (ALWAYS FIRST ON MOBILE & DESKTOP) */}
         <main className="lg:col-span-8 xl:col-span-9 p-3 sm:p-5 space-y-4 overflow-y-auto max-h-none lg:max-h-[calc(100vh-95px)] order-1">
           
+          {/* Pending Approval Notice Banner */}
+          {isPendingApproval && (
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-950/60 via-amber-900/40 to-slate-900 border-2 border-amber-500/50 rounded-2xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-200">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl shrink-0 mt-0.5">
+                  <Clock className="w-6 h-6 animate-spin" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm sm:text-base text-amber-300">
+                    ⚠️ পেমেন্ট ভেরিফিকেশন অপেক্ষমান (Pending)
+                  </h3>
+                  <p className="text-xs text-amber-200/80 mt-1 font-bengali leading-relaxed">
+                    অ্যাডমিন আপনার TrxID যাচাই করলেই সমস্ত লেকচার আনলক হবে (সাধারণত ৫-১৫ মিনিট)।
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Main Video Player Screen - Top Priority */}
           <div className="relative aspect-video w-full bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-xl">
-            {currentLesson?.videoUrl ? (
+            {isPendingApproval ? (
+              <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-3 bg-slate-950/90 backdrop-blur-sm">
+                <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Lock className="w-7 h-7" />
+                </div>
+                <h3 className="font-extrabold text-white text-base">ক্লাস কন্টেন্ট লকড রয়েছে</h3>
+                <p className="text-xs text-slate-400 max-w-md font-bengali leading-relaxed">
+                  পেমেন্ট যাচাই সম্পন্ন হলে এই লেকচারটি আনলক হবে।
+                </p>
+              </div>
+            ) : currentLesson?.videoUrl ? (
               <iframe
                 src={`${currentLesson.videoUrl}?autoplay=0&rel=0`}
                 title={currentLesson.title}

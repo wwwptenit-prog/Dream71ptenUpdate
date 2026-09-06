@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { Camera, X, Eye, Sparkles } from 'lucide-react';
+import { X, Eye, ArrowLeft } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { GalleryItem } from '../types';
 
-export const GallerySection: React.FC = () => {
+interface GallerySectionProps {
+  onBack?: () => void;
+}
+
+export const GallerySection: React.FC<GallerySectionProps> = ({ onBack }) => {
   const { gallery, t } = useData();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [lightboxImage, setLightboxImage] = useState<GalleryItem | null>(null);
@@ -29,18 +33,28 @@ export const GallerySection: React.FC = () => {
     : gallery.filter(g => g.category === selectedCategory);
 
   return (
-    <section className="py-8 sm:py-12 bg-slate-50 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100">
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 space-y-8 sm:space-y-12">
+    <section className="py-10 sm:py-16 bg-slate-100/90 text-slate-900 dark:bg-slate-950 dark:text-white border-y border-slate-200/70 dark:border-slate-800/80 font-bengali">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-12">
         
         {/* Header */}
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-3 sm:gap-4">
-          <span className="text-[#1DB954] font-bold text-xs uppercase tracking-widest bg-[#1DB954]/10 px-3 py-1 rounded-full border border-[#1DB954]/20 inline-flex items-center gap-1.5">
-            <Camera className="w-3.5 h-3.5" /> {t('PTENit এর কার্যক্রম', 'PTENit Activities')}
-          </span>
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-3 sm:gap-4 relative">
+          {onBack && (
+            <div className="w-full flex justify-start sm:absolute sm:left-0 sm:top-0">
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer border-0 shadow-xs"
+                title={t('পূর্ববর্তী স্থানে ফিরে যান', 'Go back to previous page')}
+              >
+                <ArrowLeft className="w-4 h-4 text-[#1DB954]" />
+                <span>{t('ফিরে যান', 'Back')}</span>
+              </button>
+            </div>
+          )}
           <h2 className="text-2xl sm:text-4xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
             {t('ছবি গ্যালারি', 'Photo Gallery')}
           </h2>
-          <p className="text-slate-600 dark:text-slate-300 text-sm font-bengali">
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-bengali">
             {t('PTENit এর অফিসিয়াল ক্লাসরুম কার্যক্রম, ইভেন্ট, সার্টিফিকেট প্রদান ও সফল মুহূর্তসমূহ।', 'Official classroom activities, events, certificate presentations, and memorable moments.')}
           </p>
         </div>
@@ -51,7 +65,7 @@ export const GallerySection: React.FC = () => {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer border-0 ${
                 selectedCategory === cat
                   ? 'bg-[#1DB954] text-white shadow-lg shadow-[#1DB954]/20'
                   : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
@@ -73,6 +87,8 @@ export const GallerySection: React.FC = () => {
               <img
                 src={item.imageUrl}
                 alt={item.title}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />

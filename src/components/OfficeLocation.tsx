@@ -3,7 +3,7 @@ import { MapPin, Phone, Mail, MessageSquare, Send, CheckCircle2, Building, Clock
 import { useData } from '../context/DataContext';
 
 export const OfficeLocation: React.FC = () => {
-  const { siteSettings, sendContactMessage, t } = useData();
+  const { siteSettings, sendContactMessage, t, lang } = useData();
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -32,14 +32,11 @@ export const OfficeLocation: React.FC = () => {
   };
 
   return (
-    <section className="py-8 sm:py-12 bg-slate-50 dark:bg-slate-900/90 text-slate-800 dark:text-slate-100">
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 space-y-8 sm:space-y-10">
+    <section className="py-8 sm:py-12 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         
         {/* Header */}
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-3 sm:gap-4">
-          <span className="inline-flex items-center gap-1.5 text-[#1DB954] font-bold text-xs uppercase tracking-widest bg-[#1DB954]/10 px-3 py-1 rounded-full border border-[#1DB954]/20">
-            {t('যোগাযোগ ও অবস্থান', 'Get in Touch')}
-          </span>
           <h2 className="text-2xl sm:text-4xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
             {t('অফিস লোকেশন ও যোগাযোগ', 'Office Location & Contact')}
           </h2>
@@ -182,15 +179,15 @@ export const OfficeLocation: React.FC = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-[#1DB954] shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-slate-900 dark:text-white block font-bold">ঠিকানা:</strong>
-                  <span>{siteSettings.officeAddress || 'হাউজ #১২, রোড #০৫, ব্লক-সি, বনানী, ঢাকা-১২১৩, বাংলাদেশ'}</span>
+                  <strong className="text-slate-900 dark:text-white block font-bold">{t('ঠিকানা:', 'Address:')}</strong>
+                  <span>{siteSettings.officeAddress || (lang === 'en' ? 'House #12, Road #05, Block-C, Banani, Dhaka-1213, Bangladesh' : 'হাউজ #১২, রোড #০৫, ব্লক-সি, বনানী, ঢাকা-১২১৩, বাংলাদেশ')}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-[#1DB954] shrink-0" />
                 <div>
-                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">ফোন:</strong>
+                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">{t('ফোন:', 'Phone:')}</strong>
                   <span>{siteSettings.phone || '+880 1700-000000'}</span>
                 </div>
               </div>
@@ -198,7 +195,7 @@ export const OfficeLocation: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-[#1DB954] shrink-0" />
                 <div>
-                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">ইমেইল:</strong>
+                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">{t('ইমেইল:', 'Email:')}</strong>
                   <span>{siteSettings.email || 'support@ptenit.com'}</span>
                 </div>
               </div>
@@ -206,8 +203,8 @@ export const OfficeLocation: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-[#1DB954] shrink-0" />
                 <div>
-                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">অফিস সময়:</strong>
-                  <span>{siteSettings.officeHours || 'সকাল ১০:০০ - রাত ০৮:০০ (শনিবার - বৃহস্পতিবার)'}</span>
+                  <strong className="text-slate-900 dark:text-white inline-block font-bold mr-1">{t('অফিস সময়:', 'Office Hours:')}</strong>
+                  <span>{siteSettings.officeHours || (lang === 'en' ? '10:00 AM - 08:00 PM (Sat - Thu)' : 'সকাল ১০:০০ - রাত ০৮:০০ (শনিবার - বৃহস্পতিবার)')}</span>
                 </div>
               </div>
             </div>

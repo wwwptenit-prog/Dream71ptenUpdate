@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   User,
   Course,
@@ -24,7 +24,8 @@ import {
   MarketplaceJob,
   MarketplaceProposal,
   MarketplaceOrder,
-  DigitalProduct
+  DigitalProduct,
+  LiveClassSession
 } from '../types';
 import {
   initialSiteSettings,
@@ -40,7 +41,8 @@ import {
   initialJobs,
   initialProposals,
   initialMarketplaceOrders,
-  initialDigitalProducts
+  initialDigitalProducts,
+  initialLiveSessions
 } from '../data/initialData';
 
 interface DataContextType {
@@ -100,6 +102,12 @@ interface DataContextType {
   updateDigitalProduct: (id: string, product: Partial<DigitalProduct>) => void;
   deleteDigitalProduct: (id: string) => void;
   
+  // Live Classes & Scheduled Sessions
+  liveSessions: LiveClassSession[];
+  addLiveSession: (session: Omit<LiveClassSession, 'id' | 'createdAt'>) => void;
+  updateLiveSession: (id: string, session: Partial<LiveClassSession>) => void;
+  deleteLiveSession: (id: string) => void;
+  
   // Marketplace & Agency Dispatch Actions
   createGig: (gig: Omit<MarketplaceGig, 'id' | 'createdAt' | 'rating' | 'reviewsCount' | 'salesCount'>) => void;
   updateGig: (id: string, gig: Partial<MarketplaceGig>) => void;
@@ -144,6 +152,9 @@ interface DataContextType {
   deleteAssignment: (id: string) => void;
   submitAssignment: (submission: Omit<AssignmentSubmission, 'id' | 'submittedAt' | 'status'>) => void;
   gradeSubmission: (submissionId: string, points: number, feedback: string) => void;
+  updateSubmissionStatus: (submissionId: string, status: AssignmentSubmission['status']) => void;
+  deleteSubmission: (submissionId: string) => void;
+  updateSubmission: (submissionId: string, updates: Partial<AssignmentSubmission>) => void;
   
   // Customer Projects & Service Requests
   createCustomerProject: (project: Omit<CustomerProject, 'id' | 'createdAt' | 'status'>) => void;
@@ -201,6 +212,8 @@ interface DataContextType {
   
   // Shared Audio Synthesizer for Distinct Alerts
   playAppSound: (type?: 'notification' | 'message' | 'order' | 'success') => void;
+  isOfferSoundEnabled: boolean;
+  toggleOfferSound: () => void;
 
   // Mentorship Application & Role Actions
   applyForMentorship: (data: { expertise: string[]; experienceYears: string; bio: string; portfolioUrl?: string; proposedCourseTopic?: string; phone?: string }) => void;
@@ -447,6 +460,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Offer & Alert Sound Enablement State (Persisted in localStorage)
+  const [isOfferSoundEnabled, setIsOfferSoundEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('ptenit_offer_sound_enabled');
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleOfferSound = useCallback(() => {
+    setIsOfferSoundEnabled(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('ptenit_offer_sound_enabled', JSON.stringify(next));
+      } catch {}
+      if (next) {
+        // Provide immediate audible feedback that sound is enabled
+        try {
+          playAppSound('notification');
+        } catch {}
+      }
+      return next;
+    });
+  }, [playAppSound]);
+
   // Load state from localStorage or initialData
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_settings`);
@@ -455,7 +494,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [courses, setCourses] = useState<Course[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_courses`);
-    return saved ? JSON.parse(saved) : initialCourses;
+    if (saved) {
+      try {
+        const parsed: Course[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 15) return parsed;
+        const map = new Map<string, Course>();
+        initialCourses.forEach(c => map.set(c.id, c));
+        if (Array.isArray(parsed)) {
+          parsed.forEach(c => map.set(c.id, { ...map.get(c.id), ...c }));
+        }
+        return Array.from(map.values());
+      } catch {}
+    }
+    return initialCourses;
   });
 
   const [services, setServices] = useState<Service[]>(() => {
@@ -705,6 +756,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: "asgn-1",
         courseId: "course-1",
         courseTitle: "PTE Academic Masterclass 2026",
+        lessonNo: "লেসন নং ১",
         title: "PTE Speaking Describe Image Task Practice",
         description: "প্রদত্ত ছবি পর্যবেক্ষণ করে ৪০ সেকেন্ডের মৌখিক বিবরণ ও নোট ফাইল জমা দিন।",
         dueDate: "2026-08-15",
@@ -715,11 +767,45 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: "asgn-2",
         courseId: "course-2",
         courseTitle: "Full-Stack Web Development Bootcamp",
+        lessonNo: "লেসন নং ১",
         title: "React Components & Tailwind Layout Project",
         description: "Tailwind CSS ব্যবহার করে একটি সুন্দর ই-কমার্স কার্ড ল্যান্ডিং পেজ ডিজাইন করে ফাইল আপলোড করুন।",
         dueDate: "2026-08-20",
         totalPoints: 100,
         createdAt: "2026-08-01"
+      },
+      {
+        id: "asgn-3",
+        courseId: "course-1",
+        courseTitle: "PTE Academic Masterclass 2026",
+        lessonNo: "লেসন নং ২",
+        title: "PTE Retell Lecture & Note Taking",
+        description: "অডিও লেকচার শুনে কি-পয়েন্টস সাজিয়ে স্পিকিং রেকর্ড সাবমিট করুন।",
+        dueDate: "2026-08-22",
+        totalPoints: 50,
+        createdAt: "2026-08-05"
+      },
+      {
+        id: "asgn-4",
+        courseId: "course-2",
+        courseTitle: "Full-Stack Web Development Bootcamp",
+        lessonNo: "লেসন নং ২",
+        title: "Node.js REST API & JWT Authentication",
+        description: "ইউজার অথেনটিকেশন ও টোকেন ভ্যালিডেশনের কোড ফাইল সাবমিট করুন।",
+        dueDate: "2026-08-25",
+        totalPoints: 100,
+        createdAt: "2026-08-10"
+      },
+      {
+        id: "asgn-5",
+        courseId: "course-2",
+        courseTitle: "Full-Stack Web Development Bootcamp",
+        lessonNo: "লেসন নং ৩",
+        title: "Responsive Dashboard UI & Dark Mode",
+        description: "টেইলউইন্ড সিএসএস দিয়ে ফুল রেসপনসিভ ড্যাশবোর্ড স্ক্রিন সম্পন্ন করে গিটহাব লিঙ্ক বা ফাইল দিন।",
+        dueDate: "2026-08-28",
+        totalPoints: 100,
+        createdAt: "2026-08-12"
       }
     ];
   });
@@ -727,7 +813,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [submissions, setSubmissions] = useState<AssignmentSubmission[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY}_submissions`);
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try { 
+        const parsed = JSON.parse(saved); 
+        if (Array.isArray(parsed) && parsed.length >= 5) {
+          // Normalize so initial test data aligns with 0 new and 7 review items if still default
+          return parsed;
+        }
+      } catch {}
     }
     return [
       {
@@ -735,12 +827,141 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         assignmentId: "asgn-1",
         studentId: "user-student-1",
         studentName: "আরিফ হোসেন",
-        studentEmail: "student@ptenit.com",
-        submissionText: "আমার ডেসক্রাইব ইমেজ টাস্কের ফাইল ও প্র্যাকটিস নোট সংযোজন করা হলো।",
-        submittedAt: "2026-08-01 02:30 PM",
+        studentEmail: "arif.pte@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+        submissionText: "আমার ডেসক্রাইব ইমেজ টাস্কের ফাইল ও প্র্যাকটিস নোট সংযোজন করা হলো। সম্পূর্ণ কোর্স অ্যাসাইনমেন্ট ফাইনাল সাবমিশন।",
+        fileName: "PTE_Describe_Image_Arif.mp3",
+        fileUrl: "https://example.com/files/arif_speaking.mp3",
+        linkUrl: "https://drive.google.com/drive/folders/arif-pte-final-batch",
+        linkTitle: "Google Drive Portfolio",
+        submittedAt: "২০২৬-০৮-০১ ০২:৩০ PM",
         points: 48,
-        feedback: "খুব চমৎকার ফ্লুয়েন্সি ও এক্সেন্ট। গুড জব!",
+        feedback: "অসাধারণ পারফরম্যান্স! কোর্সের সব কয়টি টাস্কে দারুণ স্কোর অর্জন করেছেন। সার্টিফিকেট প্রস্তুত হয়েছে।",
         status: "graded"
+      },
+      {
+        id: "sub-1-b",
+        assignmentId: "asgn-3",
+        studentId: "user-student-1",
+        studentName: "আরিফ হোসেন",
+        studentEmail: "arif.pte@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+        submissionText: "PTE রিটেল লেকচার অডিও রেকর্ড ও ট্রান্সক্রিপ্ট নোট ফাইল।",
+        fileName: "Retell_Lecture_Arif.mp3",
+        fileUrl: "https://example.com/files/arif_retell.mp3",
+        linkUrl: "https://drive.google.com/drive/folders/arif-pte-recordings",
+        linkTitle: "PTE Lecture Audio Folder",
+        submittedAt: "২০২৬-০৮-০৫ ১১:১৫ AM",
+        points: 50,
+        feedback: "পারফেক্ট কি-নোটস এবং চমৎকার ফ্লুয়েন্সি।",
+        status: "graded"
+      },
+      {
+        id: "sub-2",
+        assignmentId: "asgn-1",
+        studentId: "user-student-2",
+        studentName: "তানভীর আহমেদ",
+        studentEmail: "tanvir.pte@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80",
+        submissionText: "স্যার, ৩টি ডেসক্রাইব ইমেজ টেমপ্লেট রেকর্ড করে ফাইল এটাচ করেছি। প্রোনাউন্সিয়েশন ও অ্যাকসেন্ট রিভিউ করবেন প্লিজ।",
+        fileName: "Describe_Image_Task_Tanvir.mp3",
+        fileUrl: "https://example.com/files/tanvir_speaking.mp3",
+        linkUrl: "https://drive.google.com/drive/folders/tanvir-pte-audio",
+        linkTitle: "Google Drive Audio Link",
+        submittedAt: "আজ দুপুর ১২:৪৫ PM",
+        status: "under_review"
+      },
+      {
+        id: "sub-3",
+        assignmentId: "asgn-2",
+        studentId: "user-student-3",
+        studentName: "নুসরাত জাহান",
+        studentEmail: "nusrat.dev@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+        submissionText: "টাস্কের রিকোয়ারমেন্ট অনুযায়ী রেসপনসিভ প্রোডাক্ট গ্রিড এবং কার্ট ড্রয়ার কম্পোনেন্ট তৈরি করেছি। সোর্স কোড ও প্রিভিউ জিপ ফাইল এটাচ করলাম। লাইভ ডেমো: https://nusrat-shop.vercel.app",
+        fileName: "Ecommerce_Tailwind_Nusrat.zip",
+        fileUrl: "https://example.com/files/nusrat_project.zip",
+        linkUrl: "https://github.com/nusrat-dev/ecommerce-tailwind-ui",
+        linkTitle: "GitHub Repository",
+        submittedAt: "আজ দুপুর ০১:১৫ PM",
+        status: "under_review"
+      },
+      {
+        id: "sub-4",
+        assignmentId: "asgn-3",
+        studentId: "user-student-4",
+        studentName: "সাকিব আল হাসান",
+        studentEmail: "sakib.dev@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        submissionText: "স্যার, লেকচার কি-পয়েন্টস রেকর্ড করে আপলোড দিয়েছি। ফ্লুয়েন্সি স্কোর কেমন হতে পারে ফিডব্যাক দিলে উপকৃত হব।",
+        fileName: "Retell_Lecture_Sakib.mp3",
+        fileUrl: "https://example.com/files/sakib_retell.mp3",
+        linkUrl: "https://drive.google.com/drive/folders/sakib-pte-tasks",
+        linkTitle: "Google Drive Task",
+        submittedAt: "আজ দুপুর ০২:০০ PM",
+        status: "under_review"
+      },
+      {
+        id: "sub-5",
+        assignmentId: "asgn-4",
+        studentId: "user-student-5",
+        studentName: "মাহিনুর রহমান",
+        studentEmail: "mahinur.ui@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+        submissionText: "Node.js এবং JWT দিয়ে ফুল অথেনটিকেশন মিডলওয়্যার সম্পন্ন করে কোড সাবমিট করেছি। গিটহাব লিঙ্ক ও পোস্টম্যান কালেকশন যুক্ত আছে।",
+        fileName: "JWT_Auth_Backend_Mahinur.zip",
+        fileUrl: "https://example.com/files/mahinur_jwt.zip",
+        linkUrl: "https://github.com/mahinur-ui/auth-jwt-express-api",
+        linkTitle: "GitHub Backend Repo",
+        submittedAt: "আজ দুপুর ০২:৩০ PM",
+        status: "under_review"
+      },
+      {
+        id: "sub-6",
+        assignmentId: "asgn-5",
+        studentId: "user-student-6",
+        studentName: "রোকসানা আক্তার",
+        studentEmail: "roksana.design@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80",
+        submissionText: "ড্যাশবোর্ডের ডার্ক মোড টগল ও রেসপনসিভ সাইডবার সম্পন্ন করা হয়েছে। ফিগমা ডিজাইন সিস্টেম লিঙ্ক সংযুক্ত।",
+        fileName: "Dashboard_DarkMode_Roksana.zip",
+        fileUrl: "https://example.com/files/roksana_dashboard.zip",
+        linkUrl: "https://figma.com/file/roksana-dashboard-design-system",
+        linkTitle: "Figma Design File",
+        submittedAt: "আজ বিকাল ০৩:১০ PM",
+        status: "under_review"
+      },
+      {
+        id: "sub-7",
+        assignmentId: "asgn-2",
+        studentId: "user-student-7",
+        studentName: "ফারহান সাদিক",
+        studentEmail: "farhan.mern@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80",
+        submissionText: "React Context API ব্যবহার করে সম্পূর্ণ স্টেট ম্যানেজমেন্ট ও কার্ট ক্যালকুলেশন সম্পন্ন করেছি। লাইভ প্রজেক্ট লিংক সংযুক্ত করা হয়েছে।",
+        fileName: "React_State_Farhan.zip",
+        fileUrl: "https://example.com/files/farhan_cart.zip",
+        linkUrl: "https://farhan-cart-state.vercel.app",
+        linkTitle: "লাইভ ওয়েব ডেমো",
+        submittedAt: "আজ দুপুর ১২:০০ PM",
+        status: "under_review"
+      },
+      {
+        id: "sub-8",
+        assignmentId: "asgn-4",
+        studentId: "user-student-7",
+        studentName: "ফারহান সাদিক",
+        studentEmail: "farhan.mern@ptenit.com",
+        studentAvatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80",
+        submissionText: "Node.js ব্যাকএন্ড ও মনগোডিবি ডাটাবেস ইন্টিগ্রেশন সম্পন্ন।",
+        fileName: "Node_MongoDB_Farhan.zip",
+        fileUrl: "https://example.com/files/farhan_backend.zip",
+        linkUrl: "https://github.com/farhan-mern/node-auth-api",
+        linkTitle: "GitHub Repo",
+        submittedAt: "গতকাল বিকাল ০৫:০০ PM",
+        points: 92,
+        feedback: "কোড স্ট্রাকচার খুব পরিষ্কার। এরর হ্যান্ডলিং আরও একটু গুছিয়ে নিলে চমৎকার হবে।",
+        status: "under_review"
       }
     ];
   });
@@ -831,10 +1052,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (Array.isArray(parsed)) {
           const officialIds = ['web-dev', 'digital-marketing', 'graphics-design', 'app-development', 'seo-optimization', 'video-editing', 'cyber-security', 'software-dev'];
           const missingOfficial = initialGigs.filter(g => officialIds.includes(g.id) && !parsed.some(p => p.id === g.id));
-          if (missingOfficial.length > 0) {
-            return [...missingOfficial, ...parsed];
-          }
-          return parsed;
+          const merged = missingOfficial.length > 0 ? [...missingOfficial, ...parsed] : parsed;
+          return merged.map(p => {
+            const initial = initialGigs.find(init => init.id === p.id);
+            if (initial && initial.title) {
+              return { ...p, title: initial.title };
+            }
+            return p;
+          });
         }
       } catch {}
     }
@@ -875,6 +1100,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {}
     }
     return initialDigitalProducts;
+  });
+
+  const [liveSessions, setLiveSessions] = useState<LiveClassSession[]>(() => {
+    const saved = localStorage.getItem(`${STORAGE_KEY}_live_sessions`);
+    if (saved) {
+      try {
+        const parsed: LiveClassSession[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {}
+    }
+    return initialLiveSessions;
   });
 
 
@@ -935,6 +1173,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_digital_products`, JSON.stringify(digitalProducts));
   }, [digitalProducts]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY}_live_sessions`, JSON.stringify(liveSessions));
+  }, [liveSessions]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_marketplace_orders`, JSON.stringify(marketplaceOrders));
@@ -1947,6 +2189,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } : s));
   };
 
+  const updateSubmissionStatus = (submissionId: string, status: AssignmentSubmission['status']) => {
+    setSubmissions(prev => prev.map(s => s.id === submissionId ? {
+      ...s,
+      status
+    } : s));
+  };
+
+  const deleteSubmission = (submissionId: string) => {
+    setSubmissions(prev => prev.filter(s => s.id !== submissionId));
+  };
+
+  const updateSubmission = (submissionId: string, updates: Partial<AssignmentSubmission>) => {
+    setSubmissions(prev => prev.map(s => s.id === submissionId ? {
+      ...s,
+      ...updates
+    } : s));
+  };
+
   // Customer Project Functions
   const createCustomerProject = (projData: Omit<CustomerProject, 'id' | 'createdAt' | 'status'>) => {
     const createdAtIso = new Date().toISOString();
@@ -2470,6 +2730,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTeacherNotices(prev => prev.filter(n => n.id !== id));
   };
 
+  const addLiveSession = (session: Omit<LiveClassSession, 'id' | 'createdAt'>) => {
+    const newSession: LiveClassSession = {
+      ...session,
+      id: `live-${Date.now()}`,
+      createdAt: new Date().toISOString()
+    };
+    setLiveSessions(prev => [newSession, ...prev]);
+  };
+
+  const updateLiveSession = (id: string, updatedFields: Partial<LiveClassSession>) => {
+    setLiveSessions(prev => prev.map(s => s.id === id ? { ...s, ...updatedFields } : s));
+  };
+
+  const deleteLiveSession = (id: string) => {
+    setLiveSessions(prev => prev.filter(s => s.id !== id));
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -2530,6 +2807,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addDigitalProduct,
         updateDigitalProduct,
         deleteDigitalProduct,
+        liveSessions,
+        addLiveSession,
+        updateLiveSession,
+        deleteLiveSession,
         createGig,
         updateGig,
         deleteGig,
@@ -2566,6 +2847,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteAssignment,
         submitAssignment,
         gradeSubmission,
+        updateSubmissionStatus,
+        deleteSubmission,
+        updateSubmission,
         createCustomerProject,
         updateCustomerProjectStatus,
         addCourse,
@@ -2604,7 +2888,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendChatMessage,
         createGoogleMeetCall,
         toggleUserBlock,
-        playAppSound
+        playAppSound,
+        isOfferSoundEnabled,
+        toggleOfferSound
       }}
     >
       {children}

@@ -3,32 +3,43 @@ import { DataProvider, useData } from './context/DataContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Hero } from './components/Hero';
+import { GlitterParticles } from './components/GlitterParticles';
 import { StatsCounter } from './components/StatsCounter';
 import { PromotionalOfferBanner } from './components/PromotionalOfferBanner';
 import { ServicesSection } from './components/ServicesSection';
+import { DigitalProductsSection } from './components/DigitalProductsSection';
 import { CourseCard } from './components/CourseCard';
 import { CoursesSection } from './components/CoursesSection';
-import { CourseDetailModal } from './components/CourseDetailModal';
-import { StudentDashboard } from './components/StudentDashboard';
-import { CourseLearningPage } from './components/CourseLearningPage';
-import { CertificateModal } from './components/CertificateModal';
-import { CertificateVerifyPage } from './components/CertificateVerifyPage';
 import { AboutSection } from './components/AboutSection';
 import { WhyChooseUs } from './components/WhyChooseUs';
 import { GallerySection } from './components/GallerySection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { OfficeLocation } from './components/OfficeLocation';
-import { AuthModal } from './components/AuthModal';
-import { AdminPanel } from './components/AdminPanel';
-import { TeacherDashboard } from './components/TeacherDashboard';
-import { CustomerDashboard } from './components/CustomerDashboard';
-import { MarketplaceSection } from './components/MarketplaceSection';
-import { FloatingMessengerWindows } from './components/FloatingMessengerWindows';
-import { NotificationCenterModal } from './components/NotificationCenterModal';
 import { Course } from './types';
 
+// Performance optimization: Lazy load heavy sub-systems and dashboards on-demand
+const CourseDetailModal = React.lazy(() => import('./components/CourseDetailModal').then(m => ({ default: m.CourseDetailModal })));
+const StudentDashboard = React.lazy(() => import('./components/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
+const CourseLearningPage = React.lazy(() => import('./components/CourseLearningPage').then(m => ({ default: m.CourseLearningPage })));
+const CertificateModal = React.lazy(() => import('./components/CertificateModal').then(m => ({ default: m.CertificateModal })));
+const CertificateVerifyPage = React.lazy(() => import('./components/CertificateVerifyPage').then(m => ({ default: m.CertificateVerifyPage })));
+const AuthModal = React.lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
+const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
+const TeacherDashboard = React.lazy(() => import('./components/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
+const CustomerDashboard = React.lazy(() => import('./components/CustomerDashboard').then(m => ({ default: m.CustomerDashboard })));
+const MarketplaceSection = React.lazy(() => import('./components/MarketplaceSection').then(m => ({ default: m.MarketplaceSection })));
+const FloatingMessengerWindows = React.lazy(() => import('./components/FloatingMessengerWindows').then(m => ({ default: m.FloatingMessengerWindows })));
+const NotificationCenterModal = React.lazy(() => import('./components/NotificationCenterModal').then(m => ({ default: m.NotificationCenterModal })));
+
+const LazyFallback: React.FC = () => (
+  <div className="min-h-[50vh] flex flex-col items-center justify-center p-8">
+    <div className="w-9 h-9 border-3 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+    <span className="mt-3 text-xs text-slate-400 font-medium tracking-wide">লোড হচ্ছে...</span>
+  </div>
+);
+
 const MainAppContent: React.FC = () => {
-  const { currentUser, courses, siteSettings, closeMessengerInbox } = useData();
+  const { currentUser, courses, siteSettings, closeMessengerInbox, marketplaceMode } = useData();
 
   const [activeTab, setActiveTab] = useState<string>('home');
   const [marketplaceCategory, setMarketplaceCategory] = useState<string>('All');
@@ -36,6 +47,29 @@ const MainAppContent: React.FC = () => {
   const [learningCourseId, setLearningCourseId] = useState<string | null>(null);
   const [activeCertificateCode, setActiveCertificateCode] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [heroZoneMouseCoords, setHeroZoneMouseCoords] = useState<{ x: number; y: number } | null>(null);
+
+  const handleHeroZoneMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHeroZoneMouseCoords({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  const handleHeroZoneTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length > 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setHeroZoneMouseCoords({
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top,
+      });
+    }
+  };
+
+  const handleHeroZoneMouseLeave = () => {
+    setHeroZoneMouseCoords(null);
+  };
 
   // Robust Multi-level Navigation History Stack
   interface NavHistoryItem {
@@ -77,7 +111,7 @@ const MainAppContent: React.FC = () => {
     } else if (tab === 'customer-dashboard') {
       setMarketplaceCategory('buying');
     } else if (tab === 'marketplace') {
-      setMarketplaceCategory('All');
+      setMarketplaceCategory(marketplaceMode === 'selling' ? 'selling' : 'All');
     }
     setActiveTab(tab);
   };
@@ -140,13 +174,23 @@ const MainAppContent: React.FC = () => {
 
     // 4. Pop from Navigation History Stack
     if (navHistory.length > 0) {
-      const last = navHistory[navHistory.length - 1];
-      setNavHistory(prev => prev.slice(0, -1));
-      if (last.category) {
-        setMarketplaceCategory(last.category);
+      let prevEntry: { tab: string; category?: string } | null = null;
+      let newHistory = [...navHistory];
+      while (newHistory.length > 0) {
+        const candidate = newHistory.pop()!;
+        if (candidate.tab !== activeTab || (candidate.category && candidate.category !== marketplaceCategory)) {
+          prevEntry = candidate;
+          break;
+        }
       }
-      setActiveTab(last.tab);
-      return;
+      setNavHistory(newHistory);
+      if (prevEntry) {
+        if (prevEntry.category) {
+          setMarketplaceCategory(prevEntry.category);
+        }
+        setActiveTab(prevEntry.tab);
+        return;
+      }
     }
 
     // 5. Default fallback to home or student-dashboard
@@ -243,12 +287,14 @@ const MainAppContent: React.FC = () => {
   // If in learning classroom mode, render full-screen LMS
   if (activeTab === 'learning' && learningCourseId) {
     return (
-      <CourseLearningPage
-        courseId={learningCourseId}
-        initialTab={learningInitialTab}
-        onBack={handleGoBack}
-        onViewCertificate={(code) => setActiveCertificateCode(code)}
-      />
+      <React.Suspense fallback={<LazyFallback />}>
+        <CourseLearningPage
+          courseId={learningCourseId}
+          initialTab={learningInitialTab}
+          onBack={handleGoBack}
+          onViewCertificate={(code) => setActiveCertificateCode(code)}
+        />
+      </React.Suspense>
     );
   }
 
@@ -272,173 +318,210 @@ const MainAppContent: React.FC = () => {
 
       {/* Page Routing Views */}
       <main className="flex-1 max-w-full overflow-x-hidden">
-        
-        {/* VIEW 1: HOME PAGE */}
-        {activeTab === 'home' && (
-          <>
-            <Hero setActiveTab={handleSetActiveTab} />
-            <PromotionalOfferBanner setActiveTab={handleSetActiveTab} />
-            <StatsCounter />
-            <ServicesSection setActiveTab={handleSetActiveTab} isStandalonePage={false} />
+        <React.Suspense fallback={<LazyFallback />}>
+          {/* VIEW 1: HOME PAGE */}
+          {activeTab === 'home' && (
+            <>
+              {/* Combined Hero & Eid Mega Offer Zone with unified glittering starfield ("সেইম হিরো শেকশন এবং (ঈদ মেগা অফার!) পযন্ত কনটাইনিয়ারে স্টার গুলা বিসন্ত থাকবে, বাট কালার স্ব স্ব থাকবে") */}
+              <div
+                onMouseMove={handleHeroZoneMouseMove}
+                onTouchMove={handleHeroZoneTouchMove}
+                onMouseLeave={handleHeroZoneMouseLeave}
+                className="relative w-full overflow-hidden"
+              >
+                {/* 1. Hero Section (signature deep navy background) */}
+                <Hero setActiveTab={handleSetActiveTab} mouseCoords={heroZoneMouseCoords} />
+
+                {/* 2. Eid Mega Offer Banner (emerald-to-teal gradient background) */}
+                <PromotionalOfferBanner setActiveTab={handleSetActiveTab} />
+
+                {/* 3. Continuous Glittering Starfield spanning seamlessly across Hero down through Eid Mega Offer Banner */}
+                <GlitterParticles mouseCoords={heroZoneMouseCoords} />
+              </div>
+
+              <StatsCounter />
+              <ServicesSection setActiveTab={handleSetActiveTab} isStandalonePage={false} />
+              <CoursesSection
+                onOpenDetail={(id) => setSelectedCourseId(id)}
+                onQuickEnroll={handleQuickEnroll}
+                onStartLearning={handleStartLearning}
+                setActiveTab={handleSetActiveTab}
+                isStandalonePage={false}
+              />
+              <WhyChooseUs />
+              <TestimonialsSection />
+              <GallerySection />
+              <OfficeLocation />
+            </>
+          )}
+
+          {/* VIEW 2: COURSES PAGE */}
+          {activeTab === 'courses' && (
             <CoursesSection
               onOpenDetail={(id) => setSelectedCourseId(id)}
               onQuickEnroll={handleQuickEnroll}
               onStartLearning={handleStartLearning}
               setActiveTab={handleSetActiveTab}
-              isStandalonePage={false}
+              onBack={handleGoBack}
+              isStandalonePage={true}
             />
-            <WhyChooseUs />
-            <TestimonialsSection />
-            <GallerySection />
+          )}
+
+          {/* VIEW 3: SERVICES PAGE */}
+          {activeTab === 'services' && (
+            <ServicesSection
+              setActiveTab={handleSetActiveTab}
+              openAuthModal={() => setAuthModalOpen(true)}
+              isStandalonePage={true}
+              onBack={handleGoBack}
+            />
+          )}
+
+          {/* VIEW 3.2: DIGITAL PRODUCTS STANDALONE PAGE */}
+          {activeTab === 'digital-products' && (
+            <DigitalProductsSection
+              setActiveTab={handleSetActiveTab}
+              isStandalonePage={true}
+              onBack={handleGoBack}
+            />
+          )}
+
+          {/* VIEW 3.5: MARKETPLACE PAGE */}
+          {activeTab === 'marketplace' && (
+            <MarketplaceSection
+              setActiveTab={handleSetActiveTab}
+              activeTab={activeTab}
+              openAuthModal={() => setAuthModalOpen(true)}
+              initialCategory={marketplaceCategory}
+              onStartLearning={handleStartLearning}
+              onOpenDetail={(id) => setSelectedCourseId(id)}
+            />
+          )}
+
+          {/* VIEW 4: ABOUT PAGE */}
+          {activeTab === 'about' && (
+            <>
+              <AboutSection onBack={handleGoBack} />
+              <WhyChooseUs />
+            </>
+          )}
+
+          {/* VIEW 5: GALLERY PAGE */}
+          {activeTab === 'gallery' && (
+            <GallerySection onBack={handleGoBack} />
+          )}
+
+          {/* VIEW 6: CERTIFICATE VERIFICATION PORTAL */}
+          {(activeTab === 'verify' || activeTab === 'verify-cert') && (
+            <CertificateVerifyPage onBack={handleGoBack} />
+          )}
+
+          {/* VIEW 7: ROLE-SPECIFIC DASHBOARDS */}
+          {activeTab === 'teacher-dashboard' && (
+            <MarketplaceSection
+              setActiveTab={handleSetActiveTab}
+              activeTab={activeTab}
+              openAuthModal={() => setAuthModalOpen(true)}
+              initialCategory={marketplaceCategory || "selling"}
+              onStartLearning={handleStartLearning}
+            />
+          )}
+
+          {activeTab === 'customer-dashboard' && (
+            <MarketplaceSection
+              setActiveTab={handleSetActiveTab}
+              activeTab={activeTab}
+              openAuthModal={() => setAuthModalOpen(true)}
+              initialCategory={marketplaceCategory || "buying"}
+              onStartLearning={handleStartLearning}
+            />
+          )}
+
+          {activeTab === 'student-dashboard' && (
+            <MarketplaceSection
+              setActiveTab={handleSetActiveTab}
+              activeTab={activeTab}
+              openAuthModal={() => setAuthModalOpen(true)}
+              initialCategory={marketplaceCategory || "my-courses"}
+              onStartLearning={handleStartLearning}
+            />
+          )}
+
+          {activeTab === 'dashboard' && (
+            <>
+              {currentUser?.role === 'admin' ? (
+                <AdminPanel setActiveTab={handleSetActiveTab} />
+              ) : currentUser?.role === 'instructor' ? (
+                <MarketplaceSection
+                  setActiveTab={handleSetActiveTab}
+                  activeTab={activeTab}
+                  openAuthModal={() => setAuthModalOpen(true)}
+                  initialCategory={marketplaceCategory || "selling"}
+                  onStartLearning={handleStartLearning}
+                />
+              ) : (
+                <MarketplaceSection
+                  setActiveTab={handleSetActiveTab}
+                  activeTab={activeTab}
+                  openAuthModal={() => setAuthModalOpen(true)}
+                  initialCategory={marketplaceCategory || "my-courses"}
+                  onStartLearning={handleStartLearning}
+                />
+              )}
+            </>
+          )}
+
+          {/* VIEW 8: ADMIN CONTROL PANEL */}
+          {activeTab === 'admin' && (
+            <AdminPanel setActiveTab={handleSetActiveTab} />
+          )}
+
+          {/* VIEW 9: CONTACT PAGE */}
+          {activeTab === 'contact' && (
             <OfficeLocation />
-          </>
-        )}
-
-        {/* VIEW 2: COURSES PAGE */}
-        {activeTab === 'courses' && (
-          <CoursesSection
-            onOpenDetail={(id) => setSelectedCourseId(id)}
-            onQuickEnroll={handleQuickEnroll}
-            onStartLearning={handleStartLearning}
-            setActiveTab={handleSetActiveTab}
-            onBack={handleGoBack}
-            isStandalonePage={true}
-          />
-        )}
-
-        {/* VIEW 3: SERVICES PAGE */}
-        {activeTab === 'services' && (
-          <ServicesSection setActiveTab={handleSetActiveTab} isStandalonePage={true} />
-        )}
-
-        {/* VIEW 3.5: MARKETPLACE PAGE */}
-        {activeTab === 'marketplace' && (
-          <MarketplaceSection
-            setActiveTab={handleSetActiveTab}
-            activeTab={activeTab}
-            openAuthModal={() => setAuthModalOpen(true)}
-            initialCategory={marketplaceCategory}
-            onStartLearning={handleStartLearning}
-            onOpenDetail={(id) => setSelectedCourseId(id)}
-          />
-        )}
-
-        {/* VIEW 4: ABOUT PAGE */}
-        {activeTab === 'about' && (
-          <>
-            <AboutSection />
-            <WhyChooseUs />
-          </>
-        )}
-
-        {/* VIEW 5: GALLERY PAGE */}
-        {activeTab === 'gallery' && (
-          <GallerySection />
-        )}
-
-        {/* VIEW 6: CERTIFICATE VERIFICATION PORTAL */}
-        {(activeTab === 'verify' || activeTab === 'verify-cert') && (
-          <CertificateVerifyPage onBack={handleGoBack} />
-        )}
-
-        {/* VIEW 7: ROLE-SPECIFIC DASHBOARDS */}
-        {activeTab === 'teacher-dashboard' && (
-          <MarketplaceSection
-            setActiveTab={handleSetActiveTab}
-            activeTab={activeTab}
-            openAuthModal={() => setAuthModalOpen(true)}
-            initialCategory={marketplaceCategory || "selling"}
-            onStartLearning={handleStartLearning}
-          />
-        )}
-
-        {activeTab === 'customer-dashboard' && (
-          <MarketplaceSection
-            setActiveTab={handleSetActiveTab}
-            activeTab={activeTab}
-            openAuthModal={() => setAuthModalOpen(true)}
-            initialCategory={marketplaceCategory || "buying"}
-            onStartLearning={handleStartLearning}
-          />
-        )}
-
-        {activeTab === 'student-dashboard' && (
-          <MarketplaceSection
-            setActiveTab={handleSetActiveTab}
-            activeTab={activeTab}
-            openAuthModal={() => setAuthModalOpen(true)}
-            initialCategory={marketplaceCategory || "my-courses"}
-            onStartLearning={handleStartLearning}
-          />
-        )}
-
-        {activeTab === 'dashboard' && (
-          <>
-            {currentUser?.role === 'admin' ? (
-              <AdminPanel setActiveTab={handleSetActiveTab} />
-            ) : currentUser?.role === 'instructor' ? (
-              <MarketplaceSection
-                setActiveTab={handleSetActiveTab}
-                activeTab={activeTab}
-                openAuthModal={() => setAuthModalOpen(true)}
-                initialCategory={marketplaceCategory || "selling"}
-                onStartLearning={handleStartLearning}
-              />
-            ) : (
-              <MarketplaceSection
-                setActiveTab={handleSetActiveTab}
-                activeTab={activeTab}
-                openAuthModal={() => setAuthModalOpen(true)}
-                initialCategory={marketplaceCategory || "my-courses"}
-                onStartLearning={handleStartLearning}
-              />
-            )}
-          </>
-        )}
-
-        {/* VIEW 8: ADMIN CONTROL PANEL */}
-        {activeTab === 'admin' && (
-          <AdminPanel setActiveTab={handleSetActiveTab} />
-        )}
-
-        {/* VIEW 9: CONTACT PAGE */}
-        {activeTab === 'contact' && (
-          <OfficeLocation />
-        )}
-
+          )}
+        </React.Suspense>
       </main>
 
       {/* Main Footer (Only on public website pages) */}
       {!isDashboardView && (
-        <Footer setActiveTab={setActiveTab} />
+        <Footer setActiveTab={handleSetActiveTab} />
       )}
 
       {/* Modals Container */}
-      <CourseDetailModal
-        courseId={selectedCourseId}
-        onClose={() => setSelectedCourseId(null)}
-        openAuthModal={() => setAuthModalOpen(true)}
-        onStartLearning={handleStartLearning}
-      />
+      <React.Suspense fallback={null}>
+        {selectedCourseId && (
+          <CourseDetailModal
+            courseId={selectedCourseId}
+            onClose={() => setSelectedCourseId(null)}
+            openAuthModal={() => setAuthModalOpen(true)}
+            onStartLearning={handleStartLearning}
+          />
+        )}
 
-      <CertificateModal
-        certificateCode={activeCertificateCode}
-        onClose={() => setActiveCertificateCode(null)}
-      />
+        {activeCertificateCode && (
+          <CertificateModal
+            certificateCode={activeCertificateCode}
+            onClose={() => setActiveCertificateCode(null)}
+          />
+        )}
 
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        onSuccess={() => {
-          setActiveTab('home');
-        }}
-      />
+        {authModalOpen && (
+          <AuthModal
+            isOpen={authModalOpen}
+            onClose={() => setAuthModalOpen(false)}
+            onSuccess={() => {
+              handleSetActiveTab('home');
+            }}
+          />
+        )}
 
-      {/* Facebook-style Messenger Floating Chat Windows */}
-      <FloatingMessengerWindows onNavigateTab={handleSetActiveTab} />
+        {/* Facebook-style Messenger Floating Chat Windows */}
+        <FloatingMessengerWindows onNavigateTab={handleSetActiveTab} />
 
-      {/* Central Mobile & Desktop Notification Center Modal */}
-      <NotificationCenterModal onNavigateTab={setActiveTab} />
+        {/* Central Mobile & Desktop Notification Center Modal */}
+        <NotificationCenterModal onNavigateTab={handleSetActiveTab} />
+      </React.Suspense>
 
     </div>
   );

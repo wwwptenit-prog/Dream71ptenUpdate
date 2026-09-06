@@ -344,8 +344,13 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                           {pData.name}
                         </div>
 
-                        <div className="text-base font-black text-[#1DB954]">
-                          ৳{pData.price.toLocaleString('bn-BD')}
+                        <div className="flex items-baseline justify-between gap-1">
+                          <span className="text-base font-black text-[#1DB954]">
+                            ৳{pData.price.toLocaleString('bn-BD')}
+                          </span>
+                          <span className="text-xs font-medium text-slate-400 dark:text-slate-500 line-through">
+                            ৳{(Math.round(pData.price * 1.3)).toLocaleString('bn-BD')}
+                          </span>
                         </div>
 
                         <ul className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1 border-t border-slate-200 dark:border-slate-800/80 pt-2">
@@ -392,9 +397,9 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setCurrentStep(2)}
-                  className="px-6 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold font-bengali text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center cursor-pointer"
+                  className="px-6 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black font-bengali text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center cursor-pointer"
                 >
-                  <span>পরবর্তী ধাপে যান (যোগাযোগের তথ্য)</span>
+                  <span>পরবর্তী</span>
                 </button>
               </div>
             </div>
@@ -404,12 +409,12 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
           {currentStep === 2 && (
             <div className="space-y-3.5">
               <div className="p-3 bg-emerald-500/10 dark:bg-emerald-950/30 rounded-2xl border border-[#1DB954]/30 space-y-0.5">
-                <h3 className="text-xs sm:text-sm font-black text-[#1DB954] flex items-center gap-2">
-                  <User className="w-4 h-4 text-[#1DB954]" />
-                  <span>আপনার যোগাযোগের তথ্য প্রদান করুন:</span>
+                <h3 className="text-xs sm:text-sm font-black text-[#1DB954] flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#1DB954]" />
+                  <span>যোগাযোগের তথ্য</span>
                 </h3>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-                  অর্ডারের আপডেট ও সরাসরি সেলারের সাথে যোগাযোগের জন্য আপনার তথ্য দিন।
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  অর্ডার আপডেটের জন্য আপনার সঠিক তথ্য দিন।
                 </p>
               </div>
 
@@ -499,9 +504,9 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                 <button
                   type="button"
                   onClick={handleNextToPayment}
-                  className="w-full sm:w-auto px-7 py-3 bg-[#1DB954] hover:bg-emerald-600 text-white font-black font-bengali text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center cursor-pointer"
+                  className="w-full sm:w-auto px-7 py-2.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black font-bengali text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center cursor-pointer"
                 >
-                  <span>পেমেন্ট ও কনফার্মেশনে যান (ধাপ ২)</span>
+                  <span>পরবর্তী</span>
                 </button>
               </div>
             </div>
@@ -539,16 +544,16 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                 </div>
               ) : (
                 /* Standard Order: Payment Method Selector */
-                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3.5">
+                <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
                   <div className="flex justify-between items-center text-xs font-black text-slate-800 dark:text-slate-200">
-                    <span className="text-xs font-extrabold text-[#1DB954]">পেমেন্ট মেথড নির্বাচন করুন:</span>
+                    <span className="text-xs font-extrabold text-[#1DB954]">পেমেন্ট মেথড:</span>
                     <span className="text-[#1DB954] font-black bg-[#1DB954]/10 px-2.5 py-1 rounded-lg border border-[#1DB954]/20">
-                      মোট বিল: ৳{finalPrice.toLocaleString('bn-BD')}
+                      বিল: ৳{finalPrice.toLocaleString('bn-BD')}
                     </span>
                   </div>
 
-                  {/* Prominent & Larger Payment Method Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {/* Slim & Compact 1-Row Payment Method Selector (Phone & Desktop) */}
+                  <div className="grid grid-cols-5 gap-1 sm:gap-1.5 bg-slate-200/70 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800">
                     {(['bKash', 'Nagad', 'Rocket', 'Upay', 'Card'] as const).map(mKey => {
                       const acc = officialAccounts[mKey];
                       const isSel = paymentMethod === mKey;
@@ -557,17 +562,17 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                           key={mKey}
                           type="button"
                           onClick={() => setPaymentMethod(mKey)}
-                          className={`py-3 px-2 rounded-2xl font-black text-xs sm:text-sm border transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-2xs ${
+                          className={`py-2 px-0.5 sm:px-1 rounded-lg font-black transition-all cursor-pointer flex flex-col items-center justify-center text-center ${
                             isSel
-                              ? 'bg-white dark:bg-slate-900 border-[#1DB954] text-[#1DB954] ring-2 ring-[#1DB954]/40 shadow-md scale-102'
-                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                              ? 'bg-[#1DB954] text-white shadow-xs scale-[1.02]'
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200/60 dark:border-slate-700/60'
                           }`}
                         >
-                          <span className={`text-xs font-black px-2 py-0.5 rounded-md ${acc.bg} ${acc.color}`}>
+                          <span className={`text-[11px] sm:text-xs font-black truncate leading-tight ${isSel ? 'text-white' : acc.color}`}>
                             {mKey}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-500">
-                            {mKey === 'Card' ? 'ব্যাংক/কার্ড' : 'সেন্ড মানি'}
+                          <span className={`text-[9px] font-bold leading-none mt-0.5 truncate ${isSel ? 'text-emerald-100' : 'text-slate-400'}`}>
+                            {mKey === 'Card' ? 'কার্ড' : 'সেন্ড'}
                           </span>
                         </button>
                       );
@@ -575,12 +580,12 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                   </div>
 
                   {/* Account Copy Bar */}
-                  <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs">
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-500 block">
+                  <div className="p-2.5 sm:p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shadow-xs">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-bold text-slate-400 block truncate">
                         {officialAccounts[paymentMethod].label}:
                       </span>
-                      <span className="text-sm font-mono font-black text-slate-900 dark:text-white">
+                      <span className="text-xs sm:text-sm font-mono font-black text-slate-900 dark:text-white truncate block">
                         {officialAccounts[paymentMethod].number}
                       </span>
                     </div>
@@ -588,17 +593,17 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleCopyAccount(officialAccounts[paymentMethod].number)}
-                      className="px-4 py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 shadow-xs active:scale-95"
+                      className="px-3 py-1.5 bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1 transition cursor-pointer shrink-0 shadow-xs active:scale-95"
                     >
                       <Copy className="w-3.5 h-3.5 text-white" />
-                      <span>{isCopied ? 'কপি হয়েছে!' : 'নম্বর কপি করুন'}</span>
+                      <span>{isCopied ? 'কপি হয়েছে' : 'কপি'}</span>
                     </button>
                   </div>
 
                   {/* TrxID Input */}
                   <div>
                     <label className="text-xs font-extrabold text-slate-800 dark:text-slate-200 block mb-1">
-                      পেমেন্ট শেষ করে TrxID (Transaction ID) লিখুন <span className="text-rose-500">*</span>
+                      পেমেন্ট TrxID (Transaction ID) লিখুন <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -608,7 +613,7 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                         setTrxId(e.target.value);
                         if (formError) setFormError('');
                       }}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]"
                     />
                   </div>
                 </div>
@@ -639,23 +644,23 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
               )}
 
               {/* Actions */}
-              <div className="pt-2 flex justify-between items-center gap-3">
+              <div className="pt-2 flex justify-between items-center gap-2.5">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(2)}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-300 transition cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-300 transition cursor-pointer flex items-center gap-1.5"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span>আগের ধাপ</span>
+                  <span>পেছনে</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleConfirmOrderSubmit}
-                  className="flex-1 py-3 px-6 bg-[#1DB954] hover:bg-emerald-600 text-white font-black font-bengali text-sm rounded-xl shadow-lg hover:shadow-[#1DB954]/20 transition transform active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 py-2.5 sm:py-3 px-5 bg-[#1DB954] hover:bg-emerald-600 text-white font-black font-bengali text-sm rounded-xl shadow-lg hover:shadow-[#1DB954]/20 transition transform active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>অর্ডার নিশ্চিত করুন</span>
+                  <span>অর্ডার করুন</span>
                 </button>
               </div>
             </div>
@@ -737,19 +742,19 @@ export const OrderCheckoutModal: React.FC<OrderCheckoutModalProps> = ({
                       setActiveTab('marketplace');
                     }
                   }}
-                  className="py-3 px-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md truncate"
+                  className="py-2.5 px-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md truncate"
                 >
                   <ArrowRight className="w-4 h-4 shrink-0 text-slate-950" />
-                  <span className="truncate">বায়ারের ড্যাশবোর্ডে যান</span>
+                  <span className="truncate">ড্যাশবোর্ড</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleOpenMarketplaceChat}
-                  className="py-3 px-2 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer truncate border border-slate-700"
+                  className="py-2.5 px-2 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer truncate border border-slate-700"
                 >
                   <MessageSquare className="w-4 h-4 text-[#1DB954] shrink-0" />
-                  <span className="truncate">মেসেজ করুন</span>
+                  <span className="truncate">মেসেজ</span>
                 </button>
               </div>
 

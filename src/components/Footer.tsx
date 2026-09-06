@@ -8,7 +8,8 @@ import {
   Instagram,
   Linkedin,
   MessageSquare,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
@@ -21,22 +22,46 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
 
   return (
     <footer className="bg-[#142B4D] text-slate-300 pt-16 pb-8 border-t border-slate-800">
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
           
           {/* Column 1: Logo & About */}
           <div className="space-y-4">
-            <div
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setActiveTab('home')}
-            >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1DB954] to-emerald-600 flex items-center justify-center font-bold text-2xl text-white shadow-lg">
-                P
-              </div>
-              <span className="font-heading text-2xl font-black text-white">
-                PTEN<span className="text-[#1DB954]">it</span>
-              </span>
-            </div>
+            {(() => {
+              const logoMode = siteSettings?.logoMode || (siteSettings?.logoUrl ? 'image' : (siteSettings?.showLogoBox === false ? 'text_only' : 'box_text'));
+              const isImageMode = logoMode === 'image' && !!siteSettings?.logoUrl;
+              const showBox = !isImageMode && logoMode !== 'text_only' && siteSettings?.showLogoBox !== false;
+              const boxLetter = siteSettings?.logoBoxLetter || 'P';
+              const textMain = siteSettings?.logoTextMain !== undefined && siteSettings?.logoTextMain !== '' ? siteSettings.logoTextMain : 'PTEN';
+              const textHighlight = siteSettings?.logoTextHighlight !== undefined ? siteSettings.logoTextHighlight : 'it';
+
+              return (
+                <div
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => setActiveTab('home')}
+                >
+                  {isImageMode ? (
+                    <img
+                      src={siteSettings?.logoUrl}
+                      alt={textMain || 'Logo'}
+                      className="h-10 w-auto max-w-[170px] object-contain rounded-lg"
+                    />
+                  ) : (
+                    <>
+                      {showBox && (
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1DB954] to-emerald-600 flex items-center justify-center font-bold text-2xl text-white shadow-lg shrink-0">
+                          {boxLetter}
+                        </div>
+                      )}
+                      <span className="font-heading text-2xl font-black text-white">
+                        {textMain}
+                        {textHighlight && <span className="text-[#1DB954]">{textHighlight}</span>}
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
 
             <p className="text-sm text-slate-400 leading-relaxed font-bengali">
               {t('PTENit আপনার ব্যবসা ও ক্যারিয়ারের জন্য আধুনিক IT Services, Digital Marketing, Web Development এবং Professional Training Solutions প্রদান করে।', 'PTENit provides modern IT Services, Digital Marketing, Web Development, and Professional Training Solutions for your business and career.')}
@@ -129,6 +154,11 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
                     <ArrowRight className="w-3.5 h-3.5 text-[#1DB954] shrink-0" /> {t('যোগাযোগ', 'Contact')}
                   </button>
                 </li>
+                <li>
+                  <button onClick={() => setActiveTab('admin')} className="hover:text-amber-400 text-slate-400 font-bold transition-colors flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" /> {t('এডমিন প্যানেল', 'Admin Portal')}
+                  </button>
+                </li>
               </ul>
             </div>
 
@@ -194,32 +224,24 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
               </li>
             </ul>
 
-            {/* Compact Map Embed */}
-            <div className="mt-4 rounded-xl overflow-hidden border border-slate-700/80 shadow-md">
-              <div className="bg-slate-800/90 px-2.5 py-1.5 flex items-center justify-between text-[11px] text-slate-200 font-bengali">
-                <span className="font-bold flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[#1DB954]" />
+            {/* Compact Map Embed - Phone View Only (lg:hidden), PC View will NOT have map in footer */}
+            <div className="lg:hidden mt-4 rounded-xl overflow-hidden border border-slate-700/80 shadow-md">
+              <div className="bg-slate-800/90 px-3 py-2 flex items-center text-xs text-slate-200 font-bengali">
+                <span className="font-bold flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#1DB954]" />
                   গুগল ম্যাপ লোকেশন
                 </span>
-                <a
-                  href="https://maps.google.com/?q=Uttara+Dhaka+Bangladesh"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[#1DB954] hover:underline font-bold text-[10px]"
-                >
-                  বড় করে দেখুন ↗
-                </a>
               </div>
-              <div className="w-full h-28 sm:h-32 bg-slate-950 relative">
+              <div className="w-full h-32 bg-slate-950 relative">
                 <iframe
                   title="PTENit Footer Map"
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3648.423087289569!2d90.3956!3d23.8759!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDUyJzMzLjIiTiA5MMKwMjMnNDQuMiJF!5e0!3m2!1sen!2sbd!4v1620000000000!5m2!1sen!2sbd"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
-                  allowFullScreen
+                  allowFullScreen={false}
                   loading="lazy"
-                  className="opacity-90 hover:opacity-100 transition-opacity"
+                  className="opacity-95"
                 />
               </div>
             </div>
@@ -278,9 +300,19 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
         {/* Bottom Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-4">
           <p>© {new Date().getFullYear()} PTENit. All Rights Reserved.</p>
-          <p className="text-slate-400 font-bengali">
-            {t('"আপনার ডিজিটাল প্ল্যাটফর্ম এখানে তৈরি করুন"', '"Build Your Digital Platform Here"')}
-          </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setActiveTab('admin')}
+              className="text-slate-400 hover:text-amber-400 font-bold flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+              <span>{t('এডমিন কন্ট্রোল সেন্টার', 'Admin Control')}</span>
+            </button>
+            <span className="text-slate-600">|</span>
+            <p className="text-slate-400 font-bengali">
+              {t('"আপনার ডিজিটাল প্ল্যাটফর্ম এখানে তৈরি করুন"', '"Build Your Digital Platform Here"')}
+            </p>
+          </div>
         </div>
       </div>
     </footer>

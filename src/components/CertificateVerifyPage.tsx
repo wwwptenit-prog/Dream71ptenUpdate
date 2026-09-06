@@ -38,9 +38,6 @@ export const CertificateVerifyPage: React.FC<CertificateVerifyPageProps> = ({ on
         )}
 
         <div className="text-center space-y-3">
-          <span className="px-3 py-1 bg-[#1DB954]/20 text-[#1DB954] text-xs font-bold rounded-full uppercase tracking-wider">
-            {t('অফিসিয়াল ভেরিফিকেশন পোর্টাল', 'Official Verification Portal')}
-          </span>
           <h1 className="text-3xl sm:text-4xl font-extrabold font-heading text-slate-900 dark:text-white font-bengali">
             {t('PTENit সার্টিফিকেট ভেরিফিকেশন', 'PTENit Certificate Verification')}
           </h1>

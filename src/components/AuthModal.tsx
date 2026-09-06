@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, LogIn, UserPlus, Lock, Mail, Phone, Eye, EyeOff, Briefcase, Wrench, Zap, KeyRound, Send, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { X, LogIn, UserPlus, Lock, Mail, Phone, Eye, EyeOff, Briefcase, Wrench, Zap, KeyRound, Send, ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 interface AuthModalProps {
@@ -471,6 +471,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <LogIn className="w-4 h-4 stroke-[2.5]" />
               <span>লগইন করুন</span>
             </button>
+
+            {/* Quick 1-Click Admin Login Card */}
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginEmailOrPhone('admin@ptenit.com');
+                  setLoginPassword('123456');
+                  const ok = login('admin@ptenit.com', '123456');
+                  if (ok) {
+                    setErrorMsg('');
+                    onSuccess();
+                    onClose();
+                  }
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer"
+                title="সরাসরি এডমিন প্যানেল এক্সেস করতে ক্লিক করুন"
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>🛡️ এডমিন হিসেবে ১-ক্লিকে লগইন করুন</span>
+              </button>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center mt-1">
+                এডমিন ইমেইল: <code className="text-emerald-500 font-mono">admin@ptenit.com</code> (পাসওয়ার্ড: <code className="text-emerald-500 font-mono">123456</code>)
+              </p>
+            </div>
 
             {/* Switch to Signup */}
             <div className="text-center pt-1 text-[11px] text-slate-500 dark:text-slate-400">

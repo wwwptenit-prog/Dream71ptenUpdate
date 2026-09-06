@@ -1,34 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Search,
-  Bell,
-  MessageSquare,
-  User as UserIcon,
   Menu,
   X,
   BookOpen,
-  LogOut,
-  LayoutDashboard,
-  ShieldAlert,
   Moon,
   Sun,
-  ChevronDown,
   Sparkles,
   PhoneCall,
-  Globe,
-  GraduationCap,
-  Briefcase,
-  Settings,
-  Wallet,
-  HelpCircle,
   ShoppingBag,
-  CreditCard,
-  Zap,
-  Send,
-  ArrowLeft,
   ArrowRight,
-  CheckCircle,
-  RefreshCw
+  Globe,
+  BadgeCheck,
+  Award
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
@@ -51,46 +35,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     t,
     darkMode,
     toggleDarkMode,
-    currentUser,
-    ptenitUser,
-    marketplaceUser,
-    logout,
-    demoLogin,
-    switchRole,
     courses,
     services,
-    siteSettings,
-    notifications,
-    markNotificationRead,
-    markAllNotificationsRead,
-    directMessages,
-    markDirectMessageRead,
-    markAllDirectMessagesRead,
-    sendDirectMessage,
-    openChatWindow,
-    createGoogleMeetCall,
-    openMessengerInbox,
-    openNotificationCenter
+    siteSettings
   } = useData();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [roleSwitcherOpen, setRoleSwitcherOpen] = useState(false);
-  const [navNotifOpen, setNavNotifOpen] = useState(false);
-  const [navMsgOpen, setNavMsgOpen] = useState(false);
 
-  // Message Popover Detail Reader State
-  const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
-  const [replyText, setReplyText] = useState<string>('');
-  const [replySentSuccess, setReplySentSuccess] = useState<boolean>(false);
-
-  const unreadNavNotifCount = notifications.filter(n => !n.read).length > 0 
-    ? notifications.filter(n => !n.read).length 
-    : notifications.length;
-  const unreadMsgCount = directMessages.filter(m => !m.read).length > 0 
-    ? directMessages.filter(m => !m.read).length 
-    : directMessages.length;
-  
   // Inline Search State
   const [inlineSearchOpen, setInlineSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -120,26 +71,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         s.shortDescription.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
-
-  const getDashboardTitle = (role?: string) => {
-    if (role === 'admin') return t('এডমিন প্যানেল', 'Admin Panel');
-    if (role === 'instructor') return t('স্পেশালিস্ট ড্যাশবোর্ড', 'Specialist Dashboard');
-    return t('গ্রাহক ড্যাশবোর্ড', 'Customer Dashboard');
-  };
-
-  const getDashboardTab = (role?: string) => {
-    if (role === 'admin') return 'admin';
-    if (role === 'instructor') return 'teacher-dashboard';
-    if (role === 'customer') return 'customer-dashboard';
-    return 'customer-dashboard';
-  };
-
-  const getRoleIcon = (role?: string) => {
-    if (role === 'admin') return <ShieldAlert className="w-4 h-4 text-amber-400" />;
-    if (role === 'instructor') return <GraduationCap className="w-4 h-4 text-emerald-400" />;
-    if (role === 'customer') return <Briefcase className="w-4 h-4 text-blue-400" />;
-    return <LayoutDashboard className="w-4 h-4 text-[#1DB954]" />;
-  };
 
   // Auto focus search input when search is opened
   useEffect(() => {
@@ -464,594 +395,124 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* RIGHT ACTION CONTROLS & PROFILE HEADER SUITE */}
+          {/* RIGHT ACTION CONTROLS */}
           <div className="hidden md:flex items-center space-x-2.5 lg:space-x-3 shrink-0">
-              
-              {/* MESSAGES INBOX & NOTIFICATIONS BELL (ONLY FOR LOGGED IN USERS) */}
-              {currentUser && (
-                <>
-                  {/* MESSENGER BUTTON */}
-                  <button
-                    onClick={() => {
-                      setRoleSwitcherOpen(false);
-                      setUserDropdownOpen(false);
-                      setNavNotifOpen(false);
-                      setNavMsgOpen(false);
-                      openMessengerInbox();
-                    }}
-                    className="p-2 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:border-[#1DB954] transition-all cursor-pointer relative"
-                    title="মেসেঞ্জার - সবার এসএমএস ও অনলাইন তালিকা"
-                  >
-                    <MessageSquare className="w-4 h-4 text-[#1DB954]" />
-                    {unreadMsgCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#1DB954] text-white font-black text-[10px] rounded-full flex items-center justify-center animate-bounce shadow-md border-2 border-[#142B4D]">
-                        {unreadMsgCount}
-                      </span>
-                    )}
-                  </button>
+            {/* Direct Link to Marketplace & Buyer Mode */}
+            <button
+              onClick={() => setActiveTab('marketplace')}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-400 bg-slate-800/90 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="মার্কেটপ্লেস ও বায়ার মোড"
+            >
+              <ShoppingBag className="w-3.5 h-3.5 text-[#1DB954]" />
+              <span>মার্কেটপ্লেস (বায়ার মোড)</span>
+            </button>
 
-                  {/* NOTIFICATION BELL */}
-                  <div className="relative">
-                    <button
-                      onClick={() => {
-                        setRoleSwitcherOpen(false);
-                        setUserDropdownOpen(false);
-                        setNavMsgOpen(false);
-                        setNavNotifOpen(false);
-                        openNotificationCenter();
-                      }}
-                      className="p-2 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:border-[#1DB954] transition-all cursor-pointer relative"
-                      title="নোটিফিকেশন সেন্টার"
-                    >
-                      <Bell className="w-4 h-4 text-[#1DB954]" />
-                      {unreadNavNotifCount > 0 && (
-                        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-600 text-white font-black text-[10px] rounded-full flex items-center justify-center animate-pulse shadow-md border-2 border-[#142B4D]">
-                          {unreadNavNotifCount}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
+            {/* PRIMARY CTA ENROLL BUTTON */}
+            <button
+              onClick={() => setActiveTab('courses')}
+              className="px-4 py-2 rounded-xl text-xs font-black text-white bg-[#1DB954] hover:bg-emerald-500 shadow-md shadow-[#1DB954]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 font-bengali"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>কোর্সে জয়েন</span>
+            </button>
+          </div>
 
-              {/* 4. USER PROFILE AVATAR & DROPDOWN */}
-              {currentUser ? (
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setRoleSwitcherOpen(false);
-                      setNavNotifOpen(false);
-                      setNavMsgOpen(false);
-                      setUserDropdownOpen(!userDropdownOpen);
-                    }}
-                    className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-white/20 transition cursor-pointer shadow-sm"
-                    title="প্রোফাইল অ্যাকাউন্ট মেনু"
-                  >
-                    <img
-                      src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
-                      alt={currentUser.name}
-                      className="w-7 h-7 rounded-full object-cover border border-[#1DB954]"
-                    />
-                    <ChevronDown className={`w-3.5 h-3.5 text-slate-300 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {/* USER PROFILE DROPDOWN MENU */}
-                  {userDropdownOpen && (
-                    <div className="absolute right-0 mt-3 w-64 bg-[#0F172A] border border-[#1DB954]/50 rounded-2xl shadow-2xl p-3 z-50 text-slate-100 font-bengali space-y-2.5 divide-y divide-slate-800">
-                      {/* Profile Header Box */}
-                      <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center gap-3">
-                        <img
-                          src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
-                          alt={currentUser.name}
-                          className="w-11 h-11 rounded-full object-cover border-2 border-[#1DB954] shrink-0"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-extrabold text-white text-xs truncate">{currentUser.name}</p>
-                          <p className="text-[10px] text-slate-400 truncate font-mono">{currentUser.mobile || currentUser.email}</p>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/40">
-                              {currentUser.role === 'admin' ? '🛡️ এডমিন একাউন্ট' : currentUser.role === 'instructor' ? '🛠️ স্পেশালিস্ট একাউন্ট' : '💼 গ্রাহক একাউন্ট'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Primary Navigation Options */}
-                      <div className="pt-2 space-y-1">
-                        <button
-                          onClick={() => {
-                            setActiveTab(getDashboardTab(currentUser.role));
-                            setUserDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer"
-                        >
-                          <span className="flex items-center gap-2.5">
-                            {getRoleIcon(currentUser.role)}
-                            <span>{getDashboardTitle(currentUser.role)}</span>
-                          </span>
-                          <span className="text-[10px] text-emerald-400 font-extrabold">ড্যাশবোর্ড</span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setActiveTab('marketplace');
-                            setUserDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer"
-                        >
-                          <span className="flex items-center gap-2.5">
-                            <ShoppingBag className="w-4 h-4 text-emerald-400" />
-                            <span>মার্কেটপ্লেস ও প্রজেক্টস</span>
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setActiveTab('courses');
-                            setUserDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer"
-                        >
-                          <span className="flex items-center gap-2.5">
-                            <BookOpen className="w-4 h-4 text-emerald-400" />
-                            <span>আমার লার্নিং ও কোর্সসমূহ</span>
-                          </span>
-                        </button>
-                      </div>
-
-                      {/* Settings & Admin Controls */}
-                      <div className="pt-2 space-y-1">
-                        <button
-                          onClick={() => {
-                            setActiveTab(getDashboardTab(currentUser.role));
-                            setUserDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition"
-                        >
-                          <Settings className="w-4 h-4 text-slate-400" />
-                          <span>অ্যাকাউন্ট সেটিংস</span>
-                        </button>
-
-                        {currentUser.role === 'admin' && (
-                          <button
-                            onClick={() => {
-                              setActiveTab('admin');
-                              setUserDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold border border-amber-500/40 cursor-pointer transition"
-                          >
-                            <ShieldAlert className="w-4 h-4" />
-                            <span>এডমিন কন্ট্রোল সেন্টার</span>
-                          </button>
-                        )}
-
-                        <button
-                          onClick={toggleDarkMode}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition cursor-pointer"
-                        >
-                          <span className="flex items-center gap-2.5">
-                            {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-300" />}
-                            <span>{darkMode ? 'লাইট মোড অন করুন' : 'ডার্ক মোড অন করুন'}</span>
-                          </span>
-                          <span className="text-[10px] px-2 py-0.5 bg-slate-900 rounded font-black text-emerald-400">
-                            {darkMode ? 'DARK' : 'LIGHT'}
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setActiveTab('contact');
-                            setUserDropdownOpen(false);
-                          }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition"
-                        >
-                          <HelpCircle className="w-4 h-4 text-sky-400" />
-                          <span>সাহায্য ও সাপোর্ট</span>
-                        </button>
-                      </div>
-
-                      {/* Logout Action */}
-                      <div className="pt-2">
-                        <button
-                          onClick={() => {
-                            logout();
-                            setUserDropdownOpen(false);
-                            setActiveTab('home');
-                          }}
-                          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white font-black text-xs border border-rose-500/40 cursor-pointer transition-all shadow-md"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>লগআউট করুন (Logout)</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={openAuthModal}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 transition-colors cursor-pointer font-bengali"
-                >
-                  <UserIcon className="w-4 h-4 text-[#1DB954]" />
-                  {t('লগইন / সাইনআপ', 'Login / Signup')}
-                </button>
-              )}
-
-              {/* PRIMARY CTA ENROLL BUTTON */}
-              <button
-                onClick={() => setActiveTab('courses')}
-                className="px-4 py-2 rounded-xl text-xs font-black text-white bg-[#1DB954] hover:bg-emerald-500 shadow-md shadow-[#1DB954]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 font-bengali"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>কোর্সে জয়েন</span>
-              </button>
-            </div>
-
-            {/* Mobile Actions: User Profile Avatar and Menu Drawer Button */}
-            <div className="flex md:hidden items-center gap-1.5 shrink-0">
-              {/* Mobile User Profile Avatar Trigger */}
-              {currentUser ? (
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setUserDropdownOpen(!userDropdownOpen);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex items-center p-0.5 rounded-full bg-slate-900 border-2 border-[#1DB954] cursor-pointer active:scale-95 transition"
-                    title="প্রোফাইল মেনু"
-                  >
-                    <img
-                      src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
-                      alt={currentUser.name}
-                      className="w-7 h-7 rounded-full object-cover"
-                    />
-                  </button>
-
-                    {/* MOBILE USER PROFILE POPUP MODAL/DROPDOWN */}
-                    {userDropdownOpen && (
-                      <>
-                        <div 
-                          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-2xs" 
-                          onClick={() => setUserDropdownOpen(false)}
-                        />
-                        <div className="fixed top-14 right-2 left-2 sm:left-auto sm:right-4 z-50 sm:w-72 bg-[#0F172A] border border-[#1DB954]/60 rounded-2xl shadow-2xl p-3.5 text-slate-100 font-bengali space-y-2.5 divide-y divide-slate-800 animate-in fade-in slide-in-from-top-2 max-h-[85vh] overflow-y-auto">
-                          {/* Profile Header Box */}
-                          <div className="p-3 bg-slate-900/95 rounded-xl border border-slate-800 flex items-center gap-3">
-                            <img
-                              src={currentUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}
-                              alt={currentUser.name}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-[#1DB954] shrink-0"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="font-extrabold text-white text-xs truncate">{currentUser.name}</p>
-                              <p className="text-[10px] text-slate-400 truncate font-mono">{currentUser.mobile || currentUser.email}</p>
-                              <div className="flex items-center gap-1.5 mt-1">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/40">
-                                  {currentUser.role === 'admin' ? '🛡️ এডমিন একাউন্ট' : currentUser.role === 'instructor' ? '🛠️ স্পেশালিস্ট একাউন্ট' : '💼 গ্রাহক একাউন্ট'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Primary Navigation Options */}
-                          <div className="pt-2 space-y-1">
-                            <button
-                              onClick={() => {
-                                setUserDropdownOpen(false);
-                                openMessengerInbox();
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#0084FF]/10 hover:bg-[#0084FF]/20 border border-[#0084FF]/30 text-xs font-bold text-sky-400 hover:text-white transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-2.5">
-                                <MessageSquare className="w-4 h-4 text-[#0084FF]" />
-                                <span>মেসেঞ্জার ও ইনবক্স (সকল বার্তা)</span>
-                              </span>
-                              <span className="text-[10px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-full">অনলাইন</span>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setUserDropdownOpen(false);
-                                openNotificationCenter();
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#1DB954]/10 hover:bg-[#1DB954]/20 border border-[#1DB954]/30 text-xs font-bold text-[#1DB954] hover:text-white transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-2.5">
-                                <Bell className="w-4 h-4 text-[#1DB954]" />
-                                <span>নোটিফিকেশন সেন্টার (সকল নোটিশ)</span>
-                              </span>
-                              {unreadNavNotifCount > 0 && (
-                                <span className="text-[10px] bg-[#1DB954] text-white font-black px-1.5 py-0.5 rounded-full">
-                                  {unreadNavNotifCount} টি নতুন
-                                </span>
-                              )}
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setActiveTab(getDashboardTab(currentUser.role));
-                                setUserDropdownOpen(false);
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-2.5">
-                                {getRoleIcon(currentUser.role)}
-                                <span>{getDashboardTitle(currentUser.role)}</span>
-                              </span>
-                              <span className="text-[10px] text-emerald-400 font-extrabold">ড্যাশবোর্ড</span>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setActiveTab('marketplace');
-                                setUserDropdownOpen(false);
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-2.5">
-                                <ShoppingBag className="w-4 h-4 text-emerald-400" />
-                                <span>মার্কেটপ্লেস ও প্রজেক্টস</span>
-                              </span>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setActiveTab('courses');
-                                setUserDropdownOpen(false);
-                              }}
-                              className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-2.5">
-                                <BookOpen className="w-4 h-4 text-emerald-400" />
-                                <span>আমার লার্নিং ও কোর্সসমূহ</span>
-                              </span>
-                            </button>
-                          </div>
-
-                          {/* Settings & Admin Controls */}
-                          <div className="pt-2 space-y-1">
-                            <button
-                              onClick={() => {
-                                setActiveTab(getDashboardTab(currentUser.role));
-                                setUserDropdownOpen(false);
-                              }}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition"
-                            >
-                              <Settings className="w-4 h-4 text-slate-400" />
-                              <span>অ্যাকাউন্ট সেটিংস</span>
-                            </button>
-
-                            {currentUser.role === 'admin' && (
-                              <button
-                                onClick={() => {
-                                  setActiveTab('admin');
-                                  setUserDropdownOpen(false);
-                                }}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold border border-amber-500/40 cursor-pointer transition"
-                              >
-                                <ShieldAlert className="w-4 h-4" />
-                                <span>এডমিন কন্ট্রোল সেন্টার</span>
-                              </button>
-                            )}
-
-                            <button
-                              onClick={toggleDarkMode}
-                              className="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-2.5">
-                                {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-300" />}
-                                <span>{darkMode ? 'লাইট মোড অন করুন' : 'ডার্ক মোড অন করুন'}</span>
-                              </span>
-                              <span className="text-[10px] px-2 py-0.5 bg-slate-900 rounded font-black text-emerald-400">
-                                {darkMode ? 'DARK' : 'LIGHT'}
-                              </span>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setActiveTab('contact');
-                                setUserDropdownOpen(false);
-                              }}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer transition"
-                            >
-                              <HelpCircle className="w-4 h-4 text-sky-400" />
-                              <span>সাহায্য ও সাপোর্ট</span>
-                            </button>
-                          </div>
-
-                          {/* Logout Action */}
-                          <div className="pt-2">
-                            <button
-                              onClick={() => {
-                                logout();
-                                setUserDropdownOpen(false);
-                                setActiveTab('home');
-                              }}
-                              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white font-black text-xs border border-rose-500/40 cursor-pointer transition-all shadow-md"
-                            >
-                              <LogOut className="w-4 h-4" />
-                              <span>লগআউট করুন (Logout)</span>
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    onClick={openAuthModal}
-                    className="px-2.5 py-1 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-600 transition cursor-pointer font-bengali"
-                  >
-                    লগইন
-                  </button>
-                )}
-                
-                {/* Menu Drawer Toggle Button */}
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(!mobileMenuOpen);
-                    setUserDropdownOpen(false);
-                  }}
-                  className="p-1.5 text-slate-200 hover:text-white cursor-pointer"
-                >
-                  {mobileMenuOpen ? <X className="w-6 h-6 text-[#1DB954]" /> : <Menu className="w-6 h-6" />}
-                </button>
-              </div>
+          {/* Mobile Actions: Menu Drawer Button */}
+          <div className="flex md:hidden items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen);
+              }}
+              className="p-1.5 text-slate-200 hover:text-white cursor-pointer"
+              aria-label="মেনু খুলুন"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6 text-[#1DB954]" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#142B4D] border-t border-slate-700 px-4 pt-3 pb-6 space-y-3 font-bengali">
-            {navItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2.5 rounded-xl text-base font-bold transition-colors flex items-center justify-between ${
-                  activeTab === item.id
-                    ? 'bg-[#1DB954] text-white font-bold'
-                    : item.highlight
-                    ? 'text-white bg-slate-800/80 border border-rose-500/50'
-                    : 'text-slate-200 hover:bg-slate-800'
-                }`}
-              >
-                <span>{item.label}</span>
-                {item.highlight && (
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-85"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600 shadow-[0_0_8px_#ef4444]"></span>
-                  </span>
-                )}
-              </button>
-            ))}
-
-            {currentUser && (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openMessengerInbox();
-                }}
-                className="w-full text-left px-4 py-2.5 rounded-xl text-base font-bold bg-[#0084FF]/20 text-sky-400 hover:text-white border border-[#0084FF]/40 transition-colors flex items-center justify-between cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-[#0084FF]" />
-                  <span>মেসেঞ্জার ও চ্যাট ইনবক্স</span>
+      {/* Mobile Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-[#142B4D] border-t border-slate-700 px-4 pt-3 pb-6 space-y-3 font-bengali">
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id);
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2.5 rounded-xl text-base font-bold transition-colors flex items-center justify-between ${
+                activeTab === item.id
+                  ? 'bg-[#1DB954] text-white font-bold'
+                  : item.highlight
+                  ? 'text-white bg-slate-800/80 border border-rose-500/50'
+                  : 'text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <span>{item.label}</span>
+              {item.highlight && (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-85"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600 shadow-[0_0_8px_#ef4444]"></span>
                 </span>
-                {unreadMsgCount > 0 && (
-                  <span className="bg-[#1DB954] text-white text-xs font-black px-2 py-0.5 rounded-full">
-                    {unreadMsgCount} টি নতুন
-                  </span>
-                )}
-              </button>
-            )}
+              )}
+            </button>
+          ))}
+
+          {/* Mobile Direct Link to Marketplace & Buyer Mode */}
+          <button
+            onClick={() => {
+              setActiveTab('marketplace');
+              setMobileMenuOpen(false);
+            }}
+            className="w-full text-left px-4 py-2.5 rounded-xl text-base font-bold bg-slate-800/80 text-emerald-400 hover:text-white border border-emerald-500/40 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-[#1DB954]" />
+              <span>মার্কেটপ্লেস ও বায়ার মোড</span>
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('verify');
+              setMobileMenuOpen(false);
+            }}
+            className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold text-emerald-400 hover:bg-slate-800 flex items-center justify-between"
+          >
+            <span>{t('সার্টিফিকেট ভেরিফাই', 'Verify Certificate')}</span>
+            <Sparkles className="w-4 h-4 text-[#1DB954]" />
+          </button>
+
+          <div className="pt-4 border-t border-slate-700 space-y-3">
+            {/* Theme Toggle in Mobile Drawer */}
+            <button
+              onClick={toggleDarkMode}
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-800 text-amber-300 font-bold border border-slate-700 cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-300" />}
+                <span>{darkMode ? '☀️ লাইট মোড (Light Mode)' : '🌙 ডার্ক মোড (Dark Mode)'}</span>
+              </span>
+              <span className="text-xs px-2 py-0.5 bg-slate-900 rounded text-emerald-400 font-extrabold">
+                {darkMode ? 'DARK' : 'LIGHT'}
+              </span>
+            </button>
 
             <button
               onClick={() => {
-                setActiveTab('verify');
+                setActiveTab('courses');
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold text-emerald-400 hover:bg-slate-800 flex items-center justify-between"
+              className="w-full py-3 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>{t('সার্টিফিকেট ভেরিফাই', 'Verify Certificate')}</span>
-              <Sparkles className="w-4 h-4 text-[#1DB954]" />
+              <BookOpen className="w-5 h-5" />
+              {t('কোর্সে জয়েন করুন', 'Enroll in Course')}
             </button>
-
-            <div className="pt-4 border-t border-slate-700 space-y-3">
-              {/* Theme Toggle in Mobile Drawer */}
-              <button
-                onClick={toggleDarkMode}
-                className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-800 text-amber-300 font-bold border border-slate-700 cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-300" />}
-                  <span>{darkMode ? '☀️ লাইট মোড (Light Mode)' : '🌙 ডার্ক মোড (Dark Mode)'}</span>
-                </span>
-                <span className="text-xs px-2 py-0.5 bg-slate-900 rounded text-emerald-400 font-extrabold">
-                  {darkMode ? 'DARK' : 'LIGHT'}
-                </span>
-              </button>
-
-              {/* Role Switcher in Mobile Drawer */}
-              <div className="p-3 bg-slate-900/90 rounded-xl border border-emerald-500/40 space-y-2">
-                <p className="text-xs font-black text-emerald-400 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-amber-300" /> ড্যাশবোর্ড সুইচ:
-                </p>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {[
-                    { role: 'admin' as const, label: 'এডমিন প্যানেল', tab: 'admin' },
-                    { role: 'customer' as const, label: 'গ্রাহক ড্যাশবোর্ড', tab: 'customer-dashboard' },
-                    { role: 'instructor' as const, label: 'স্পেশালিস্ট ড্যাশবোর্ড', tab: 'teacher-dashboard' },
-                  ].map(item => (
-                    <button
-                      key={item.role}
-                      onClick={() => {
-                        demoLogin(item.role);
-                        setActiveTab(item.tab);
-                        setMobileMenuOpen(false);
-                      }}
-                      className={`py-2 px-1.5 text-[11px] font-bold rounded-lg border transition-all cursor-pointer text-center leading-tight ${
-                        currentUser?.role === item.role
-                          ? 'bg-[#1DB954] text-white border-[#1DB954] shadow-md'
-                          : 'bg-slate-800 text-slate-200 border-slate-700 hover:border-emerald-500'
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {currentUser ? (
-                <>
-                  <button
-                    onClick={() => {
-                      setActiveTab(getDashboardTab(currentUser.role));
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#1DB954] text-white rounded-lg font-bold"
-                  >
-                    {getRoleIcon(currentUser.role)}
-                    {getDashboardTitle(currentUser.role)}
-                  </button>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 bg-rose-500/20 text-rose-300 rounded-lg font-semibold"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    {t('লগআউট', 'Logout')}
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => {
-                    openAuthModal();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold border border-slate-600 cursor-pointer"
-                >
-                  {t('লগইন / একাউন্ট খুলুন', 'Login / Register')}
-                </button>
-              )}
-
-              <button
-                onClick={() => {
-                  setActiveTab('courses');
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full py-3 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <BookOpen className="w-5 h-5" />
-                {t('কোর্সে জয়েন করুন', 'Enroll in Course')}
-              </button>
-            </div>
           </div>
-        )}
+        </div>
+      )}
       </nav>
     </header>
   );
