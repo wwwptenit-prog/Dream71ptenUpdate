@@ -594,8 +594,12 @@ export interface MarketplaceOrder {
   category: string;
   buyerId: string;
   buyerName: string;
+  buyerAvatar?: string;
   buyerEmail?: string;
   buyerPhone?: string;
+  attachmentName?: string;
+  attachmentUrl?: string;
+  deliveryDays?: number;
   sellerId: string;
   sellerName: string;
   sellerAvatar?: string;
@@ -641,7 +645,6 @@ export interface MarketplaceOrder {
   buyerReviewPenalty?: number;
   sellerReviewBonus?: number;
   reviewOverdueDuration?: string;
-  deliveryDays?: number;
   offerType?: string;
   isWorkFirst?: boolean;
   requirements?: string;

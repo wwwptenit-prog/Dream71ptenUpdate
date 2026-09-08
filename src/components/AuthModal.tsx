@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, LogIn, UserPlus, Lock, Mail, Phone, Eye, EyeOff, Briefcase, Wrench, Zap, KeyRound, Send, ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { X, LogIn, UserPlus, Lock, Mail, Phone, Eye, EyeOff, Briefcase, Wrench, Zap, KeyRound, Send, ArrowLeft, CheckCircle2, ShieldCheck, User, Sparkles } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 interface AuthModalProps {
@@ -13,9 +13,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onSuccess
 }) => {
-  const { login, signup } = useData();
+  const { login, signup, siteSettings } = useData();
 
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [imageError, setImageError] = useState(false);
   
   // Login Fields
   const [loginEmailOrPhone, setLoginEmailOrPhone] = useState(() => {
@@ -129,29 +130,64 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }, 700);
   };
 
+  const handleQuickLogin = (email: string, pass: string = '123456') => {
+    setLoginEmailOrPhone(email);
+    setLoginPassword(pass);
+    const ok = login(email, pass);
+    if (ok) {
+      setErrorMsg('');
+      onSuccess();
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 sm:p-6 relative shadow-2xl space-y-3.5 text-slate-900 dark:text-white my-auto font-bengali">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-5 sm:p-7 relative shadow-2xl space-y-4 text-white font-bengali my-auto overflow-hidden animate-in zoom-in-95 duration-150">
         
+        {/* Decorative Top Emerald Glow */}
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-24 bg-[#1DB954]/15 blur-2xl rounded-full pointer-events-none" />
+
         {/* Close Button */}
         <button
+          id="auth-modal-close-btn"
+          type="button"
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 p-1.5 text-slate-400 hover:text-white transition cursor-pointer rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white transition cursor-pointer rounded-full bg-slate-800/80 hover:bg-slate-700/80 z-10 active:scale-95"
+          title="বন্ধ করুন"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* Brand Header */}
-        <div className="text-center space-y-1">
-          <div className="flex justify-center items-center gap-1.5">
-            <div className="w-8 h-8 rounded-xl bg-[#142B4D] text-[#1DB954] font-black text-xl flex items-center justify-center shadow-md font-heading">
-              P
-            </div>
-            <span className="text-xl font-black font-heading tracking-wider">
-              PTEN<span className="text-[#1DB954]">it</span>
-            </span>
+        {/* Brand Header & PTEN Logo */}
+        <div className="text-center space-y-2 pt-1">
+          <div className="flex justify-center items-center">
+            {siteSettings?.logoUrl && !imageError ? (
+              <img
+                src={siteSettings.logoUrl}
+                alt={siteSettings?.siteName || "PTENit"}
+                onError={() => setImageError(true)}
+                className="h-10 sm:h-12 w-auto max-w-[170px] object-contain mx-auto drop-shadow-md transition-transform hover:scale-105"
+              />
+            ) : (
+              <div className="flex items-center justify-center gap-2.5">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-[#1DB954] to-emerald-600 flex items-center justify-center font-heading font-black text-xl sm:text-2xl text-slate-950 shadow-md shadow-[#1DB954]/25 shrink-0">
+                  P
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="font-heading text-xl sm:text-2xl font-black tracking-wider text-white flex items-center gap-0.5 leading-none">
+                    PTEN<span className="text-[#1DB954]">it</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium tracking-tight mt-0.5">
+                    IT Services, Training & Marketplace
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
-          <p className="text-sm font-black text-slate-900 dark:text-white pt-1">
+
+          {/* Subtitle / Mode text */}
+          <p className="text-sm font-bold text-white pt-0.5">
             {mode === 'login'
               ? 'লগইন করুন'
               : mode === 'signup'
@@ -160,21 +196,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </p>
 
           {mode === 'forgot' && (
-            <div className="pt-1">
+            <div className="pt-0.5">
               <button
                 type="button"
                 onClick={() => { setMode('login'); setErrorMsg(''); setResetSuccess(false); }}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1DB954] hover:underline cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1DB954] hover:text-emerald-400 transition cursor-pointer"
               >
-                <ArrowLeft className="w-3 h-3" />
-                <span>লগইন পেজে ফিরে যান</span>
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>লগইন ফর্মে ফিরে যান</span>
               </button>
             </div>
           )}
         </div>
 
         {errorMsg && (
-          <div className="p-2.5 bg-rose-500/15 border border-rose-500/40 text-rose-500 text-[11px] font-bold rounded-xl leading-relaxed text-center">
+          <div className="p-3 bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-semibold rounded-2xl leading-relaxed text-center animate-in fade-in duration-150">
             {errorMsg}
           </div>
         )}
@@ -182,54 +218,54 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* FORGOT PASSWORD MODE */}
         {mode === 'forgot' ? (
           resetSuccess ? (
-            <div className="space-y-3 text-center py-2 bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl">
-              <div className="w-10 h-10 rounded-full bg-[#1DB954] text-white flex items-center justify-center mx-auto shadow-md">
+            <div className="space-y-3 text-center py-3 bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl">
+              <div className="w-11 h-11 rounded-full bg-[#1DB954] text-white flex items-center justify-center mx-auto shadow-md">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div className="space-y-1">
                 <h3 className="text-sm font-black text-[#1DB954]">
                   পাসওয়ার্ড রিসেট মেসেজ প্রেরিত!
                 </h3>
-                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                  আপনার জিমেইল (<span className="font-bold text-slate-900 dark:text-white">{resetEmailOrPhone}</span>)-এ রিসেট লিঙ্ক পাঠানো হয়েছে।
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  আপনার ইনবক্স (<span className="font-bold text-white">{resetEmailOrPhone}</span>)-এ রিসেট লিঙ্ক পাঠানো হয়েছে।
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => { setMode('login'); setResetSuccess(false); setErrorMsg(''); }}
-                className="w-full py-2 bg-[#1DB954] hover:bg-emerald-600 text-white font-black text-xs rounded-xl shadow transition cursor-pointer"
+                className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition cursor-pointer active:scale-95"
               >
                 লগইন করুন
               </button>
             </div>
           ) : (
             <form onSubmit={handleForgotPasswordSubmit} className="space-y-3 font-bengali">
-              <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl text-[11px] text-amber-600 dark:text-amber-400 flex items-start gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <div className="bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl text-xs text-amber-400 flex items-start gap-2">
+                <KeyRound className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>
-                  আপনার জিমেইল বা ফোন নম্বর দিন। রিসেট লিংক জিমেইলে চলে যাবে।
+                  আপনার জিমেইল বা ফোন নম্বর দিন। পাসওয়ার্ড রিকভারি লিঙ্ক পাঠানো হবে।
                 </span>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold mb-1 text-slate-700 dark:text-slate-300">
+                <label className="block text-xs font-bold mb-1.5 text-slate-300">
                   জিমেইল বা ফোন নম্বর *
                 </label>
                 <div className="relative">
-                  <Mail className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+                  <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                   <input
                     type="text"
                     required
                     placeholder="আপনার জিমেইল বা ফোন নম্বর"
                     value={resetEmailOrPhone}
                     onChange={e => setResetEmailOrPhone(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold mb-1 text-slate-700 dark:text-slate-300">
+                <label className="block text-xs font-bold mb-1.5 text-slate-300">
                   মেসেজ / সাপোর্ট নোট (ঐচ্ছিক)
                 </label>
                 <textarea
@@ -237,14 +273,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="পাসওয়ার্ড ভুলে যাওয়ার মেসেজ..."
                   value={resetSupportMsg}
                   onChange={e => setResetSupportMsg(e.target.value)}
-                  className="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{resetLoading ? 'পাঠানো হচ্ছে...' : 'রিসেট মেইল পাঠান'}</span>
@@ -253,127 +289,129 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           )
         ) : mode === 'signup' ? (
           /* SIGNUP FORM */
-          <form onSubmit={handleSignup} className="space-y-2.5">
-            
+          <form onSubmit={handleSignup} className="space-y-3">
             {/* Account Role Choice */}
             <div>
-              <label className="block text-[11px] font-bold mb-1 text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold mb-1.5 text-slate-300">
                 ভূমিকা বেছে নিন *
               </label>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
                   onClick={() => setSelectedRoleType('customer')}
-                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition cursor-pointer flex items-center justify-center gap-1 ${
+                  className={`py-2 px-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                     selectedRoleType === 'customer'
-                      ? 'bg-[#1DB954] text-white border-[#1DB954] font-black'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      ? 'bg-[#1DB954] text-white border-[#1DB954] font-black shadow-sm'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
                   }`}
                 >
-                  <Briefcase className="w-3 h-3 shrink-0" />
+                  <Briefcase className="w-3.5 h-3.5 shrink-0" />
                   <span>গ্রাহক</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setSelectedRoleType('specialist')}
-                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition cursor-pointer flex items-center justify-center gap-1 ${
+                  className={`py-2 px-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                     selectedRoleType === 'specialist'
-                      ? 'bg-[#1DB954] text-white border-[#1DB954] font-black'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      ? 'bg-[#1DB954] text-white border-[#1DB954] font-black shadow-sm'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
                   }`}
                 >
-                  <Wrench className="w-3 h-3 shrink-0" />
+                  <Wrench className="w-3.5 h-3.5 shrink-0" />
                   <span>স্পেশালিস্ট</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setSelectedRoleType('both')}
-                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition cursor-pointer flex items-center justify-center gap-1 ${
+                  className={`py-2 px-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center gap-1.5 ${
                     selectedRoleType === 'both'
-                      ? 'bg-[#1DB954] text-white border-[#1DB954] font-black'
-                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      ? 'bg-[#1DB954] text-white border-[#1DB954] font-black shadow-sm'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
                   }`}
                 >
-                  <Zap className="w-3 h-3 text-amber-300 shrink-0" />
-                  <span>দুইটাই</span>
+                  <Zap className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                  <span>উভয়ই</span>
                 </button>
               </div>
             </div>
 
             {/* Full Name */}
             <div>
-              <label className="block text-[11px] font-bold mb-0.5 text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold mb-1 text-slate-300">
                 পূর্ণ নাম *
               </label>
-              <input
-                type="text"
-                required
-                placeholder="আপনার নাম"
-                value={fullName}
-                onChange={e => setFullName(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
-              />
+              <div className="relative">
+                <User className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
+                <input
+                  type="text"
+                  required
+                  placeholder="আপনার নাম"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
+                />
+              </div>
             </div>
 
             {/* Mobile / Phone */}
             <div>
-              <label className="block text-[11px] font-bold mb-0.5 text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold mb-1 text-slate-300">
                 মোবাইল নম্বর *
               </label>
               <div className="relative">
-                <Phone className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                <Phone className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
                 <input
                   type="tel"
                   required
                   placeholder="01712345678"
                   value={signupPhone}
                   onChange={e => setSignupPhone(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
                 />
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-[11px] font-bold mb-0.5 text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold mb-1 text-slate-300">
                 ইমেইল অ্যাড্রেস *
               </label>
               <div className="relative">
-                <Mail className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                <Mail className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
                 <input
                   type="email"
                   required
                   placeholder="yourname@gmail.com"
                   value={signupEmail}
                   onChange={e => setSignupEmail(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
                 />
               </div>
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-[11px] font-bold mb-0.5 text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold mb-1 text-slate-300">
                 পাসওয়ার্ড *
               </label>
               <div className="relative">
-                <Lock className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                <Lock className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
                 <input
                   type={showSignupPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
                   value={signupPassword}
                   onChange={e => setSignupPassword(e.target.value)}
-                  className="w-full pl-8 pr-8 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
+                  className="w-full pl-9 pr-9 py-2 rounded-xl border border-slate-700 bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowSignupPassword(!showSignupPassword)}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-[#1DB954] cursor-pointer"
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-[#1DB954] cursor-pointer"
                 >
-                  {showSignupPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {showSignupPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -381,19 +419,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 mt-1"
+              className="w-full py-2 sm:py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 mt-1"
             >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>সাইনআপ করুন</span>
+              <UserPlus className="w-4 h-4" />
+              <span>সাইনআপ সম্পন্ন করুন</span>
             </button>
 
             {/* Switch to Login */}
-            <div className="text-center pt-1 text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="text-center pt-2 text-xs text-slate-400">
               আপনার কি অ্যাকাউন্ট আছে?{' '}
               <button
                 type="button"
                 onClick={() => { setMode('login'); setErrorMsg(''); }}
-                className="font-bold text-[#1DB954] hover:underline cursor-pointer"
+                className="font-bold text-[#1DB954] hover:underline cursor-pointer ml-1"
               >
                 লগইন করুন
               </button>
@@ -401,56 +439,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </form>
         ) : (
           /* LOGIN FORM */
-          <form onSubmit={handleLogin} className="space-y-3">
+          <form onSubmit={handleLogin} className="space-y-3.5">
             <div>
-              <label className="block text-[11px] font-bold mb-1 text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold mb-1.5 text-slate-300">
                 ইমেইল অথবা মোবাইল নম্বর *
               </label>
               <div className="relative">
-                <Mail className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                 <input
                   type="text"
                   required
                   placeholder="ইমেইল বা মোবাইল নম্বর"
                   value={loginEmailOrPhone}
                   onChange={e => setLoginEmailOrPhone(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold mb-1 text-slate-700 dark:text-slate-300">
+              <label className="block text-xs font-bold mb-1.5 text-slate-300">
                 পাসওয়ার্ড *
               </label>
               <div className="relative">
-                <Lock className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                 <input
                   type={showLoginPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
                   value={loginPassword}
                   onChange={e => setLoginPassword(e.target.value)}
-                  className="w-full pl-8 pr-8 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-medium focus:outline-none focus:border-[#1DB954]"
+                  className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs sm:text-sm font-medium focus:outline-none focus:border-[#1DB954] focus:ring-1 focus:ring-[#1DB954]/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-[#1DB954] cursor-pointer"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-[#1DB954] cursor-pointer"
                 >
-                  {showLoginPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
             {/* Remember Me & Forgot Password Row */}
-            <div className="flex items-center justify-between text-[11px] pt-0.5">
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
+            <div className="flex items-center justify-between text-xs pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={e => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-slate-300 text-[#1DB954] focus:ring-[#1DB954] accent-[#1DB954] cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-700 text-[#1DB954] focus:ring-[#1DB954] accent-[#1DB954] cursor-pointer"
                 />
                 <span className="font-medium">পাসওয়ার্ড সেভ রাখুন</span>
               </label>
@@ -458,55 +496,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <button
                 type="button"
                 onClick={() => { setMode('forgot'); setErrorMsg(''); setResetSuccess(false); }}
-                className="font-bold text-[#1DB954] hover:underline cursor-pointer"
+                className="font-bold text-[#1DB954] hover:text-emerald-400 hover:underline cursor-pointer"
               >
                 পাসওয়ার্ড ভুলে গেছেন?
               </button>
             </div>
 
+            {/* Slim & Compact Login Button */}
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg shadow-[#1DB954]/25 transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 tracking-wide mt-1"
+              className="w-full py-2 sm:py-2.5 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-[#1DB954]/20 transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 tracking-wide mt-1"
             >
-              <LogIn className="w-4 h-4 stroke-[2.5]" />
+              <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
               <span>লগইন করুন</span>
             </button>
 
-            {/* Quick 1-Click Admin Login Card */}
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginEmailOrPhone('admin@ptenit.com');
-                  setLoginPassword('123456');
-                  const ok = login('admin@ptenit.com', '123456');
-                  if (ok) {
-                    setErrorMsg('');
-                    onSuccess();
-                    onClose();
-                  }
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black flex items-center justify-center gap-2 transition cursor-pointer"
-                title="সরাসরি এডমিন প্যানেল এক্সেস করতে ক্লিক করুন"
-              >
-                <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
-                <span>🛡️ এডমিন হিসেবে ১-ক্লিকে লগইন করুন</span>
-              </button>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center mt-1">
-                এডমিন ইমেইল: <code className="text-emerald-500 font-mono">admin@ptenit.com</code> (পাসওয়ার্ড: <code className="text-emerald-500 font-mono">123456</code>)
-              </p>
-            </div>
-
-            {/* Switch to Signup */}
-            <div className="text-center pt-1 text-[11px] text-slate-500 dark:text-slate-400">
+            {/* Switch to Signup (নিচে থাকবে সাইনআপ বিষয়টা) */}
+            <div className="text-center pt-2 text-xs text-slate-400">
               আপনার কি অ্যাকাউন্ট করা নেই?{' '}
               <button
                 type="button"
                 onClick={() => { setMode('signup'); setErrorMsg(''); }}
-                className="font-bold text-[#1DB954] hover:underline cursor-pointer"
+                className="font-bold text-[#1DB954] hover:underline cursor-pointer ml-1"
               >
                 সাইনআপ করুন
               </button>
+            </div>
+
+            {/* Quick 1-Click Admin Login */}
+            <div className="pt-2.5 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin('admin@ptenit.com')}
+                className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
+                title="এডমিন প্যানেল এক্সেস"
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>🛡️ এডমিন হিসেবে ১-ক্লিকে লগইন করুন</span>
+              </button>
+              <p className="text-[10px] text-slate-500 text-center mt-1">
+                এডমিন ইমেইল: <code className="text-emerald-400 font-mono">admin@ptenit.com</code> (পাসওয়ার্ড: <code className="text-emerald-400 font-mono">123456</code>)
+              </p>
             </div>
           </form>
         )}

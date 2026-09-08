@@ -3,6 +3,8 @@ import {
   X,
   ArrowLeft,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Star,
   Download,
   Package,
@@ -20,13 +22,21 @@ import {
   ExternalLink,
   Sparkles,
   Share2,
+  Gift,
+  Facebook,
   Mail,
   Crown,
   AlertTriangle,
-  Maximize2
+  Maximize2,
+  Image as ImageIcon,
+  Plus,
+  Trash2,
+  Edit3,
+  Globe
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { DigitalProduct, MarketplaceOrder } from '../types';
+import { SinglePromoBadgeView } from '../utils/badgeHelper';
 
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = "w-3.5 h-3.5" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -43,12 +53,12 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
   product,
   onClose
 }) => {
-  const { currentUser, siteSettings, addMarketplaceOrder, updateMarketplaceOrder, marketplaceOrders = [], t } = useData();
+  const { currentUser, siteSettings, addMarketplaceOrder, updateMarketplaceOrder, updateDigitalProduct, marketplaceOrders = [], t } = useData();
 
   const isFree = product.price === 0;
 
-  // Tabs
-  const [activeTab, setActiveTab] = useState<'overview' | 'preview' | 'specs'>('overview');
+  // Tabs ('overview' | 'demo') - Specs removed as requested
+  const [activeTab, setActiveTab] = useState<'overview' | 'demo'>('overview');
   
   // Checkout Modal State
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -70,15 +80,23 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedShareLink, setCopiedShareLink] = useState(false);
   const [copiedNumber, setCopiedNumber] = useState(false);
+  const [copiedDemoLink, setCopiedDemoLink] = useState(false);
+
+  // Admin In-Modal Live Demo & Gallery Management State
+  const [adminDemoUrl, setAdminDemoUrl] = useState(product.demoUrl || '');
+  const [isEditingAdminDemo, setIsEditingAdminDemo] = useState(false);
+  const [saveDemoSuccess, setSaveDemoSuccess] = useState(false);
+  const [newGalleryImgUrl, setNewGalleryImgUrl] = useState('');
 
   // Media Gallery & Demo State
   const [activeMediaIndex, setActiveMediaIndex] = useState<number>(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const productMediaList: string[] = [
+  const productMediaList: string[] = Array.from(new Set([
     product.thumbnail,
-    ...((product.demoImages || product.galleryImages || []).slice(0, 3))
-  ].filter(Boolean);
+    ...(product.demoImages || []),
+    ...(product.galleryImages || [])
+  ].filter(Boolean)));
 
   // Lightbox key controls
   useEffect(() => {
@@ -257,6 +275,54 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
     return `https://wa.me/${cleanNum}?text=${encodeURIComponent(msg)}`;
   };
 
+  // Social Media Share State & Handlers
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const getShareUrl = () => {
+    return typeof window !== 'undefined' ? window.location.href : '';
+  };
+
+  const handleCopyLink = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(getShareUrl());
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.title,
+          text: `PTENit এর ডিজিটাল প্রোডাক্ট: ${product.title}`,
+          url: getShareUrl(),
+        });
+      } catch (err) {
+        // User cancelled
+      }
+    } else {
+      setIsShareMenuOpen(prev => !prev);
+    }
+  };
+
+  const shareFacebook = () => {
+    const url = encodeURIComponent(getShareUrl());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'noopener,noreferrer,width=600,height=400');
+  };
+
+  const shareWhatsApp = () => {
+    const text = encodeURIComponent(`${product.title}\n${getShareUrl()}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const shareTwitter = () => {
+    const text = encodeURIComponent(product.title);
+    const url = encodeURIComponent(getShareUrl());
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'noopener,noreferrer,width=600,height=400');
+  };
+
   const activeAccNum = paymentMethod === 'bKash' 
     ? (siteSettings?.bkashNumber || '01712345678') 
     : paymentMethod === 'Nagad' 
@@ -270,118 +336,254 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
         
         {/* Main Product Content Container (Matching CourseDetailModal!) */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs">
 
-          {/* Clean Product Banner Image - No text overlay, ONLY the Back Button */}
-          <div className="relative aspect-video sm:aspect-[21/9] w-full bg-slate-950 overflow-hidden">
-            <img
-              src={productMediaList[activeMediaIndex] || product.thumbnail}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
-
-            {/* Back Button directly on top of the photo */}
+          {/* 1. TOP BAR: ব্যাক বাটন | সেন্টারে: প্রিমিয়াম সার্ভিস / সম্পূর্ণ ফ্রি | শেয়ার সোশ্যাল মিডিয়া */}
+          <div className="relative bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 rounded-t-2xl sm:rounded-t-3xl">
+            {/* LEFT: BACK BUTTON (বেক বাটন - ChevronLeft, কালো কালার, কোনো বর্ডার ছাড়া) */}
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-3.5 left-3.5 sm:top-5 sm:left-5 z-20 inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-slate-950/80 hover:bg-slate-950 text-white backdrop-blur-md border border-white/20 font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-lg active:scale-95"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95 shrink-0 border-0 outline-none"
               title={t('ফিরে যান', 'Go Back')}
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>{t('ফিরে যান', 'Go Back')}</span>
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] text-slate-900 dark:text-white" />
+              <span className="hidden xs:inline text-slate-900 dark:text-white">{t('ফিরে যান', 'Go Back')}</span>
             </button>
 
-            {/* Quick Fullscreen Button */}
-            <button
-              type="button"
-              onClick={() => setLightboxIndex(activeMediaIndex)}
-              className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 z-20 p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-950/80 hover:bg-slate-950 text-white backdrop-blur-md border border-white/20 text-xs font-bold transition-all cursor-pointer shadow-lg flex items-center gap-1.5"
-              title="ছবি বড় করে দেখুন"
-            >
-              <Maximize2 className="w-4 h-4" />
-              <span className="hidden sm:inline">ছবি বড় করুন</span>
-            </button>
+            {/* CENTER: ডিজিটাল প্রোডাক্টে প্রাইজ থাকলে প্রিমিয়াম সার্ভিস, সম্পূর্ণ ফ্রি থাকলে সম্পূর্ণ ফ্রি (কালো আইকন ও টেক্সট) */}
+            <div className="flex items-center justify-center min-w-0">
+              <SinglePromoBadgeView 
+                item={{ id: product.id, title: product.title, price: product.price, offerBadge: (product as any).offerBadge }} 
+                itemType="digital_product" 
+                textColor="text-slate-900 dark:text-white"
+              />
+            </div>
+
+            {/* RIGHT: শেয়ার সোশ্যাল মিডিয়া (Social Media Share - কালো আইকন ও টেক্সট) */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95 border-0 outline-none"
+                title="সোশ্যাল মিডিয়ায় শেয়ার করুন"
+              >
+                <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900 dark:text-white" />
+                <span className="hidden sm:inline text-slate-900 dark:text-white">শেয়ার</span>
+              </button>
+
+              {/* Share Popover Dropdown */}
+              {isShareMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsShareMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 z-50 w-56 sm:w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 space-y-2 animate-fadeIn font-bengali">
+                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 px-1 border-b border-slate-100 dark:border-slate-800 pb-1.5 flex items-center justify-between">
+                      <span>সোশ্যাল মিডিয়ায় শেয়ার করুন</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsShareMenuOpen(false)}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          shareWhatsApp();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition cursor-pointer"
+                      >
+                        <WhatsAppIcon className="w-4 h-4 text-[#25D366] shrink-0" />
+                        <span className="truncate">হোয়াটসঅ্যাপ</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          shareFacebook();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition cursor-pointer"
+                      >
+                        <Facebook className="w-4 h-4 text-[#1877F2] shrink-0" />
+                        <span className="truncate">ফেসবুক</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          shareTwitter();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
+                      >
+                        <svg className="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        <span className="truncate">টুইটার (X)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyLink}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
+                      >
+                        {copiedLink ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold truncate">কপি হয়েছে!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                            <span className="truncate">লিংক কপি</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {typeof navigator !== 'undefined' && !!navigator.share && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleNativeShare();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="w-full py-1.5 px-2 mt-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-[#1DB954]" />
+                        <span>অন্যান্য অ্যাপসে শেয়ার</span>
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
-          {/* 2-Line Header (Outside/Below the Photo): Line 1 Title, Line 2 Rating/Downloads/Size/Lifetime Access */}
-          <div className="p-5 sm:p-7 border-b border-slate-200 dark:border-slate-800 space-y-2.5 bg-white dark:bg-slate-900">
-            {/* Category / Format Badges & Demo/Share Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#1DB954]/15 text-[#1DB954] border border-[#1DB954]/30 text-xs font-bold">
-                  {product.category}
-                </span>
-                {isFree ? (
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold">
-                    সম্পূর্ণ ফ্রি
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold">
-                    প্রিমিয়াম ডিজিটাল প্রোডাক্ট
-                  </span>
-                )}
-                {product.fileFormat && (
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-700">
-                    {product.fileFormat}
-                  </span>
-                )}
-              </div>
+          {/* Product Banner Image - Click to Zoom & Subtle Prev/Next Navigation */}
+          <div 
+            onClick={() => setLightboxIndex(activeMediaIndex)}
+            className="relative aspect-video sm:aspect-[21/9] w-full bg-slate-950 overflow-hidden cursor-zoom-in group select-none"
+            title="বড় করে দেখতে ক্লিক করুন"
+          >
+            <img
+              src={productMediaList[activeMediaIndex] || product.thumbnail}
+              alt={product.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-101"
+            />
 
-              <div className="flex items-center gap-2">
-                {product.demoUrl && (
-                  <a
-                    href={product.demoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 transition"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span>লাইভ ডেমো ↗</span>
-                  </a>
-                )}
+            {/* Subtle Prev & Next Navigation Buttons on Top Photo */}
+            {productMediaList.length > 1 && (
+              <>
                 <button
                   type="button"
-                  onClick={copyShareLink}
-                  className="p-1.5 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-[#1DB954] text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                  title="শেয়ার লিঙ্ক কপি করুন"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMediaIndex((prev) => (prev > 0 ? prev - 1 : productMediaList.length - 1));
+                  }}
+                  className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/75 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer backdrop-blur-xs active:scale-95 shadow-md"
+                  title="পূর্ববর্তী ছবি"
                 >
-                  {copiedShareLink ? <Check className="w-3.5 h-3.5 text-[#1DB954]" /> : <Share2 className="w-3.5 h-3.5" />}
-                  <span className="hidden sm:inline">{copiedShareLink ? 'কপি হয়েছে' : 'শেয়ার'}</span>
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMediaIndex((prev) => (prev < productMediaList.length - 1 ? prev + 1 : 0));
+                  }}
+                  className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/75 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer backdrop-blur-xs active:scale-95 shadow-md"
+                  title="পরবর্তী ছবি"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </>
+            )}
+
+            {/* Subtle Zoom Hint in Top Right */}
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 text-white/90 text-[11px] sm:text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 backdrop-blur-xs font-medium">
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>বড় করে দেখুন</span>
+            </div>
+
+            {/* Meta text directly on the photo (Above title) - 1 Single Line */}
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 sm:p-3 z-20 flex items-center flex-nowrap overflow-x-auto scrollbar-none gap-2 text-[11px] sm:text-xs text-white/90 whitespace-nowrap"
+            >
+              <span className="inline-flex items-center gap-1 font-bold text-amber-400 shrink-0">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>{product.rating || 5}</span>
+                <span className="text-white/70 font-normal">({product.reviewsCount || 29})</span>
+              </span>
+              <span className="text-white/40 shrink-0">·</span>
+              <span className="font-medium text-white/95 shrink-0">
+                {product.salesCount || 88}+ ডাউনলোড
+              </span>
+              {product.fileSize && (
+                <>
+                  <span className="text-white/40 shrink-0">·</span>
+                  <span className="font-medium text-white/95 shrink-0">
+                    {product.fileSize}
+                  </span>
+                </>
+              )}
+              <span className="text-white/40 shrink-0">·</span>
+              <span className="font-semibold text-emerald-400 shrink-0">
+                লাইফটাইম এক্সেস
+              </span>
+            </div>
+          </div>
+
+          {/* Header (Outside/Below the Photo) */}
+          <div className="p-3.5 sm:p-5 md:p-6 border-b border-slate-200 dark:border-slate-800 space-y-2 bg-white dark:bg-slate-900">
+            {/* Title - Full display (না কেটে পুরো টাইটেল দেখাবে), matching font size of 'এই প্রোডাক্টে আপনি যা যা পাবেন:' (text-sm sm:text-base font-bold) */}
+            <div className="min-w-0">
+              <h1 
+                className="text-sm sm:text-base font-bold font-heading text-slate-900 dark:text-white leading-snug break-words" 
+                title={product.title}
+              >
+                {product.title}
+              </h1>
+            </div>
+
+            {/* Compact Demo Screenshots Strip directly under Title - Click switches top photo WITHOUT zoom */}
+            {productMediaList.length > 0 && (
+              <div className="pt-1">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {productMediaList.map((imgUrl, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setActiveMediaIndex(idx);
+                        // Deliberately no setLightboxIndex here! Just changes active photo
+                      }}
+                      className={`relative w-16 h-11 sm:w-20 sm:h-13 rounded-lg overflow-hidden shrink-0 transition cursor-pointer border ${
+                        activeMediaIndex === idx
+                          ? 'border-[#1DB954] ring-2 ring-[#1DB954]/40 scale-102 opacity-100'
+                          : 'border-slate-200 dark:border-slate-700 opacity-75 hover:opacity-100'
+                      }`}
+                      title={`ডেমো ছবি ${idx + 1}`}
+                    >
+                      <img src={imgUrl} alt={`Screenshot ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* Line 1: Title */}
-            <h1 className="text-lg sm:text-xl md:text-2xl font-black font-heading text-slate-900 dark:text-white leading-snug">
-              {product.title}
-            </h1>
-
-            {/* Line 2: Rating, Downloads, Size, Lifetime Access */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 pt-0.5">
-              <span className="flex items-center gap-1.5 font-bold text-amber-500">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                <span>{product.rating || 4.9} ({product.reviewsCount || 88} রিভিউ)</span>
-              </span>
-              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
-              <span className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
-                <Download className="w-4 h-4 text-[#1DB954]" />
-                <span>{product.salesCount || 310}+ ডাউনলোড</span>
-              </span>
-              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
-              <span className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
-                <Package className="w-4 h-4 text-[#1DB954]" />
-                <span>{product.fileSize || '18 MB'}</span>
-              </span>
-              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
-              <span className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
-                <Clock className="w-4 h-4 text-[#1DB954]" />
-                <span>লাইফটাইম এক্সেস</span>
-              </span>
-            </div>
+            )}
           </div>
 
           {/* Main Body (lg:grid-cols-12 - Matching CourseDetailModal!) */}
-          <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="p-3.5 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
             
             {/* Left Main Content */}
             <div className="lg:col-span-8 space-y-6">
@@ -401,25 +603,19 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('preview')}
-                  className={`pb-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
-                    activeTab === 'preview'
+                  onClick={() => setActiveTab('demo')}
+                  className={`pb-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    activeTab === 'demo'
                       ? 'border-[#1DB954] text-[#1DB954]'
                       : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-white'
                   }`}
                 >
-                  ডেমো ও স্ক্রিনশট ({productMediaList.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('specs')}
-                  className={`pb-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
-                    activeTab === 'specs'
-                      ? 'border-[#1DB954] text-[#1DB954]'
-                      : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-white'
-                  }`}
-                >
-                  স্পেসিফিকেশন ও গাইড
+                  <span>ডেমো ও গ্যালারী</span>
+                  {productMediaList.length > 0 && (
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
+                      {productMediaList.length}
+                    </span>
+                  )}
                 </button>
               </div>
 
@@ -483,7 +679,7 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
                     </ul>
                   </div>
 
-                  {/* Verified Resource Profile (Matching Instructor Profile in CourseDetailModal) */}
+                  {/* Verified Resource Profile */}
                   <div className="p-3 sm:p-3.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-[#1DB954] text-white flex items-center justify-center font-bold text-sm shrink-0">
                       <ShieldCheck className="w-5 h-5" />
@@ -497,136 +693,191 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
                       </p>
                     </div>
                   </div>
-
                 </div>
               )}
 
-              {/* Tab 2: Gallery Preview Tab Content */}
-              {activeTab === 'preview' && (
-                <div className="space-y-4">
-                  <h3 className="text-base sm:text-lg font-bold font-heading text-slate-900 dark:text-white">
-                    প্রোডাক্ট স্ক্রিনশট ও ডেমো প্রিভিউ
-                  </h3>
-
-                  {/* Preview Main Stage */}
-                  <div
-                    onClick={() => setLightboxIndex(activeMediaIndex)}
-                    className="relative aspect-video sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-950 group cursor-pointer border border-slate-200 dark:border-slate-800"
-                  >
-                    <img
-                      src={productMediaList[activeMediaIndex] || product.thumbnail}
-                      alt={product.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                      <span className="px-3.5 py-1.5 rounded-full bg-slate-900/80 text-white text-xs font-bold backdrop-blur-sm border border-white/20 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Maximize2 className="w-3.5 h-3.5" />
-                        <span>ফুলস্ক্রিন দেখুন</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Thumbnails Strip */}
-                  {productMediaList.length > 1 && (
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                      {productMediaList.map((imgUrl, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => setActiveMediaIndex(idx)}
-                          className={`relative w-16 h-11 sm:w-20 sm:h-14 rounded-xl overflow-hidden shrink-0 transition-all cursor-pointer ${
-                            activeMediaIndex === idx
-                              ? 'ring-2 ring-[#1DB954] ring-offset-2 ring-offset-white dark:ring-offset-slate-900 scale-102 opacity-100'
-                              : 'opacity-60 hover:opacity-100 border border-slate-200 dark:border-slate-700'
-                          }`}
+              {/* Tab 2: Demo & Gallery Tab Content (Replaces Specs & Guide) */}
+              {activeTab === 'demo' && (
+                <div className="space-y-6">
+                  {/* Live Demo Link Card: Only shown if admin provided demoUrl */}
+                  {product.demoUrl && product.demoUrl.trim() ? (
+                    <div className="p-3 sm:p-3.5 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] animate-pulse shrink-0" />
+                        <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white flex items-center gap-1.5 truncate whitespace-nowrap">
+                          <Globe className="w-4 h-4 text-[#1DB954] shrink-0" />
+                          <span className="truncate">লাইভ ডেমো প্রিভিউ</span>
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <a
+                          href={product.demoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs transition shadow-xs cursor-pointer active:scale-95 whitespace-nowrap"
                         >
-                          <img src={imgUrl} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
-                        </button>
-                      ))}
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>লাইভ দেখুন</span>
+                        </a>
+                      </div>
                     </div>
-                  )}
+                  ) : null}
 
-                  {/* Live Demo Link Card */}
-                  {product.demoUrl && (
-                    <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <div>
+                  {/* Admin Live Link & Gallery Management Section */}
+                  {currentUser?.role === 'admin' && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/5 border border-amber-500/30 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Edit3 className="w-4 h-4 text-amber-500" />
                           <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                            লাইভ প্রজেক্ট প্রিভিউ দেখুন
+                            এডমিন কন্ট্রোল: লাইভ ডেমো লিংক ও গ্যালারি আপডেট
                           </h4>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                            আসল ইন্টারফেস ও কাজের ডেমো সরাসরি ব্রাউজারে যাচাই করুন
-                          </p>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                          এডমিন শুধুমাত্র
+                        </span>
+                      </div>
+
+                      {/* Live Demo URL for Admin */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                          <span>লাইভ ডেমো ওয়েবসাইট লিংক (URL)</span>
+                          {saveDemoSuccess && (
+                            <span className="text-emerald-500 text-xs flex items-center gap-1 animate-fadeIn font-bold">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> সংরক্ষিত হয়েছে!
+                            </span>
+                          )}
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={adminDemoUrl}
+                            onChange={(e) => setAdminDemoUrl(e.target.value)}
+                            placeholder="https://example.com/demo"
+                            className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateDigitalProduct(product.id, {
+                                demoUrl: adminDemoUrl.trim() || undefined
+                              });
+                              product.demoUrl = adminDemoUrl.trim() || undefined;
+                              setSaveDemoSuccess(true);
+                              setTimeout(() => setSaveDemoSuccess(false), 2500);
+                            }}
+                            className="px-4 py-2 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs transition cursor-pointer whitespace-nowrap active:scale-95"
+                          >
+                            লিংক সেভ করুন
+                          </button>
                         </div>
                       </div>
-                      <a
-                        href={product.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 rounded-xl bg-[#1DB954] hover:bg-emerald-600 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer"
-                      >
-                        <span>লাইভ ডেমো ভিজিট করুন</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
+
+                      {/* Add Gallery Screenshot for Admin */}
+                      <div className="space-y-1.5 pt-2 border-t border-amber-500/20">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          নতুন ডেমো স্ক্রিনশট ইমেজ URL যুক্ত করুন
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={newGalleryImgUrl}
+                            onChange={(e) => setNewGalleryImgUrl(e.target.value)}
+                            placeholder="https://images.unsplash.com/... বা ছবির লিঙ্ক"
+                            className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-[#1DB954]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!newGalleryImgUrl.trim()) return;
+                              const existing = product.demoImages || product.galleryImages || [];
+                              const updated = [...existing, newGalleryImgUrl.trim()];
+                              updateDigitalProduct(product.id, {
+                                demoImages: updated
+                              });
+                              product.demoImages = updated;
+                              setNewGalleryImgUrl('');
+                            }}
+                            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold text-xs transition cursor-pointer whitespace-nowrap flex items-center gap-1 active:scale-95"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>ছবি যুক্ত করুন</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* Tab 3: Specs Tab Content */}
-              {activeTab === 'specs' && (
-                <div className="space-y-4">
-                  <h3 className="text-base sm:text-lg font-bold font-heading text-slate-900 dark:text-white">
-                    স্পেসিফিকেশন ও বিস্তারিত ফাইল তথ্য
-                  </h3>
+                  {/* Screenshots & Preview Gallery Grid */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm sm:text-base font-bold font-heading text-slate-900 dark:text-white truncate whitespace-nowrap">
+                          স্ক্রিনশট গ্যালারী
+                        </h3>
+                        <p className="text-[11px] sm:text-xs text-slate-500 font-bengali truncate whitespace-nowrap">
+                          বড় করে দেখতে ছবিতে ক্লিক করুন
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg shrink-0 whitespace-nowrap">
+                        {productMediaList.length}টি ছবি
+                      </span>
+                    </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                      <span className="text-slate-500 text-[11px] block">ফাইল ফরম্যাট</span>
-                      <span className="font-black text-slate-900 dark:text-white text-sm">
-                        {product.fileFormat || 'ZIP / Archive'}
-                      </span>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                      <span className="text-slate-500 text-[11px] block">ফাইল সাইজ</span>
-                      <span className="font-black text-slate-900 dark:text-white text-sm">
-                        {product.fileSize || 'Standard'}
-                      </span>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                      <span className="text-slate-500 text-[11px] block">ডেলিভারি পদ্ধতি</span>
-                      <span className="font-black text-slate-900 dark:text-white text-sm">
-                        {product.deliveryType === 'canva_auto' ? 'অটো ক্যানভা ভিআইপি এক্সেস' : 'ইনস্ট্যান্ট ডিরেক্ট ডাউনলোড'}
-                      </span>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                      <span className="text-slate-500 text-[11px] block">লাইসেন্স টাইপ</span>
-                      <span className="font-black text-slate-900 dark:text-white text-sm">
-                        ব্যক্তিগত ও বাণিজ্যিক লাইসেন্স
-                      </span>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                      <span className="text-slate-500 text-[11px] block">ভবিষ্যৎ আপডেট</span>
-                      <span className="font-black text-slate-900 dark:text-white text-sm">
-                        লাইফটাইম ফ্রি আপডেট
-                      </span>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 space-y-1">
-                      <span className="text-slate-500 text-[11px] block">সাপোর্ট পলিসি</span>
-                      <span className="font-black text-slate-900 dark:text-white text-sm">
-                        ১০-দিনের মানি-ব্যাক ও টেকনিক্যাল হেল্প
-                      </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {productMediaList.map((imgUrl, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setLightboxIndex(idx)}
+                          className="group relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-slate-800 cursor-zoom-in shadow-xs transition hover:border-[#1DB954]"
+                        >
+                          <img
+                            src={imgUrl}
+                            alt={`${product.title} screenshot ${idx + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+                            <div className="self-end bg-black/60 backdrop-blur-xs text-white text-[10px] px-2 py-1 rounded-md flex items-center gap-1 font-medium">
+                              <Maximize2 className="w-3 h-3" />
+                              <span>বড় করে দেখুন</span>
+                            </div>
+                            <div className="text-white text-xs font-medium truncate">
+                              {idx === 0 ? 'মূল কভার ছবি' : `স্ক্রিনশট #${idx}`}
+                            </div>
+                          </div>
+                          {/* Admin delete image button for additional images */}
+                          {currentUser?.role === 'admin' && idx > 0 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const existing = (product.demoImages || product.galleryImages || []).filter(
+                                  (_, imgIdx) => imgIdx !== (idx - 1)
+                                );
+                                updateDigitalProduct(product.id, {
+                                  demoImages: existing
+                                });
+                                product.demoImages = existing;
+                              }}
+                              className="absolute top-2 left-2 z-10 p-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white transition opacity-0 group-hover:opacity-100 cursor-pointer"
+                              title="ছবি ডিলিট করুন"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
+
                 </div>
               )}
 
             </div>
 
             {/* Right Action Sidebar (lg:col-span-4 - Matching CourseDetailModal!) */}
-            <div className="lg:col-span-4">
-              <div className="bg-slate-50 dark:bg-slate-800/80 p-6 rounded-3xl border border-slate-200 dark:border-slate-700/80 sticky top-4 space-y-6">
+            <div className="lg:col-span-4 block">
+              <div className="bg-slate-50 dark:bg-slate-800/80 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-700/80 sticky top-4 space-y-5">
                 
                 {/* Pricing Box (Matching CourseDetailModal!) */}
                 <div className="text-center pb-4 border-b border-slate-200 dark:border-slate-700">
@@ -1167,22 +1418,59 @@ export const DigitalProductDetailModal: React.FC<DigitalProductDetailModalProps>
       {/* Lightbox Modal */}
       {lightboxIndex !== null && (
         <div
-          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-3"
+          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-3 select-none"
           onClick={() => setLightboxIndex(null)}
         >
           <button
             type="button"
             onClick={() => setLightboxIndex(null)}
-            className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-white/10 rounded-full cursor-pointer"
+            className="absolute top-4 right-4 p-2.5 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full cursor-pointer z-20 transition"
+            title="বন্ধ করুন"
           >
             <X className="w-6 h-6" />
           </button>
+
+          {/* Lightbox Prev & Next Buttons */}
+          {productMediaList.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : productMediaList.length - 1));
+                }}
+                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3.5 text-white/80 hover:text-white bg-white/10 hover:bg-white/25 rounded-full cursor-pointer z-20 backdrop-blur-xs transition active:scale-95 shadow-lg"
+                title="পূর্ববর্তী ছবি"
+              >
+                <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev !== null && prev < productMediaList.length - 1 ? prev + 1 : 0));
+                }}
+                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3.5 text-white/80 hover:text-white bg-white/10 hover:bg-white/25 rounded-full cursor-pointer z-20 backdrop-blur-xs transition active:scale-95 shadow-lg"
+                title="পরবর্তী ছবি"
+              >
+                <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+              </button>
+            </>
+          )}
+
           <img
             src={productMediaList[lightboxIndex] || product.thumbnail}
             alt="Fullscreen"
-            className="max-h-[85vh] max-w-[95vw] object-contain rounded-xl shadow-2xl"
+            className="max-h-[85vh] max-w-[95vw] object-contain rounded-xl shadow-2xl transition-all duration-200"
             onClick={e => e.stopPropagation()}
           />
+
+          {/* Image index counter in Lightbox */}
+          {productMediaList.length > 1 && (
+            <div className="absolute bottom-4 text-xs font-semibold text-white/80 bg-black/60 backdrop-blur-xs px-3.5 py-1.5 rounded-full pointer-events-none">
+              {lightboxIndex + 1} / {productMediaList.length}
+            </div>
+          )}
         </div>
       )}
 

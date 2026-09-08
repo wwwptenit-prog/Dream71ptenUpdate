@@ -63,7 +63,7 @@ export const Hero: React.FC<HeroProps> = ({ setActiveTab, mouseCoords: parentMou
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-2xl sm:text-4xl lg:text-5xl font-black font-bengali leading-snug lg:leading-tight text-white tracking-tight"
+              className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-bengali leading-snug lg:leading-tight text-white tracking-tight"
             >
               {siteSettings.heroHeading || t("ডিজিটাল ক্যারিয়ার ও বিজনেস গড়ুন", "Build Your Career & Business")}
             </motion.h1>

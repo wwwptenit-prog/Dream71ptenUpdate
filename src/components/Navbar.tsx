@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search,
   Menu,
@@ -12,13 +13,26 @@ import {
   ArrowRight,
   Globe,
   BadgeCheck,
-  Award
+  Award,
+  Home,
+  Briefcase,
+  ShieldCheck,
+  Image,
+  GraduationCap,
+  ChevronRight,
+  User,
+  LogOut,
+  MessageSquare,
+  Zap,
+  PlusCircle,
+  Wallet,
+  Heart
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 
 interface NavbarProps {
   activeTab: string;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: string, category?: string) => void;
   openAuthModal: () => void;
   openCourseDetail: (courseId: string) => void;
 }
@@ -37,10 +51,27 @@ export const Navbar: React.FC<NavbarProps> = ({
     toggleDarkMode,
     courses,
     services,
-    siteSettings
+    siteSettings,
+    currentUser,
+    marketplaceOrders,
+    openMessengerInbox,
+    logout,
+    logoutMarketplace
   } = useData();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Prevent background scroll when mobile side drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   // Inline Search State
   const [inlineSearchOpen, setInlineSearchOpen] = useState(false);
@@ -123,24 +154,32 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-3">
             
             {/* Logo */}
-            <div
-              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group shrink-0"
-              onClick={() => setActiveTab('home')}
-            >
-              {siteSettings.logoUrl ? (
-                <img src={siteSettings.logoUrl} alt="PTENit Logo" className="h-8 sm:h-9 w-auto max-w-[120px] sm:max-w-[140px] object-contain rounded-lg" />
-              ) : (
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#1DB954] to-emerald-600 flex items-center justify-center font-bold text-lg sm:text-xl text-white shadow-md shadow-[#1DB954]/20 transform group-hover:scale-105 transition-transform">
-                  P
-                </div>
-              )}
-              <div className="flex flex-col">
-                <span className="font-heading text-lg sm:text-xl font-black tracking-wider text-white flex items-center gap-0.5 leading-tight">
-                  PTEN<span className="text-[#1DB954]">it</span>
-                </span>
-                <span className="text-[8px] sm:text-[9px] text-slate-300 font-medium tracking-tight">
-                  IT Services & Training
-                </span>
+            <div className="md:w-auto flex items-center justify-start shrink-0">
+              <div
+                className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer group shrink-0"
+                onClick={() => setActiveTab('home')}
+              >
+                {siteSettings?.logoUrl ? (
+                  <img
+                    src={siteSettings.logoUrl}
+                    alt={siteSettings?.siteName || "PTENit Logo"}
+                    className="h-7 sm:h-9 md:h-10 w-auto max-w-[110px] xs:max-w-[130px] md:max-w-[160px] object-contain rounded-lg"
+                  />
+                ) : (
+                  <>
+                    <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-[#1DB954] to-emerald-600 flex items-center justify-center font-bold text-base sm:text-xl text-white shadow-md shadow-[#1DB954]/20 transform group-hover:scale-105 transition-transform shrink-0">
+                      P
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-heading text-base sm:text-xl font-black tracking-wider text-white flex items-center gap-0.5 leading-tight">
+                        PTEN<span className="text-[#1DB954]">it</span>
+                      </span>
+                      <span className="hidden sm:block text-[8px] sm:text-[9px] text-slate-300 font-medium tracking-tight">
+                        IT Services & Training
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -291,9 +330,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* MOBILE INLINE SEARCH BAR (CENTERED, EXACT SAME SIZE & LOOK AS MARKETPLACE) */}
-          <div className="flex md:hidden flex-1 min-w-0 mx-1 relative items-center">
-            <div className="relative w-full flex items-center">
+          {/* MOBILE INLINE SEARCH BAR (CENTERED) */}
+          <div className="flex md:hidden flex-1 min-w-0 px-1 relative items-center justify-center">
+            <div className="relative w-full max-w-[210px] sm:max-w-[240px] flex items-center justify-center">
               <input
                 type="text"
                 value={searchQuery}
@@ -306,9 +345,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }
                 }}
                 placeholder={t("সার্চ করুন...", "Search...")}
-                className="w-full pl-7 pr-6 py-1.5 bg-slate-900/90 border border-slate-700/80 text-white rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#1DB954] focus:border-[#1DB954] font-bengali shadow-inner"
+                className="w-full text-center pl-7 pr-7 py-1.5 bg-slate-900/90 border border-slate-700/80 text-white rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#1DB954] focus:border-[#1DB954] font-bengali shadow-inner placeholder:text-center focus:placeholder:text-left focus:text-left"
               />
-              <Search className="w-3.5 h-3.5 text-[#1DB954] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[#1DB954] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
@@ -321,7 +360,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* LIVE FLOATING SEARCH RESULTS DROPDOWN (MOBILE) */}
             {searchQuery.trim() && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-[#142B4D] border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 text-slate-200 max-h-80 overflow-y-auto">
+              <div className="absolute left-1/2 -translate-x-1/2 w-[calc(100vw-24px)] max-w-sm top-full mt-2 bg-[#142B4D] border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 text-slate-200 max-h-80 overflow-y-auto">
                 {filteredCourses.length > 0 && (
                   <div className="mb-2.5">
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 border-b border-slate-700 pb-1 font-bengali">
@@ -396,11 +435,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* RIGHT ACTION CONTROLS */}
-          <div className="hidden md:flex items-center space-x-2.5 lg:space-x-3 shrink-0">
+          <div className="hidden md:flex items-center space-x-2 lg:space-x-2.5 shrink-0">
             {/* Direct Link to Marketplace & Buyer Mode */}
             <button
               onClick={() => setActiveTab('marketplace')}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-400 bg-slate-800/90 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+              className="px-3 py-2 rounded-xl text-xs font-bold text-emerald-400 bg-slate-800/90 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
               title="মার্কেটপ্লেস ও বায়ার মোড"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-[#1DB954]" />
@@ -410,110 +449,284 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* PRIMARY CTA ENROLL BUTTON */}
             <button
               onClick={() => setActiveTab('courses')}
-              className="px-4 py-2 rounded-xl text-xs font-black text-white bg-[#1DB954] hover:bg-emerald-500 shadow-md shadow-[#1DB954]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 font-bengali"
+              className="px-3.5 py-2 rounded-xl text-xs font-black text-white bg-[#1DB954] hover:bg-emerald-500 shadow-md shadow-[#1DB954]/30 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0 font-bengali"
             >
               <BookOpen className="w-4 h-4" />
               <span>কোর্সে জয়েন</span>
             </button>
+
+            {/* AUTH CONTROLS: LOGIN WHEN LOGGED OUT, DASHBOARD & LOGOUT WHEN LOGGED IN */}
+            {currentUser ? (
+              <div className="flex items-center gap-1.5 pl-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentUser.role === 'admin') setActiveTab('admin');
+                    else if (currentUser.role === 'instructor') setActiveTab('teacher-dashboard');
+                    else setActiveTab('customer-dashboard');
+                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700 hover:border-[#1DB954]/50 text-xs font-bold text-white transition cursor-pointer"
+                  title="আমার ড্যাশবোর্ড"
+                >
+                  <div className="w-6 h-6 rounded-full bg-[#1DB954] overflow-hidden flex items-center justify-center text-slate-950 font-black text-xs shrink-0">
+                    {currentUser.avatar ? (
+                      <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                    ) : (
+                      currentUser.name?.charAt(0).toUpperCase() || 'U'
+                    )}
+                  </div>
+                  <span className="max-w-[100px] truncate text-xs">{currentUser.name}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout?.();
+                    logoutMarketplace?.();
+                  }}
+                  className="p-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/70 text-slate-400 hover:text-rose-300 border border-slate-700 transition cursor-pointer"
+                  title="লগআউট"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={openAuthModal}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-slate-800/90 hover:bg-slate-700 transition cursor-pointer flex items-center gap-1.5 font-bengali active:scale-95"
+              >
+                <User className="w-3.5 h-3.5 text-[#1DB954]" />
+                <span>লগইন</span>
+              </button>
+            )}
           </div>
 
-          {/* Mobile Actions: Menu Drawer Button */}
-          <div className="flex md:hidden items-center gap-2 shrink-0">
+          {/* Mobile Actions: Login/Profile + Menu Drawer Button */}
+          <div className="flex md:hidden items-center justify-end gap-1 shrink-0">
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (currentUser.role === 'admin') setActiveTab('admin');
+                  else if (currentUser.role === 'instructor') setActiveTab('teacher-dashboard');
+                  else setActiveTab('customer-dashboard');
+                }}
+                className="w-7 h-7 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 cursor-pointer active:scale-95 transition"
+                title={`প্রোফাইল: ${currentUser.name}`}
+              >
+                {currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[11px] font-black text-[#1DB954]">{currentUser.name?.charAt(0).toUpperCase() || 'U'}</span>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openAuthModal}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-800/60 active:scale-90 transition cursor-pointer"
+                title="লগইন করুন"
+                aria-label="লগইন"
+              >
+                <User className="w-5 h-5 text-[#1DB954]" />
+              </button>
+            )}
+
             <button
-              onClick={() => {
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
                 setMobileMenuOpen(!mobileMenuOpen);
               }}
-              className="p-1.5 text-slate-200 hover:text-white cursor-pointer"
+              className="p-1.5 text-slate-200 hover:text-white cursor-pointer active:scale-95 touch-manipulation"
               aria-label="মেনু খুলুন"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6 text-[#1DB954]" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 text-slate-200" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-[#142B4D] border-t border-slate-700 px-4 pt-3 pb-6 space-y-3 font-bengali">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setMobileMenuOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2.5 rounded-xl text-base font-bold transition-colors flex items-center justify-between ${
-                activeTab === item.id
-                  ? 'bg-[#1DB954] text-white font-bold'
-                  : item.highlight
-                  ? 'text-white bg-slate-800/80 border border-rose-500/50'
-                  : 'text-slate-200 hover:bg-slate-800'
-              }`}
-            >
-              <span>{item.label}</span>
-              {item.highlight && (
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-85"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600 shadow-[0_0_8px_#ef4444]"></span>
-                </span>
-              )}
-            </button>
-          ))}
-
-          {/* Mobile Direct Link to Marketplace & Buyer Mode */}
-          <button
-            onClick={() => {
-              setActiveTab('marketplace');
-              setMobileMenuOpen(false);
-            }}
-            className="w-full text-left px-4 py-2.5 rounded-xl text-base font-bold bg-slate-800/80 text-emerald-400 hover:text-white border border-emerald-500/40 transition-colors flex items-center justify-between cursor-pointer"
-          >
-            <span className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-[#1DB954]" />
-              <span>মার্কেটপ্লেস ও বায়ার মোড</span>
-            </span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('verify');
-              setMobileMenuOpen(false);
-            }}
-            className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold text-emerald-400 hover:bg-slate-800 flex items-center justify-between"
-          >
-            <span>{t('সার্টিফিকেট ভেরিফাই', 'Verify Certificate')}</span>
-            <Sparkles className="w-4 h-4 text-[#1DB954]" />
-          </button>
-
-          <div className="pt-4 border-t border-slate-700 space-y-3">
-            {/* Theme Toggle in Mobile Drawer */}
-            <button
-              onClick={toggleDarkMode}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-800 text-amber-300 font-bold border border-slate-700 cursor-pointer"
-            >
-              <span className="flex items-center gap-2">
-                {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-300" />}
-                <span>{darkMode ? '☀️ লাইট মোড (Light Mode)' : '🌙 ডার্ক মোড (Dark Mode)'}</span>
-              </span>
-              <span className="text-xs px-2 py-0.5 bg-slate-900 rounded text-emerald-400 font-extrabold">
-                {darkMode ? 'DARK' : 'LIGHT'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab('courses');
-                setMobileMenuOpen(false);
-              }}
-              className="w-full py-3 bg-[#1DB954] hover:bg-emerald-500 text-white font-bold rounded-lg shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <BookOpen className="w-5 h-5" />
-              {t('কোর্সে জয়েন করুন', 'Enroll in Course')}
-            </button>
-          </div>
-        </div>
-      )}
       </nav>
+
+      {/* Mobile Navigation Side Drawer (Rendered into document.body via createPortal to guarantee it is NEVER trapped or clipped by backdrop-filter) */}
+      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] md:hidden animate-in fade-in duration-200">
+          {/* Dark Backdrop Overlay */}
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Side Drawer Panel (Slide-in from Right) - Completely Borderless */}
+          <div className="fixed inset-y-0 right-0 w-[85vw] max-w-[340px] bg-[#0B132B] text-white shadow-2xl flex flex-col z-50 animate-in slide-in-from-right duration-300 ease-out">
+            {/* Drawer Top Bar - Minimal & Clean (No Logo, No Badges) */}
+            <div className="flex items-center justify-between px-4 py-3 bg-[#0B132B] shrink-0">
+              <span className="text-xs font-bold text-slate-400">মেনু</span>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition cursor-pointer active:scale-95"
+                aria-label="মেনু বন্ধ করুন"
+              >
+                <X className="w-4 h-4 text-slate-300 hover:text-white" />
+              </button>
+            </div>
+
+            {/* Compact PTENit Main Menu Body - Completely Borderless & No Profile */}
+            <div className="flex-1 p-3.5 space-y-2.5 font-bengali flex flex-col justify-between overflow-y-auto">
+              <div className="space-y-1.5">
+                {/* Primary Navigation Links */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('home');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    activeTab === 'home'
+                      ? 'bg-[#1DB954] text-white font-black'
+                      : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Home className="w-4 h-4 text-emerald-400" />
+                    <span>হোমপেজ</span>
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('courses');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    activeTab === 'courses'
+                      ? 'bg-[#1DB954] text-white font-black'
+                      : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <BookOpen className="w-4 h-4 text-indigo-400" />
+                    <span>কোর্সসমূহ</span>
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('services');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    activeTab === 'services'
+                      ? 'bg-[#1DB954] text-white font-black'
+                      : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Briefcase className="w-4 h-4 text-amber-400" />
+                    <span>আইটি সার্ভিসসমূহ</span>
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('marketplace', 'buying');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    activeTab === 'marketplace'
+                      ? 'bg-[#1DB954] text-white font-black'
+                      : 'bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <ShoppingBag className="w-4 h-4 text-[#1DB954]" />
+                    <span>মার্কেটপ্লেস</span>
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('verify');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    activeTab === 'verify'
+                      ? 'bg-[#1DB954] text-white font-black'
+                      : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Award className="w-4 h-4 text-rose-400" />
+                    <span>সার্টিফিকেট যাচাই</span>
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('contact');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    activeTab === 'contact'
+                      ? 'bg-[#1DB954] text-white font-black'
+                      : 'bg-slate-800/70 text-slate-200 hover:bg-slate-800'
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <PhoneCall className="w-4 h-4 text-teal-400" />
+                    <span>যোগাযোগ ও সাপোর্ট</span>
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+              </div>
+
+              {/* Simple Bottom Action (Login or Logout) */}
+              <div className="pt-2 shrink-0">
+                {currentUser ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      logout?.();
+                      logoutMarketplace?.();
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-rose-950/70 text-slate-300 hover:text-rose-300 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer active:scale-95"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>লগআউট করুন</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      openAuthModal();
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#1DB954] hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 shadow-md"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>লগইন</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </header>
   );
 };

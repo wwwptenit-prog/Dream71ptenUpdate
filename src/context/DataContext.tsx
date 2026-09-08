@@ -1306,6 +1306,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
       setCurrentUser(user);
+      // Synchronize Marketplace login for the same user account
+      const matchingMktUser = users.find(u => 
+        (u.email.toLowerCase() === user.email.toLowerCase() || (u.mobile && u.mobile === user.mobile)) && u.id.startsWith('mkt-')
+      ) || user;
+      setMarketplaceUser(matchingMktUser);
       return true;
     }
 
@@ -1320,6 +1325,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setUsers(prev => [...prev, newUser]);
     setCurrentUser(newUser);
+    setMarketplaceUser(newUser);
     return true;
   };
 
@@ -1331,6 +1337,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setUsers(prev => [...prev, newUser]);
     setCurrentUser(newUser);
+    setMarketplaceUser(newUser);
     return true;
   };
 
@@ -1351,6 +1358,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (user) {
       setMarketplaceUser(user);
+      // Synchronize PTEN login for the same user account
+      const matchingPtenUser = users.find(u => 
+        (u.email.toLowerCase() === user.email.toLowerCase() || (u.mobile && u.mobile === user.mobile)) && !u.id.startsWith('mkt-')
+      ) || user;
+      setPtenitUser(matchingPtenUser);
       return true;
     }
 
@@ -1364,6 +1376,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setUsers(prev => [...prev, newMktUser]);
     setMarketplaceUser(newMktUser);
+    setPtenitUser(newMktUser);
     return true;
   };
 
@@ -1375,24 +1388,41 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setUsers(prev => [...prev, newMktUser]);
     setMarketplaceUser(newMktUser);
+    setPtenitUser(newMktUser);
     return true;
   };
 
   const logoutMarketplace = () => {
     setMarketplaceUser(null);
+    setPtenitUser(null);
+    try {
+      localStorage.removeItem(`${STORAGE_KEY}_marketplace_user`);
+      localStorage.removeItem(`${STORAGE_KEY}_ptenit_user`);
+      localStorage.removeItem(`${STORAGE_KEY}_current_user`);
+    } catch {}
   };
 
   const logout = () => {
     setPtenitUser(null);
+    setMarketplaceUser(null);
+    try {
+      localStorage.removeItem(`${STORAGE_KEY}_marketplace_user`);
+      localStorage.removeItem(`${STORAGE_KEY}_ptenit_user`);
+      localStorage.removeItem(`${STORAGE_KEY}_current_user`);
+    } catch {}
   };
 
   const demoLoginMarketplace = (role: 'customer' | 'instructor') => {
     if (role === 'instructor') {
       const seller = users.find(u => u.id === 'mkt-seller-1') || initialUsers.find(u => u.id === 'mkt-seller-1') || initialUsers[4];
       setMarketplaceUser(seller);
+      const instructor = users.find(u => u.role === 'instructor') || initialUsers[1];
+      setPtenitUser(instructor);
     } else {
       const buyer = users.find(u => u.id === 'mkt-buyer-1') || initialUsers.find(u => u.id === 'mkt-buyer-1') || initialUsers[5];
       setMarketplaceUser(buyer);
+      const customer = users.find(u => u.role === 'customer') || initialUsers[2];
+      setPtenitUser(customer);
     }
   };
 
@@ -2232,8 +2262,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       category: projData.category || 'PTEN IT Agency',
       buyerId: projData.customerId || currentUser?.id || `guest-${Date.now()}`,
       buyerName: projData.customerName || currentUser?.name || 'সম্মানিত ক্লায়েন্ট',
+      buyerAvatar: (projData as any).customerAvatar || currentUser?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
       buyerEmail: projData.customerEmail || currentUser?.email || 'client@ptenit.com',
       buyerPhone: projData.customerPhone || currentUser?.mobile || '01700000000',
+      attachmentName: (projData as any).attachmentName,
+      attachmentUrl: (projData as any).attachmentUrl,
+      offerType: (projData as any).offerType || "work_first",
+      isWorkFirst: (projData as any).isWorkFirst !== undefined ? (projData as any).isWorkFirst : true,
+      deliveryDays: (projData as any).deadline ? Math.max(1, Math.round((new Date((projData as any).deadline).getTime() - Date.now()) / 86400000)) : 7,
       sellerId: 'pending_expert',
       sellerName: 'এক্সপার্ট রিসিভড অপেক্ষমান',
       sellerAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80',

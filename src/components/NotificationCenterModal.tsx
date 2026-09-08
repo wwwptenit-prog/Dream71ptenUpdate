@@ -23,6 +23,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   onNavigateTab,
 }) => {
   const {
+    currentUser,
     notifications,
     isNotificationCenterOpen,
     isMessengerInboxOpen,
@@ -52,14 +53,18 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 
   useEffect(() => {
     if (isNotificationCenterOpen) {
+      if (!currentUser) {
+        closeNotificationCenter();
+        return;
+      }
       setSearchQuery("");
       setSelectedNotification(null);
       setActiveFilter("all");
       setIsNotifSettingsOpen(false);
     }
-  }, [isNotificationCenterOpen]);
+  }, [isNotificationCenterOpen, currentUser]);
 
-  if (!isNotificationCenterOpen || isMessengerInboxOpen) return null;
+  if (!isNotificationCenterOpen || isMessengerInboxOpen || !currentUser) return null;
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

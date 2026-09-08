@@ -36,12 +36,12 @@ export const OfficeLocation: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
         
         {/* Header */}
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-3 sm:gap-4">
-          <h2 className="text-2xl sm:text-4xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-2 sm:gap-3">
+          <h2 className="text-lg sm:text-2xl md:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
             {t('অফিস লোকেশন ও যোগাযোগ', 'Office Location & Contact')}
           </h2>
-          <p className="text-slate-600 dark:text-slate-300 text-sm font-bengali">
-            {t('যেকোনো তথ্য জানতে বা আমাদের অফিসে সরাসরি আসার জন্য ইনকোয়ারি করুন।', 'Inquire or visit our office for any assistance or information.')}
+          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm font-bengali">
+            {t('সরাসরি ইনকোয়ারি করুন বা অফিসে আসুন।', 'Inquire directly or visit our office.')}
           </p>
         </div>
 
@@ -50,13 +50,13 @@ export const OfficeLocation: React.FC = () => {
           
           {/* Inquiry / Contact Form (Visible on all screens) */}
           <div className="lg:col-span-6 bg-white dark:bg-slate-800/95 p-6 sm:p-8 rounded-3xl border border-slate-200/90 dark:border-slate-700/80 shadow-xl space-y-5">
-            <div className="border-b border-slate-100 dark:border-slate-700/70 pb-3">
-              <h3 className="text-xl sm:text-2xl font-black font-bengali text-slate-900 dark:text-white flex items-center gap-2">
-                <Send className="w-5 h-5 text-[#1DB954]" />
-                {t('ইনকোয়ারি / মেসেজ পাঠান', 'Send an Inquiry / Message')}
+            <div className="border-b border-slate-100 dark:border-slate-700/70 pb-2.5">
+              <h3 className="text-base sm:text-xl font-black font-bengali text-slate-900 dark:text-white flex items-center gap-2">
+                <Send className="w-4 h-4 sm:w-5 sm:h-5 text-[#1DB954]" />
+                {t('ইনকোয়ারি পাঠান', 'Send Inquiry')}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {t('ফরমটি পূরণ করুন, আমাদের প্রতিনিধি ২৫ মিনিটের মধ্যে আপনার সাথে কথা বলবেন।', 'Fill up the form, our team will respond within 25 minutes.')}
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {t('ফরমটি পূরণ করুন, প্রতিনিধি ২৫ মিনিটে যোগাযোগ করবেন।', 'Fill the form, we will respond within 25 minutes.')}
               </p>
             </div>
 

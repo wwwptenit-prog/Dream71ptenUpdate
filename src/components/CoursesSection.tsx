@@ -74,7 +74,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({
         {/* Title Header - Clean Modern Layout */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-6 sm:mb-8">
           <div className="space-y-1.5 text-center sm:text-left flex flex-col items-center sm:items-start">
-            <h2 className="text-2xl sm:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
+            <h2 className="text-lg sm:text-2xl md:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
               {t('প্রফেশনাল কোর্স', 'Professional Courses')}
             </h2>
             <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bengali">

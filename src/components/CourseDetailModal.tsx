@@ -3,6 +3,7 @@ import {
   X,
   ArrowLeft,
   ArrowRight,
+  ChevronLeft,
   Star,
   Users,
   Clock,
@@ -21,10 +22,19 @@ import {
   Zap,
   RefreshCw,
   Copy,
-  Check
+  Check,
+  Share2,
+  Facebook
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { Course } from '../types';
+import { SinglePromoBadgeView } from '../utils/badgeHelper';
+
+const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = "w-3.5 h-3.5" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+  </svg>
+);
 
 interface CourseDetailModalProps {
   courseId: string | null;
@@ -105,6 +115,48 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
     : null;
   const isEnrolled = !!userEnrollment;
   const isPendingApproval = userEnrollment?.status === 'pending';
+
+  // Social Media Share States & Actions
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const shareWhatsApp = () => {
+    const text = encodeURIComponent(`${course.title} - PTENit Learning\n${window.location.href}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  };
+
+  const shareFacebook = () => {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+  };
+
+  const shareTwitter = () => {
+    const text = encodeURIComponent(course.title);
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+  };
+
+  const handleCopyLink = () => {
+    fallbackCopyText(window.location.href);
+    setCopiedLink(true);
+    setTimeout(() => {
+      setCopiedLink(false);
+    }, 2000);
+  };
+
+  const handleNativeShare = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: course.title,
+          text: course.description?.slice(0, 100) || course.title,
+          url: window.location.href,
+        });
+      } catch {}
+    } else {
+      handleCopyLink();
+    }
+  };
 
   const handleEnrollClick = async () => {
     if (isPendingApproval) {
@@ -252,81 +304,186 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto min-h-screen font-bengali p-3 sm:p-6 md:p-8 animate-fadeIn text-slate-800 dark:text-slate-100">
-      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-        {/* Top Sticky Navigation Bar */}
-        <div className="bg-white dark:bg-slate-900/90 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs">
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#1DB954] text-slate-800 hover:text-white dark:text-slate-200 dark:hover:text-white font-extrabold text-xs sm:text-sm transition-all cursor-pointer shadow-xs active:scale-95"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>ফিরে যান</span>
-          </button>
-
-          <div className="flex items-center gap-2">
-            <span className="hidden sm:inline-flex px-3 py-1 bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20 rounded-full text-xs font-bold items-center gap-1">
-              <BookOpen className="w-3.5 h-3.5" />
-              {course.category}
-            </span>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto min-h-screen font-bengali p-2 sm:p-4 md:p-6 lg:p-8 animate-fadeIn text-slate-800 dark:text-slate-100">
+      <div className="max-w-6xl mx-auto space-y-3 sm:space-y-4">
 
         {/* Main Course Content Container */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-xs">
 
-        {/* Hero Banner Header */}
-        <div className="relative aspect-video sm:aspect-[21/9] w-full bg-slate-950 overflow-hidden">
-          <img
-            src={course.thumbnail}
-            alt={course.title}
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+          {/* 1. TOP BAR: ব্যাক বাটন | সেন্টারে: প্রিমিয়াম সার্ভিস / সম্পূর্ণ ফ্রি | শেয়ার সোশ্যাল মিডিয়া */}
+          <div className="relative bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 rounded-t-2xl sm:rounded-t-3xl">
+            {/* LEFT: BACK BUTTON (বেক বাটন - ChevronLeft, কালো কালার, কোনো বর্ডার ছাড়া) */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95 shrink-0 border-0 outline-none"
+              title="ফিরে যান"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] text-slate-900 dark:text-white" />
+              <span className="hidden xs:inline text-slate-900 dark:text-white">ফিরে যান</span>
+            </button>
 
-          <div className="absolute bottom-6 left-6 right-6 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#1DB954] text-white text-[11px] font-bold">
-                {course.category}
-              </span>
-              {course.isFree ? (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold">
-                  ফ্রি কোর্স
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[11px] font-bold">
-                  প্রিমিয়াম কোর্স
-                </span>
-              )}
+            {/* CENTER: কোর্স হলে সম্পূর্ণ ফ্রি কোর্স বা প্রিমিয়াম কোর্স (কালো আইকন ও টেক্সট) */}
+            <div className="flex items-center justify-center min-w-0">
+              <SinglePromoBadgeView 
+                item={{ id: course.id, title: course.title, price: course.price, isFree: course.isFree, offerBadge: (course as any).offerBadge }} 
+                itemType="course" 
+                textColor="text-slate-900 dark:text-white"
+              />
             </div>
 
-            <h2 className="text-base sm:text-lg md:text-xl font-bold font-heading text-white leading-snug">
-              {course.title}
-            </h2>
+            {/* RIGHT: শেয়ার সোশ্যাল মিডিয়া (Social Media Share - কালো আইকন ও টেক্সট) */}
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsShareMenuOpen(!isShareMenuOpen)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95 border-0 outline-none"
+                title="সোশ্যাল মিডিয়ায় শেয়ার করুন"
+              >
+                <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-900 dark:text-white" />
+                <span className="hidden sm:inline text-slate-900 dark:text-white">শেয়ার</span>
+              </button>
 
-            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-300 pt-0.5">
-              <span className="flex items-center gap-1 text-amber-400 font-bold">
-                <Star className="w-3.5 h-3.5 fill-amber-400" /> {course.rating} ({course.reviewsCount || 45} রিভিউ)
+              {/* Share Popover Dropdown */}
+              {isShareMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsShareMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 z-50 w-56 sm:w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 space-y-2 animate-fadeIn font-bengali">
+                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 px-1 border-b border-slate-100 dark:border-slate-800 pb-1.5 flex items-center justify-between">
+                      <span>সোশ্যাল মিডিয়ায় শেয়ার করুন</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsShareMenuOpen(false)}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-1.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          shareWhatsApp();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition cursor-pointer"
+                      >
+                        <WhatsAppIcon className="w-4 h-4 text-[#25D366] shrink-0" />
+                        <span className="truncate">হোয়াটসঅ্যাপ</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          shareFacebook();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition cursor-pointer"
+                      >
+                        <Facebook className="w-4 h-4 text-[#1877F2] shrink-0" />
+                        <span className="truncate">ফেসবুক</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          shareTwitter();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
+                      >
+                        <svg className="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        <span className="truncate">টুইটার (X)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyLink}
+                        className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
+                      >
+                        {copiedLink ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold truncate">কপি হয়েছে!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                            <span className="truncate">লিংক কপি</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {typeof navigator !== 'undefined' && !!navigator.share && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleNativeShare();
+                          setIsShareMenuOpen(false);
+                        }}
+                        className="w-full py-1.5 px-2 mt-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-[#1DB954]" />
+                        <span>অন্যান্য অ্যাপসে শেয়ার</span>
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Clean Course Banner Image */}
+          <div className="relative aspect-video sm:aspect-[21/9] w-full bg-slate-950 overflow-hidden">
+            <img
+              src={course.thumbnail}
+              alt={course.title}
+              className="w-full h-full object-cover"
+            />
+
+            {/* Meta stats directly on the photo (Above title) - 1 Single Line */}
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 sm:p-3 z-20 flex items-center flex-nowrap overflow-x-auto scrollbar-none gap-2 text-[11px] sm:text-xs text-white/90 whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 font-bold text-amber-400 shrink-0">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>{course.rating}</span>
+                <span className="text-white/70 font-normal">({course.reviewsCount || 45})</span>
               </span>
-              <span className="flex items-center gap-1">
-                <Users className="w-3.5 h-3.5 text-[#1DB954]" /> {course.enrolledCount}+ শিক্ষার্থী
+              <span className="text-white/40 shrink-0">·</span>
+              <span className="font-medium text-white/95 shrink-0">
+                {course.enrolledCount}+ শিক্ষার্থী
               </span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-[#1DB954]" /> {course.duration}
+              <span className="text-white/40 shrink-0">·</span>
+              <span className="font-medium text-white/95 shrink-0">
+                {course.duration}
               </span>
             </div>
           </div>
-        </div>
 
-        {/* Main Body */}
-        <div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* Left Main Content */}
-          <div className="lg:col-span-8 space-y-6">
+          {/* Header Outside/Below the Photo (Matching Digital Modal Style) */}
+          <div className="p-3.5 sm:p-5 md:p-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+            {/* Title - Full display (টাইটেলের সাথে ডিজিটাল মার্কেটিং ক্যাটাগরি ট্যাগ থাকবে না) */}
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-bold font-heading text-slate-900 dark:text-white leading-snug break-words" title={course.title}>
+                {course.title}
+              </h1>
+            </div>
+          </div>
+
+          {/* Main Body */}
+          <div className="p-3.5 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
             
-            {/* Tabs Header */}
-            <div className="flex border-b border-slate-200 dark:border-slate-800 gap-6 text-sm font-bold font-bengali">
+            {/* Left Main Content */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              {/* Tabs Header */}
+              <div className="flex border-b border-slate-200 dark:border-slate-800 gap-6 text-sm font-bold font-bengali overflow-x-auto scrollbar-none">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`pb-3 border-b-2 transition-colors cursor-pointer ${
@@ -480,7 +637,7 @@ export const CourseDetailModal: React.FC<CourseDetailModalProps> = ({
 
           {/* Right Action Sidebar */}
           <div className="lg:col-span-4">
-            <div className="bg-slate-50 dark:bg-slate-800/80 p-6 rounded-3xl border border-slate-200 dark:border-slate-700/80 sticky top-4 space-y-6">
+            <div className="bg-slate-50 dark:bg-slate-800/80 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-700/80 sticky top-4 space-y-5">
               
               {/* Pricing Box */}
               <div className="text-center pb-4 border-b border-slate-200 dark:border-slate-700">

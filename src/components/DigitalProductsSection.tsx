@@ -202,7 +202,10 @@ export const DigitalProductsSection: React.FC<DigitalProductsSectionProps> = ({ 
     return `https://wa.me/${cleanNum}?text=${encodeURIComponent(msg)}`;
   };
 
+  const savedScrollPositionRef = useRef<number>(0);
+
   const handleOpenDetail = (product: DigitalProduct) => {
+    savedScrollPositionRef.current = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
     setSelectedProduct(product);
     setActiveDetailTab('overview');
     setActiveMediaIndex(0);
@@ -217,17 +220,26 @@ export const DigitalProductsSection: React.FC<DigitalProductsSectionProps> = ({ 
     setPurchaseError(null);
     setIsOrderPlaced(false);
     setCompletedOrder(null);
-    // Instant scroll to top
-    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
-  const handleBackToList = () => {
+  const handleCloseDetail = () => {
+    const targetY = savedScrollPositionRef.current;
     setSelectedProduct(null);
     setPaymentModalOpen(false);
     setCheckoutStep(1);
     setPurchaseError(null);
     setIsOrderPlaced(false);
     setCompletedOrder(null);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: targetY, behavior: 'instant' });
+      setTimeout(() => {
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+      }, 40);
+    });
+  };
+
+  const handleBackToList = () => {
+    handleCloseDetail();
   };
 
   const handleProceedToPayment = (e?: React.FormEvent) => {
@@ -399,17 +411,7 @@ export const DigitalProductsSection: React.FC<DigitalProductsSectionProps> = ({ 
     setTimeout(() => setCopiedShareLink(false), 3000);
   };
 
-  // =========================================================================
-  // 🌟 DEDICATED STANDALONE DETAIL MODAL VIEW (Matching Course Detail Modal)
-  // =========================================================================
-  if (selectedProduct) {
-    return (
-      <DigitalProductDetailModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-      />
-    );
-  }
+  // (Stand-alone detail modal rendered as overlay below to keep scroll position)
 
   // =========================================================================
   // 🛍️ FILTERING & DISPLAYED PRODUCTS
@@ -445,7 +447,7 @@ export const DigitalProductsSection: React.FC<DigitalProductsSectionProps> = ({ 
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div className="space-y-1.5 text-center sm:text-left flex flex-col items-center sm:items-start">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight">
+          <h2 className="text-lg sm:text-2xl md:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
             {t('ডিজিটাল প্রোডাক্টস', 'Digital Products')}
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bengali">
@@ -732,6 +734,14 @@ export const DigitalProductsSection: React.FC<DigitalProductsSectionProps> = ({ 
             </div>
           )}
         </div>
+      )}
+
+      {/* DEDICATED STANDALONE DETAIL MODAL VIEW (Matching Course Detail Modal) */}
+      {selectedProduct && (
+        <DigitalProductDetailModal
+          product={selectedProduct}
+          onClose={handleCloseDetail}
+        />
       )}
     </div>
   );

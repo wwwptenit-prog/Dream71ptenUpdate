@@ -34,6 +34,7 @@ import { useData } from '../context/DataContext';
 import { Service, MarketplaceGig } from '../types';
 import { GigCard } from './GigCard';
 import { GigDetailPage } from './GigDetailPage';
+import { ServiceDetailModal } from './ServiceDetailModal';
 import { DigitalProductsSection } from './DigitalProductsSection';
 import { getLocalizedService } from '../utils/localization';
 
@@ -63,22 +64,38 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 }) => {
   const { currentUser, services, gigs, siteSettings, t, lang, createDirectGigOrder } = useData();
 
+  // Selected Service for Dedicated Service Detail Modal (Matching DigitalProductDetailModal!)
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+
   // Selected Gig/Service for Exact Marketplace Gig Detail View
   const [activeInPlaceGig, setActiveInPlaceGig] = useState<MarketplaceGig | null>(null);
 
   // Top Trending General Gigs
   const featuredGigs = gigs.slice(0, 4);
 
-  // Open Service or Gig Details in EXACT Marketplace Gig Detail View
+  const savedServiceScrollPosRef = useRef<number>(0);
+
+  // Open Service Details in Dedicated Service Detail Modal (Exact Digital Product Style!)
   const handleOpenServiceDetail = (service: Service) => {
-    const matchedGig = mapServiceToGig(service);
-    setActiveInPlaceGig(matchedGig);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    savedServiceScrollPosRef.current = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    setSelectedService(service);
   };
 
   const navigateToGigDetail = (gig: MarketplaceGig) => {
+    savedServiceScrollPosRef.current = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
     setActiveInPlaceGig(gig);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCloseServiceDetail = () => {
+    const targetY = savedServiceScrollPosRef.current;
+    setSelectedService(null);
+    setActiveInPlaceGig(null);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: targetY, behavior: 'instant' });
+      setTimeout(() => {
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+      }, 40);
+    });
   };
 
   // Helper to map an Agency Service into a Marketplace Gig format for GigCard rendering & detailed package ordering
@@ -170,31 +187,15 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
   const allPublishedServices = services.filter(s => s.published);
 
-  // Exact Marketplace Gig Detail View (renders identical to Marketplace gig detail)
+  // Exact Marketplace Gig Detail View (renders identical to PTEN's gigs)
   const renderDetailModal = () => {
     if (!activeInPlaceGig) return null;
     return (
-      <GigDetailPage
-        gig={activeInPlaceGig}
-        allGigs={gigs}
-        currentUser={currentUser}
-        onBack={() => {
-          setActiveInPlaceGig(null);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
-        onSelectGig={(g) => {
-          setActiveInPlaceGig(g);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
-        openAuthModal={openAuthModal}
-        createDirectGigOrder={createDirectGigOrder}
+      <ServiceDetailModal
+        service={activeInPlaceGig}
+        onClose={handleCloseServiceDetail}
         setActiveTab={setActiveTab}
-        onOrderSuccess={() => {
-          setActiveInPlaceGig(null);
-          if (setActiveTab) {
-            setActiveTab("marketplace");
-          }
-        }}
+        openAuthModal={openAuthModal}
       />
     );
   };
@@ -238,6 +239,16 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
         </div>
 
+        {/* IN-PLACE SERVICE DETAIL MODAL (Matching DigitalProductDetailModal!) */}
+        {selectedService && (
+          <ServiceDetailModal
+            service={selectedService}
+            onClose={() => setSelectedService(null)}
+            setActiveTab={setActiveTab}
+            openAuthModal={openAuthModal}
+          />
+        )}
+
         {/* IN-PLACE DETAIL MODAL */}
         {renderDetailModal()}
       </div>
@@ -254,7 +265,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div className="space-y-1.5 text-center sm:text-left flex flex-col items-center sm:items-start">
-              <h2 className="text-2xl sm:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
+              <h2 className="text-lg sm:text-2xl md:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
                 {t('আমাদের অফিশিয়াল এজেন্সি প্যাকেজসমূহ', 'Our Official Agency Packages')}
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bengali">
@@ -305,7 +316,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div className="space-y-1.5 text-center sm:text-left flex flex-col items-center sm:items-start">
-              <h2 className="text-2xl sm:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
+              <h2 className="text-lg sm:text-2xl md:text-3xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
                 {t('জনপ্রিয় গিগ ও ডিজিটাল সার্ভিসসমূহ', 'Popular Gigs & Digital Services')}
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bengali">
@@ -357,6 +368,16 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
           </div>
         </div>
       </section>
+
+      {/* IN-PLACE SERVICE DETAIL MODAL (Matching DigitalProductDetailModal!) */}
+      {selectedService && (
+        <ServiceDetailModal
+          service={selectedService}
+          onClose={handleCloseServiceDetail}
+          setActiveTab={setActiveTab}
+          openAuthModal={openAuthModal}
+        />
+      )}
 
       {/* EXACT MARKETPLACE GIG DETAIL VIEW */}
       {renderDetailModal()}

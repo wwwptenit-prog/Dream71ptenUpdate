@@ -48,6 +48,31 @@
 
 .font-bengali {
   font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif !important;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Softer typography: eliminate harsh, pitch-black bolding on inside elements */
+.font-bengali .font-black,
+.font-bengali .font-extrabold,
+.font-black,
+.font-extrabold {
+  font-weight: 600 !important;
+}
+
+.font-bengali strong,
+.font-bengali b {
+  font-weight: 600;
+}
+
+.font-bengali .font-bold {
+  font-weight: 550;
+}
+
+/* Softer text tone to avoid aggressive pitch-black contrast */
+.font-bengali .text-slate-900,
+html:not(.dark) .text-slate-900 {
+  color: #1e293b; /* slate-800: much softer, elegant and comfortable to read */
 }
 
 .font-english {

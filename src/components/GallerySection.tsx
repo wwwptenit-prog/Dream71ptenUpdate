@@ -51,7 +51,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ onBack }) => {
               </button>
             </div>
           )}
-          <h2 className="text-2xl sm:text-4xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
+          <h2 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black font-bengali text-slate-900 dark:text-white leading-tight">
             {t('ছবি গ্যালারি', 'Photo Gallery')}
           </h2>
           <p className="text-slate-600 dark:text-slate-400 text-sm font-bengali">

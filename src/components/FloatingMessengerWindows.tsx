@@ -146,13 +146,19 @@ export const FloatingMessengerWindows: React.FC<FloatingMessengerWindowsProps> =
     readReceipts: true
   });
 
-  const isOpen = isMessengerInboxOpen || isFullScreenOpen;
+  const isOpen = (isMessengerInboxOpen || isFullScreenOpen) && !!currentUser;
 
   useEffect(() => {
-    if (isMessengerInboxOpen) {
+    if (!currentUser && isMessengerInboxOpen && closeMessengerInbox) {
+      closeMessengerInbox();
+    }
+  }, [currentUser, isMessengerInboxOpen, closeMessengerInbox]);
+
+  useEffect(() => {
+    if (isMessengerInboxOpen && currentUser) {
       setActiveTopTab(initialMessengerTab || 'messages');
     }
-  }, [isMessengerInboxOpen, initialMessengerTab]);
+  }, [isMessengerInboxOpen, initialMessengerTab, currentUser]);
 
   // Synchronize selected conversation ID whenever messenger opens or activeMessengerConversationId changes
   useEffect(() => {

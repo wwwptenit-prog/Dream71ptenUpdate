@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DataProvider, useData } from './context/DataContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -42,6 +42,23 @@ const MainAppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('home');
   const [marketplaceCategory, setMarketplaceCategory] = useState<string>('All');
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const savedCourseScrollRef = useRef<number>(0);
+
+  const handleOpenCourseDetail = (id: string) => {
+    savedCourseScrollRef.current = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    setSelectedCourseId(id);
+  };
+
+  const handleCloseCourseDetail = () => {
+    const targetY = savedCourseScrollRef.current;
+    setSelectedCourseId(null);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: targetY, behavior: 'instant' });
+      setTimeout(() => {
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+      }, 40);
+    });
+  };
   const [learningCourseId, setLearningCourseId] = useState<string | null>(null);
   const [activeCertificateCode, setActiveCertificateCode] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -84,6 +101,12 @@ const MainAppContent: React.FC = () => {
       closeMessengerInbox();
     }
 
+    const protectedTabs = ['admin', 'teacher-dashboard', 'customer-dashboard', 'student-dashboard', 'learning'];
+    if (protectedTabs.includes(tab) && !currentUser) {
+      setAuthModalOpen(true);
+      return;
+    }
+
     if (tab === activeTab && (!category || category === marketplaceCategory)) {
       return;
     }
@@ -100,16 +123,54 @@ const MainAppContent: React.FC = () => {
       }
     }
 
+    if (!currentUser && (tab === 'teacher-dashboard' || tab === 'admin' || tab === 'customer-dashboard' || tab === 'student-dashboard')) {
+      setAuthModalOpen(true);
+      return;
+    }
+
     if (category) {
       setMarketplaceCategory(category);
     } else if (tab === 'student-dashboard') {
       setMarketplaceCategory('my-courses');
     } else if (tab === 'teacher-dashboard') {
+      const isSeller = Boolean(
+        currentUser && (
+          currentUser.role === 'instructor' ||
+          currentUser.role === 'specialist' ||
+          currentUser.role === 'admin' ||
+          (currentUser as any).isSpecialist ||
+          (currentUser as any).isSeller ||
+          (currentUser as any).isMentor ||
+          (currentUser as any).mentorStatus === 'approved' ||
+          (currentUser as any).specialistStatus === 'approved' ||
+          currentUser.roles?.includes('instructor') ||
+          currentUser.roles?.includes('specialist')
+        )
+      );
+      if (!isSeller) {
+        setMarketplaceCategory('buying');
+        setActiveTab('customer-dashboard');
+        return;
+      }
       setMarketplaceCategory('selling');
     } else if (tab === 'customer-dashboard') {
       setMarketplaceCategory('buying');
     } else if (tab === 'marketplace') {
-      setMarketplaceCategory(marketplaceMode === 'selling' ? 'selling' : 'All');
+      const isSeller = Boolean(
+        currentUser && (
+          currentUser.role === 'instructor' ||
+          currentUser.role === 'specialist' ||
+          currentUser.role === 'admin' ||
+          (currentUser as any).isSpecialist ||
+          (currentUser as any).isSeller ||
+          (currentUser as any).isMentor ||
+          (currentUser as any).mentorStatus === 'approved' ||
+          (currentUser as any).specialistStatus === 'approved' ||
+          currentUser.roles?.includes('instructor') ||
+          currentUser.roles?.includes('specialist')
+        )
+      );
+      setMarketplaceCategory((marketplaceMode === 'selling' && isSeller) ? 'selling' : 'All');
     }
     setActiveTab(tab);
   };
@@ -340,7 +401,7 @@ const MainAppContent: React.FC = () => {
               <StatsCounter />
               <ServicesSection setActiveTab={handleSetActiveTab} isStandalonePage={false} />
               <CoursesSection
-                onOpenDetail={(id) => setSelectedCourseId(id)}
+                onOpenDetail={handleOpenCourseDetail}
                 onQuickEnroll={handleQuickEnroll}
                 onStartLearning={handleStartLearning}
                 setActiveTab={handleSetActiveTab}
@@ -354,7 +415,7 @@ const MainAppContent: React.FC = () => {
           {/* VIEW 2: COURSES PAGE */}
           {activeTab === 'courses' && (
             <CoursesSection
-              onOpenDetail={(id) => setSelectedCourseId(id)}
+              onOpenDetail={handleOpenCourseDetail}
               onQuickEnroll={handleQuickEnroll}
               onStartLearning={handleStartLearning}
               setActiveTab={handleSetActiveTab}
@@ -486,7 +547,7 @@ const MainAppContent: React.FC = () => {
         {selectedCourseId && (
           <CourseDetailModal
             courseId={selectedCourseId}
-            onClose={() => setSelectedCourseId(null)}
+            onClose={handleCloseCourseDetail}
             openAuthModal={() => setAuthModalOpen(true)}
             onStartLearning={handleStartLearning}
           />

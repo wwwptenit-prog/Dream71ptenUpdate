@@ -30,6 +30,16 @@ export function getLiveSessionDynamicStatus(
   }
 }
 
+export function getActiveLiveSessions(
+  sessions: LiveClassSession[] | null | undefined
+): LiveClassSession[] {
+  if (!sessions || !Array.isArray(sessions)) return [];
+  return sessions.filter(session => {
+    const status = getLiveSessionDynamicStatus(session);
+    return status === 'live_now' || status === 'scheduled';
+  });
+}
+
 export function formatBanglaLiveSchedule(dateStr: string, timeStr: string): string {
   try {
     const d = new Date(`${dateStr}T${timeStr}`);
